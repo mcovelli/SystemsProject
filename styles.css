@@ -63,3 +63,10 @@ body {
   border-radius: 4px;
   cursor: pointer;
 }
+
+label {
+  font-size: 18px;
+  display: flex;       /* keeps checkbox and text aligned */
+  align-items: center; /* vertical centering */
+  gap: 6px;            /* space between checkbox and text */
+}

@@ -6,13 +6,13 @@ document.getElementById("loginForm").addEventListener("submit", function(event) 
     event.preventDefault();
     document.getElementById("error-message").textContent = "Both fields are required.";
   }
+});
 
-  function showPassword() {
+function showPassword() {
   var x = document.getElementById("myInput");
   if (x.type === "password") {
     x.type = "text";
   } else {
     x.type = "password";
     }
-  }
-});
+}

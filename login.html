@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Page</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="auth-container login-container" role="main" aria-labelledby="login-title">
+    <h2 id="login-title">Login</h2>
+    <form action="/login.php" method="post" novalidate>
+      <input type="text" name="username" required placeholder="Username" autocomplete="username">
+      <input type="password" name="password" required placeholder="Password" autocomplete="current-password">
+      <button type="submit">Login</button>
+    </form>
+
+    <p style="text-align:center;">
+      <a id="forgotPassword" href="forgot_password.html">Forgot Password?</a>
+    </p>
+    <p id="error-message"></p>
+  </div>
+</body>
+</html>

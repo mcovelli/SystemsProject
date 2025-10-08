@@ -1,0 +1,20 @@
+# Secrets
+config.php
+.env.php
+
+# DB dumps
+*.sql
+*.sql.gz
+
+# Logs & junk
+*.log
+.DS_Store
+Thumbs.db
+
+# Dependencies (if used)
+vendor/
+node_modules/
+
+# Uploads (if your app stores files)
+storage/
+uploads/

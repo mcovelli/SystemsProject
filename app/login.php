@@ -26,25 +26,28 @@ try {
 
   /* ------------------ ONLY ALLOW POST ------------------ */
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: login.html'); exit;
+    header('Location: login.html');
+    exit;
   }
 
   /* ------------------ READ FORM FIELDS ------------------ */
-  // form uses name="username" and name="password". We'll also accept "loginid".
+  // Accepts name="username" (or legacy name="loginid") and name="password"
   $loginRaw = trim((string)($_POST['username'] ?? $_POST['loginid'] ?? ''));
   $passIn   = (string)($_POST['password'] ?? '');
 
   if ($loginRaw === '' || $passIn === '') {
-    header('Location: login.html?err=empty'); exit;
+    header('Location: login.html?err=empty');
+    exit;
   }
 
-  // Your schema has LoginID INT. If you actually use alphanumeric IDs, tell me and we'll switch to VARCHAR + bind "s".
+  // Schema uses INT LoginID; switch to VARCHAR + "s" bind if you move to alphanumeric IDs
   if (!ctype_digit($loginRaw)) {
-    header('Location: login.html?err=invalid'); exit;
+    header('Location: login.html?err=invalid');
+    exit;
   }
   $loginId = (int)$loginRaw;
 
-  /* ------------------ FETCH LOGIN + ROLE (only existing columns) ------------------ */
+  /* ------------------ FETCH LOGIN + ROLE (existing columns only) ------------------ */
   $sql = "
     SELECT 
       l.LoginID, l.UserID, l.Password, l.LoginAttempts,
@@ -63,21 +66,16 @@ try {
   $stmt->close();
 
   if (!$row) {
-    header('Location: login.html?err=invalid'); exit;
+    header('Location: login.html?err=invalid');
+    exit;
   }
 
   /* ------------------ VERIFY PASSWORD ------------------ */
-
-  // Accept either hashed (after reset) or legacy plaintext
   $stored = (string)$row['Password'];
   $input  = (string)$passIn;
 
   $looksHashed = str_starts_with($stored, '$2y$') || str_starts_with($stored, '$argon2');
-  if ($looksHashed) {
-    $ok = password_verify($input, $stored);
-  } else {
-    $ok = ($input === $stored); // legacy plaintext fallback
-  }
+  $ok = $looksHashed ? password_verify($input, $stored) : ($input === $stored);
 
   if ($ok) {
     // Reset attempts on success
@@ -86,15 +84,18 @@ try {
     $upd->execute();
     $upd->close();
 
+    // Harden session
+    session_regenerate_id(true);
+
     // Set session + role
     $_SESSION['login_id'] = (int)$row['LoginID'];
     $_SESSION['user_id']  = (int)$row['UserID'];
 
+    // Derive role from Users.UserType first, fallback to Login.UserType
     $roleSource = $row['UsersUserType'] ?: $row['LoginUserType'];   // 'Student','Faculty','Admin','StatStaff'
     $role = strtolower(preg_replace('/\s+/', '', (string)$roleSource)); // -> 'student','faculty','admin','statstaff'
     $_SESSION['role'] = $role;
 
-    // Routes (absolute paths)
     $routes = [
       'student'   => 'student_dashboard.php',
       'faculty'   => 'faculty_dashboard.php',
@@ -102,43 +103,55 @@ try {
       'statstaff' => 'statstaff_dashboard.php',
     ];
 
-    // Safety check
-    if (!isset($routes[$role]) || !file_exists($_SERVER['DOCUMENT_ROOT'] . $routes[$role])) {
-      error_log("[LOGIN] SUCCESS but route missing for role=$role");
-      header('Location: login.html?err=route'); exit;
+    // Safety checks (use current folder)
+    if (!isset($routes[$role])) {
+      error_log("[LOGIN] SUCCESS but unknown role=$role");
+      header('Location: login.html?err=route');
+      exit;
     }
 
-    error_log("[LOGIN] SUCCESS LoginID=$loginId role=$role redirect=" . $routes[$role]);
-    header('Location: ' . $routes[$role], true, 302);
+    $target = $routes[$role];
+    $abs    = __DIR__ . '/' . $target;  // same folder as login.php (app/)
+    if (!is_file($abs)) {
+      error_log("[LOGIN] SUCCESS but file missing for role=$role path=$abs");
+      header('Location: login.html?err=route');
+      exit;
+    }
+
+    // Log, redirect once, exit
+    error_log("[LOGIN] SUCCESS LoginID=$loginId role=$role redirect=$target");
+    header('Location: ' . $target, true, 302);
+    exit;
+
+  } else {
+    /* ------------------ FAIL: increment attempts; on 3 → identity verify ------------------ */
+    $mysqli->begin_transaction();
+
+    // increment attempts
+    $inc = $mysqli->prepare("UPDATE Login SET LoginAttempts = COALESCE(LoginAttempts,0) + 1 WHERE LoginID = ?");
+    $inc->bind_param("i", $loginId);
+    $inc->execute();
+    $inc->close();
+
+    // read updated attempts
+    $get = $mysqli->prepare("SELECT LoginAttempts FROM Login WHERE LoginID = ? LIMIT 1");
+    $get->bind_param("i", $loginId);
+    $get->execute();
+    $get->bind_result($attempts);
+    $get->fetch();
+    $get->close();
+
+    $mysqli->commit();
+
+    if ((int)$attempts >= 3) {
+      header('Location: verify_identity.php?loginid=' . urlencode((string)$loginId) . '&reason=failed_attempts');
+      exit;
+    }
+
+    // below threshold
+    header('Location: login.html?err=invalid');
     exit;
   }
-
-  /* ------------------ FAIL: increment attempts; on 3 redirect to reset ------------------ */
-  $mysqli->begin_transaction();
-
-  // increment attempts
-  $inc = $mysqli->prepare("UPDATE Login SET LoginAttempts = COALESCE(LoginAttempts,0) + 1 WHERE LoginID = ?");
-  $inc->bind_param("i", $loginId);
-  $inc->execute();
-  $inc->close();
-
-  // read updated attempts
-  $get = $mysqli->prepare("SELECT LoginAttempts FROM Login WHERE LoginID = ? LIMIT 1");
-  $get->bind_param("i", $loginId);
-  $get->execute();
-  $get->bind_result($attempts);
-  $get->fetch();
-  $get->close();
-
-  if ((int)$attempts >= 3) {
-    header('Location: verify_identity.php?loginid=' . urlencode((string)$loginId) . '&reason=failed_attempts');
-    exit;
-  }
-
-  $mysqli->commit();
-
-  // below threshold
-  header('Location: login.html?err=invalid'); exit;
 
 } catch (Throwable $e) {
   // Anything unexpected (missing column, bad SQL, etc.) gets logged here

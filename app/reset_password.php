@@ -40,7 +40,7 @@ try {
     <body>
         <div class="auth-container">
       <h2>Reset Password</h2>
-      <form method="post" action="/reset_password.php">
+      <form method="post" action="reset_password.php">
         <input type="hidden" name="token" value="<?php echo htmlspecialchars($t, ENT_QUOTES); ?>">
         <label>New password</label>
         <input type="password" name="newpw" required>

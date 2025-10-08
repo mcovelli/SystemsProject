@@ -9,10 +9,12 @@
 <body>
   <div class="auth-container login-container" role="main" aria-labelledby="login-title">
     <h2 id="login-title">Login</h2>
-    <form action="/login.php" method="post" novalidate>
-      <input type="text" name="username" required placeholder="username" autocomplete="username">
-      <input type="password" name="password" required placeholder="password" autocomplete="current-password">
-      <input type="checkbox" onclick="showPassword()">Show Password
+    <form id="loginForm" action="/login.php" method="post" novalidate>
+      <input type="text" id="username" name="username" required placeholder="Username" autocomplete="username">
+      <input type="password" id="password" name="password" required placeholder="Password" autocomplete="current-password">
+      <label style="font-size:18px;">  <!-- adjust size here -->
+        <input type="checkbox" onclick="showPassword()"> Show Password
+      </label>
       <button type="submit">Login</button>
     </form>
 

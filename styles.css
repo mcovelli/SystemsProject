@@ -65,7 +65,7 @@ body {
 }
 
 label {
-  font-size: 18px;
+  font-size: 12px;
   display: flex;       /* keeps checkbox and text aligned */
   align-items: center; /* vertical centering */
   gap: 6px;            /* space between checkbox and text */

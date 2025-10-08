@@ -26,7 +26,7 @@ try {
 
   /* ------------------ ONLY ALLOW POST ------------------ */
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /app/login.html'); exit;
+    header('Location: login.html'); exit;
   }
 
   /* ------------------ READ FORM FIELDS ------------------ */
@@ -35,12 +35,12 @@ try {
   $passIn   = (string)($_POST['password'] ?? '');
 
   if ($loginRaw === '' || $passIn === '') {
-    header('Location: /app/login.html?err=empty'); exit;
+    header('Location: login.html?err=empty'); exit;
   }
 
   // Your schema has LoginID INT. If you actually use alphanumeric IDs, tell me and we'll switch to VARCHAR + bind "s".
   if (!ctype_digit($loginRaw)) {
-    header('Location: /app/login.html?err=invalid'); exit;
+    header('Location: login.html?err=invalid'); exit;
   }
   $loginId = (int)$loginRaw;
 
@@ -63,7 +63,7 @@ try {
   $stmt->close();
 
   if (!$row) {
-    header('Location: /app/login.html?err=invalid'); exit;
+    header('Location: login.html?err=invalid'); exit;
   }
 
   /* ------------------ VERIFY PASSWORD ------------------ */
@@ -96,16 +96,16 @@ try {
 
     // Routes (absolute paths)
     $routes = [
-      'student'   => '/app/student_dashboard.php',
-      'faculty'   => '/app/faculty_dashboard.php',
-      'admin'     => '/app/admin_dashboard.php',
-      'statstaff' => '/app/statstaff_dashboard.php',
+      'student'   => 'student_dashboard.php',
+      'faculty'   => 'faculty_dashboard.php',
+      'admin'     => 'admin_dashboard.php',
+      'statstaff' => 'statstaff_dashboard.php',
     ];
 
     // Safety check
     if (!isset($routes[$role]) || !file_exists($_SERVER['DOCUMENT_ROOT'] . $routes[$role])) {
       error_log("[LOGIN] SUCCESS but route missing for role=$role");
-      header('Location: /app/login.html?err=route'); exit;
+      header('Location: login.html?err=route'); exit;
     }
 
     error_log("[LOGIN] SUCCESS LoginID=$loginId role=$role redirect=" . $routes[$role]);
@@ -131,14 +131,14 @@ try {
   $get->close();
 
   if ((int)$attempts >= 3) {
-    header('Location: /app/verify_identity.php?loginid=' . urlencode((string)$loginId) . '&reason=failed_attempts');
+    header('Location: verify_identity.php?loginid=' . urlencode((string)$loginId) . '&reason=failed_attempts');
     exit;
   }
 
   $mysqli->commit();
 
   // below threshold
-  header('Location: /app/login.html?err=invalid'); exit;
+  header('Location: login.html?err=invalid'); exit;
 
 } catch (Throwable $e) {
   // Anything unexpected (missing column, bad SQL, etc.) gets logged here

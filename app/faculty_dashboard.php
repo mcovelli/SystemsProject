@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /app/login.html");
+    header("Location: login.html");
     exit;
 }
 
@@ -32,6 +32,6 @@ if (!$faculty) {
     $faculty['FirstName'] . ' ' . $faculty['LastName'] . ' (' . $faculty['UserType'] . ')'); ?></h1>
   <p>Email: <?php echo htmlspecialchars($faculty['Email']); ?></p>
   <p>Status: <?php echo htmlspecialchars($faculty['Status']); ?></p>
-  <p><a href="/app/logout.php">Log out</a></p>
+  <p><a href="logout.php">Log out</a></p>
 </body>
 </html>

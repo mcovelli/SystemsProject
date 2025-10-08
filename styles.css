@@ -64,9 +64,18 @@ body {
   cursor: pointer;
 }
 
-#checkBox {
-  font-size: 12px;
-  display: flex;       /* keeps checkbox and text aligned */
-  align-items: center; /* vertical centering */
-  gap: 6px;            /* space between checkbox and text */
+/* checkbox should not be full width */
+.login-container input[type="checkbox"] {
+  width: auto;
+  margin: 0; /* we'll space via the label */
 }
+
+/* checkbox row */
+#checkBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;           /* space between box and text */
+  font-size: 14px;    /* adjust size here */
+  margin: 8px 0 15px; /* vertical spacing around the row */
+}
+

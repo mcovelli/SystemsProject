@@ -2,10 +2,6 @@
 config.php
 .env.php
 
-# DB dumps
-*.sql
-*.sql.gz
-
 # Logs & junk
 *.log
 .DS_Store

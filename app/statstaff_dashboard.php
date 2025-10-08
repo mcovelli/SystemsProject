@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /login.html");
+    header("Location: /app/login.html");
     exit;
 }
 
@@ -32,6 +32,6 @@ if (!$statstaff) {
     $statstaff['FirstName'] . ' ' . $statstaff['LastName'] . ' (' . $statstaff['UserType'] . ')'); ?></h1>
   <p>Email: <?php echo htmlspecialchars($statstaff['Email']); ?></p>
   <p>Status: <?php echo htmlspecialchars($statstaff['Status']); ?></p>
-  <p><a href="/logout.php">Log out</a></p>
+  <p><a href="/app/logout.php">Log out</a></p>
 </body>
 </html>

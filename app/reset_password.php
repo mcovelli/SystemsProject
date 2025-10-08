@@ -46,7 +46,7 @@ try {
         <input type="password" name="newpw" required>
         <button type="submit">Update</button>
       </form>
-      <p><a href="/login.html">Back to login</a></p>
+      <p><a href="/app/login.html">Back to login</a></p>
     </body>
     </html>
     <?php
@@ -58,7 +58,7 @@ try {
     $new = $_POST['newpw'] ?? '';
 
     if ($t === '' || $new === '') {
-      header('Location: /login.html?err=badreset'); exit;
+      header('Location: /app/login.html?err=badreset'); exit;
     }
 
     // Confirm token again (still valid)
@@ -69,7 +69,7 @@ try {
     $ok = $sel->fetch();
     $sel->close();
 
-    if (!$ok) { header('Location: /login.html?err=expired'); exit; }
+    if (!$ok) { header('Location: /app/login.html?err=expired'); exit; }
 
     // Hash the new password
     $hash = password_hash($new, PASSWORD_DEFAULT);
@@ -86,7 +86,7 @@ try {
 
     // Send back to login page with a success message
     error_log("[RESET] Password updated for LoginID=$loginId, redirecting to login.html");
-    header('Location: /login.html?info=reset_ok'); 
+    header('Location: /app/login.html?info=reset_ok'); 
     exit;
   }
 

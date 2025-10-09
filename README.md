@@ -41,20 +41,12 @@ Teammate Setup (Windows) — Step by Step
    			$mysqli = new mysqli("127.0.0.1", "phpuser", "SystemsFall2025!", "University", 3306);
    		Change to your HOST, PORT, USER, PASSWORD. DB_NAME should remain University
 
-  You have two easy choices. Pick ONE.
-
-  Option A (simplest): copy into XAMPP web root
+  
   	1.	Open C:\xampp\htdocs\
   	2.	Copy your SystemsProject folder into htdocs → now you have: C:\xampp\htdocs\SystemsProject\
   	3.	In XAMPP Control Panel, click Start on Apache (and MySQL if not already running).
   	4.	Open your browser: http://localhost/SystemsProject/login.html
   	    •	You’re now running the site locally, using your local database.
-  
-  Option B (no copying): point XAMPP to your Documents folder
-  	1.	Delete C:\xampp\htdocs\SystemsProject if it exists.
-  	2.	Open Command Prompt as Administrator.
-  	3.	Run (replace <YourName> to Match your Documents Folder pathname):
-    mklink /D C:\xampp\htdocs\SystemsProject C:\Users\<YourName>\Documents\SystemsProject
     
    4.	Start Apache in XAMPP (and MySQL).
    5.	Open: http://localhost/SystemsProject/login.html

@@ -28,9 +28,10 @@ Teammate Setup (Windows) — Step by Step
     	•	Wait for the green success banner.
 
 4) Run the site locally
-   _IMPORTANT_
-   	you will have to change the database info at the top of .php files!
-   	Anywhere you see one of the following:
+
+   	_IMPORTANT_
+   		You will have to change the database info at the top of .php files!
+   		Anywhere you see one of the following:
    			$DB_HOST = "127.0.0.1";
 			$DB_PORT = 3306;
 			$DB_USER = "phpuser";
@@ -67,9 +68,12 @@ Teammate Setup (Windows) — Step by Step
 	4.	Test locally: refresh http://localhost/SystemsProject/login.html
 	    •	Use a hard refresh (Ctrl+Shift+R) if your browser caches.
 	5.	Commit & Push (save work to GitHub):
+		•	Make sure the site doesn't break before commiting/pushing changes
 	    •	Open GitHub Desktop → verify changed files under Changes
 	    •	Enter a short message, e.g., “Fix student dashboard layout”
 	    •	Click Commit to main → Push origin.
-	6.	Tell Mike C.: “Ready to deploy.”
+	7.	Tell Mike C.: “Ready to deploy.”
 	    •	Mike C. will publish the changes to the live site.
-   	    •	Changes wont appear on the live site until Mike deloys
+   	    •	Changes wont appear on the live site until Mike C. deloys
+
+	The live site is http://3.223.132.79/login.html. This will update once Mike C. deploys the changes

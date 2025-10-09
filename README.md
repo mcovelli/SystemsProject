@@ -28,6 +28,17 @@ Teammate Setup (Windows) — Step by Step
     	•	Wait for the green success banner.
 
 4) Run the site locally
+   _IMPORTANT_
+   	you will have to change the database info at the top of .php files!
+   	Anywhere you see one of the following:
+   			$DB_HOST = "127.0.0.1";
+			$DB_PORT = 3306;
+			$DB_USER = "phpuser";
+			$DB_PASS = "SystemsFall2025!";
+			$DB_NAME = "University";
+   		OR
+   			$mysqli = new mysqli("127.0.0.1", "phpuser", "SystemsFall2025!", "University", 3306);
+   		Change to your HOST, PORT, USER, PASSWORD. DB_NAME should remain University
 
   You have two easy choices. Pick ONE.
 

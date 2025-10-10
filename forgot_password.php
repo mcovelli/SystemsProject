@@ -4,7 +4,7 @@ $mysqli = new mysqli("127.0.0.1", "phpuser", "SystemsFall2025!", "University");
 if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["token"])) {
     $token = $_GET["token"];
     // Show form to enter new password
-    echo '<form action="reset_password.php" method="post">
+    echo '<form action="/SystemsProject/reset_password.php" method="post">
             <input type="hidden" name="token" value="'.$token.'">
             <input type="password" name="new_password" placeholder="New Password" required>
             <button type="submit">Update Password</button>

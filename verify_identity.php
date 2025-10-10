@@ -56,7 +56,7 @@ function render_form(string $err = '', string $prefillLoginId = '', string $reas
   <h2>Verify Your Identity</h2>
   $errHtml
   <p class="hint">Enter your LoginID, First Name, Last Name, Email, and Date of Birth to continue.</p>
-  <form method="post" action="verify_identity.php">
+  <form method="post" action="/SystemsProject/verify_identity.php">
     <input type="hidden" name="reason" value="$reason">
 
     <label>LoginID
@@ -81,7 +81,7 @@ function render_form(string $err = '', string $prefillLoginId = '', string $reas
 
     <button type="submit">Continue</button>
   </form>
-  <p class="hint" style="margin-top:10px;"><a href="login.html">Back to login</a></p>
+  <p class="hint" style="margin-top:10px;"><a href="/SystemsProject/login.html">Back to login</a></p>
 </body>
 </html>
 HTML;
@@ -162,7 +162,7 @@ try {
     $set->close();
 
     loghit("IDENTITY OK loginid=$loginIdInt -> reset_password.php");
-    header('Location: reset_password.php?token=' . urlencode($tok));
+    header('Location: /SystemsProject/reset_password.php?token=' . urlencode($tok));
     exit;
   }
 

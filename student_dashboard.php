@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.html");
+    header("Location: /SystemsProject/login.html");
     exit;
 }
 
@@ -32,6 +32,6 @@ if (!$student) {
     $student['FirstName'] . ' ' . $student['LastName'] . ' (' . $student['UserType'] . ')'); ?></h1>
   <p>Email: <?php echo htmlspecialchars($student['Email']); ?></p>
   <p>Status: <?php echo htmlspecialchars($student['Status']); ?></p>
-  <p><a href="logout.php">Log out</a></p>
+  <p><a href="/SystemsProject/logout.php">Log out</a></p>
 </body>
 </html>

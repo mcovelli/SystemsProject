@@ -40,13 +40,13 @@ try {
     <body>
         <div class="auth-container">
       <h2>Reset Password</h2>
-      <form method="post" action="reset_password.php">
+      <form method="post" action="/reset_password.php">
         <input type="hidden" name="token" value="<?php echo htmlspecialchars($t, ENT_QUOTES); ?>">
         <label>New password</label>
         <input type="password" name="newpw" required>
         <button type="submit">Update</button>
       </form>
-      <p><a href="login.html">Back to login</a></p>
+      <p><a href="/SystemsProject/login.html">Back to login</a></p>
     </body>
     </html>
     <?php
@@ -58,7 +58,7 @@ try {
     $new = $_POST['newpw'] ?? '';
 
     if ($t === '' || $new === '') {
-      header('Location: login.html?err=badreset'); exit;
+      header('Location: /SystemsProject/login.html?err=badreset'); exit;
     }
 
     // Confirm token again (still valid)
@@ -69,7 +69,7 @@ try {
     $ok = $sel->fetch();
     $sel->close();
 
-    if (!$ok) { header('Location: login.html?err=expired'); exit; }
+    if (!$ok) { header('Location: /SystemsProject/login.html?err=expired'); exit; }
 
     // Hash the new password
     $hash = password_hash($new, PASSWORD_DEFAULT);
@@ -85,8 +85,8 @@ try {
     $upd->close();
 
     // Send back to login page with a success message
-    error_log("[RESET] Password updated for LoginID=$loginId, redirecting to login.html");
-    header('Location: login.html?info=reset_ok'); 
+    error_log("[RESET] Password updated for LoginID=$loginId, redirecting to /SystemsProject/login.html");
+    header('Location: /SystemsProject/login.html?info=reset_ok'); 
     exit;
   }
 

@@ -117,8 +117,6 @@ try {
       exit;
     }
 
-    $target = $routes[$role];
-
     // When $target is an absolute web path (/SystemsProject/...), use DOCUMENT_ROOT to check file existence
     $abs = rtrim((string)($_SERVER['DOCUMENT_ROOT'] ?? ''), '/') . $target;
     if (!is_file($abs)) {
@@ -128,6 +126,22 @@ try {
     }
 
     error_log("[LOGIN] SUCCESS email={$row['Email']} loginId=$loginId role=$role redirect=$target");
+    function target_for_role(string $role): string { 
+      switch (strtolower($role)) {
+        case 'student':   return '/SystemsProject/student_dashboard.php';
+        case 'faculty':   return '/SystemsProject/faculty_dashboard.php';
+        case 'admin':     return '/SystemsProject/admin_dashboard.php';
+        case 'statstaff': return '/SystemsProject/statstaff_dashboard.php';
+        default:          return '/SystemsProject/login.html?err=route';
+      }
+    }
+
+    $target = target_for_role($role ?? '');
+    if (strpos($target, '/SystemsProject/') !== 0) {
+      // safety: never redirect outside the app root
+      error_log("[LOGIN] Unsafe redirect target: " . var_export($target, true));
+      $target = '/SystemsProject/login.html?err=route';
+    }
     header('Location: ' . $target, true, 302);
     exit;
 

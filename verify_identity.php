@@ -4,6 +4,7 @@ ob_start();
 session_start();
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+/* ---------------- DB CONFIG ---------------- */
 $DB_HOST = "127.0.0.1";
 $DB_PORT = 3306;
 $DB_USER = "phpuser";
@@ -20,22 +21,21 @@ function normalize_dob(string $raw): string {
 
   $fmts = ['m/d/Y','m-d-Y','n/j/Y','n-j-Y','Y/m/d','Y.m.d','M j, Y','F j, Y'];
   foreach ($fmts as $fmt) {
-    $dt = DateTime::createFromFormat($fmt, $raw);
-    if ($dt && $dt->format($fmt) === $raw) return $dt->format('Y-m-d');
+      $dt = DateTime::createFromFormat($fmt, $raw);
+      if ($dt && $dt->format($fmt) === $raw) return $dt->format('Y-m-d');
   }
   $t = strtotime($raw);
   return $t ? date('Y-m-d', $t) : '';
 }
 
-function render_form(string $err = '', string $prefillLoginId = '', string $reason = '',
+function render_form(string $err = '', string $reason = '',
                      string $first = '', string $last = '', string $email = '', string $dob = ''): void {
-  $errHtml  = $err ? '<p style="color:#b00020">'.htmlspecialchars($err, ENT_QUOTES).'</p>' : '';
-  $prefillLoginId = htmlspecialchars($prefillLoginId, ENT_QUOTES);
-  $reason = htmlspecialchars($reason, ENT_QUOTES);
-  $first  = htmlspecialchars($first, ENT_QUOTES);
-  $last   = htmlspecialchars($last, ENT_QUOTES);
-  $email  = htmlspecialchars($email, ENT_QUOTES);
-  $dob    = htmlspecialchars($dob, ENT_QUOTES);
+  $errHtml = $err ? '<p style="color:#b00020">'.htmlspecialchars($err, ENT_QUOTES).'</p>' : '';
+  $reason  = htmlspecialchars($reason, ENT_QUOTES);
+  $first   = htmlspecialchars($first, ENT_QUOTES);
+  $last    = htmlspecialchars($last, ENT_QUOTES);
+  $email   = htmlspecialchars($email, ENT_QUOTES);
+  $dob     = htmlspecialchars($dob, ENT_QUOTES);
 
   echo <<<HTML
 <!doctype html>
@@ -55,13 +55,9 @@ function render_form(string $err = '', string $prefillLoginId = '', string $reas
 <body>
   <h2>Verify Your Identity</h2>
   $errHtml
-  <p class="hint">Enter your LoginID, First Name, Last Name, Email, and Date of Birth to continue.</p>
+  <p class="hint">Enter your First Name, Last Name, Email, and Date of Birth to continue.</p>
   <form method="post" action="/SystemsProject/verify_identity.php">
     <input type="hidden" name="reason" value="$reason">
-
-    <label>LoginID
-      <input type="text" name="loginid" required value="$prefillLoginId" inputmode="numeric">
-    </label>
 
     <label>First Name
       <input type="text" name="first_name" required value="$first" autocomplete="given-name">
@@ -76,7 +72,7 @@ function render_form(string $err = '', string $prefillLoginId = '', string $reas
     </label>
 
     <label>Date of Birth (YYYY-MM-DD)
-      <input type="text" name="dob" placeholder="YYYY-MM-DD" required value="$dob">
+      <input type="text" name="dob" placeholder="YYYY-MM-DD" required value="$dob" autocomplete="bday">
     </label>
 
     <button type="submit">Continue</button>
@@ -92,76 +88,74 @@ try {
   $mysqli->set_charset('utf8mb4');
 
   if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    loghit("GET from {$_SERVER['REMOTE_ADDR']} loginid=".(string)($_GET['loginid'] ?? ''));
-    $prefill = (string)($_GET['loginid'] ?? '');
-    $reason  = (string)($_GET['reason'] ?? '');
-    render_form('', $prefill, $reason);
+    // Prefill email from forgot_password.html if present
+    $prefillEmail = (string)($_GET['email'] ?? '');
+    $reason       = (string)($_GET['reason'] ?? '');
+    loghit("GET email={$prefillEmail}");
+    render_form('', $reason, '', '', $prefillEmail, '');
     exit;
   }
 
   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    loghit("POST from {$_SERVER['REMOTE_ADDR']}");
-    $reason  = (string)($_POST['reason'] ?? '');
-    $loginid = trim((string)($_POST['loginid'] ?? ''));
-    $first   = trim((string)($_POST['first_name'] ?? ''));
-    $last    = trim((string)($_POST['last_name'] ?? ''));
-    $email   = trim((string)($_POST['email'] ?? ''));
-    $dobRaw  = trim((string)($_POST['dob'] ?? ''));
+    $reason = (string)($_POST['reason'] ?? '');
+    $first  = trim((string)($_POST['first_name'] ?? ''));
+    $last   = trim((string)($_POST['last_name'] ?? ''));
+    $email  = trim((string)($_POST['email'] ?? ''));
+    $dobRaw = trim((string)($_POST['dob'] ?? ''));
 
     // Basic validation
-    if ($loginid === '' || $first === '' || $last === '' || $email === '' || $dobRaw === '') {
-      render_form('Please fill out all fields.', $loginid, $reason, $first, $last, $email, $dobRaw); exit;
-    }
-    if (!ctype_digit($loginid)) {
-      render_form('LoginID must be numeric.', $loginid, $reason, $first, $last, $email, $dobRaw); exit;
+    if ($first === '' || $last === '' || $email === '' || $dobRaw === '') {
+      render_form('Please fill out all fields.', $reason, $first, $last, $email, $dobRaw); exit;
     }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-      render_form('Please enter a valid email address.', $loginid, $reason, $first, $last, $email, $dobRaw); exit;
+      render_form('Please enter a valid email address.', $reason, $first, $last, $email, $dobRaw); exit;
     }
     $dob = normalize_dob($dobRaw);
     if ($dob === '') {
       render_form('DOB format not recognized. Use YYYY-MM-DD (e.g., 1999-04-30).',
-                  $loginid, $reason, $first, $last, $email, $dobRaw); exit;
+                  $reason, $first, $last, $email, $dobRaw); exit;
     }
 
-    $loginIdInt = (int)$loginid;
-
-    // Verify Users(FirstName, LastName, Email, DOB) + Login(LoginID -> UserID)
-    // This assumes Users table has columns: FirstName, LastName, Email, DOB, UserID
+    // Verify identity via Users + Login (joined by Email)
     $stmt = $mysqli->prepare("
-      SELECT 1
-      FROM Users u
-      JOIN Login l ON l.UserID = u.UserID
-      WHERE l.LoginID = ?
-        AND u.FirstName = ?
-        AND u.LastName  = ?
-        AND u.Email     = ?
-        AND u.DOB       = ?
-      LIMIT 1
+      SELECT l.LoginID
+        FROM Users u
+        JOIN Login l ON l.Email = u.Email
+       WHERE u.FirstName = ?
+         AND u.LastName  = ?
+         AND u.Email     = ?
+         AND u.DOB       = ?
+       LIMIT 1
     ");
-    $stmt->bind_param("issss", $loginIdInt, $first, $last, $email, $dob);
+    $stmt->bind_param("ssss", $first, $last, $email, $dob);
     $stmt->execute();
-    $ok = (bool)$stmt->get_result()->fetch_row();
+    $stmt->bind_result($loginId);
+    $ok = $stmt->fetch();
     $stmt->close();
 
     if (!$ok) {
-      loghit("IDENTITY FAIL loginid=$loginIdInt first='$first' last='$last' email='$email' dob=$dob");
+      loghit("IDENTITY FAIL email='$email' first='$first' last='$last' dob=$dob");
       render_form('We could not verify those details. Please check and try again.',
-                  (string)$loginIdInt, $reason, $first, $last, $email, $dobRaw);
+                  $reason, $first, $last, $email, $dobRaw);
       exit;
     }
 
-    // Generate reset token and expiry
+    // Generate reset token & expiry
     $tok = bin2hex(random_bytes(32));          // 64-char hex
     $exp = date('Y-m-d H:i:s', time() + 3600); // 1 hour
 
-    // Ensure your Login table has ResetToken (CHAR(64) NULL) and ResetExpiry (DATETIME NULL)
-    $set = $mysqli->prepare("UPDATE Login SET ResetToken = ?, ResetExpiry = ?, LoginAttempts = 0 WHERE LoginID = ?");
-    $set->bind_param("ssi", $tok, $exp, $loginIdInt);
+    // Save token on the matched Login row
+    $set = $mysqli->prepare("
+      UPDATE Login
+         SET ResetToken = ?, ResetExpiry = ?, LoginAttempts = 0
+       WHERE LoginID = ?
+       LIMIT 1
+    ");
+    $set->bind_param("ssi", $tok, $exp, $loginId);
     $set->execute();
     $set->close();
 
-    loghit("IDENTITY OK loginid=$loginIdInt -> reset_password.php");
+    loghit("IDENTITY OK email='$email' loginid=$loginId -> reset_password.php");
     header('Location: /SystemsProject/reset_password.php?token=' . urlencode($tok));
     exit;
   }

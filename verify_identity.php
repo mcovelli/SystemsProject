@@ -17,20 +17,38 @@ function loghit(string $msg): void { error_log("[VERIFY_ID] $msg"); }
 function normalize_dob(string $raw): string {
   $raw = trim($raw);
   if ($raw === '') return '';
-  if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) return $raw; // already YYYY-MM-DD
+  if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) return $raw;
 
   $fmts = ['m/d/Y','m-d-Y','n/j/Y','n-j-Y','Y/m/d','Y.m.d','M j, Y','F j, Y'];
   foreach ($fmts as $fmt) {
-      $dt = DateTime::createFromFormat($fmt, $raw);
-      if ($dt && $dt->format($fmt) === $raw) return $dt->format('Y-m-d');
+    $dt = DateTime::createFromFormat($fmt, $raw);
+    if ($dt && $dt->format($fmt) === $raw) return $dt->format('Y-m-d');
   }
   $t = strtotime($raw);
   return $t ? date('Y-m-d', $t) : '';
 }
 
-function render_form(string $err = '', string $reason = '',
-                     string $first = '', string $last = '', string $email = '', string $dob = ''): void {
+/* ---------------- RENDER HTML FORM ---------------- */
+function render_form(
+  string $err = '', string $reason = '',
+  string $first = '', string $last = '',
+  string $email = '', string $dob = ''
+): void {
+
   $errHtml = $err ? '<p style="color:#b00020">'.htmlspecialchars($err, ENT_QUOTES).'</p>' : '';
+
+  // Dynamic heading & hint
+  $heading = 'Verify Your Identity';
+  $hint = 'Enter your First Name, Last Name, Email, and Date of Birth to continue.';
+  if ($reason === 'locked') {
+    $heading = 'Account Locked';
+    $hint = 'Your account has been locked after too many failed login attempts. '
+          . 'Please verify your identity to reset your password and regain access.';
+  } elseif ($reason === 'failed_attempts') {
+    $hint = 'You have reached the maximum number of login attempts. '
+          . 'Please verify your identity to reset your password.';
+  }
+
   $reason  = htmlspecialchars($reason, ENT_QUOTES);
   $first   = htmlspecialchars($first, ENT_QUOTES);
   $last    = htmlspecialchars($last, ENT_QUOTES);
@@ -42,7 +60,7 @@ function render_form(string $err = '', string $reason = '',
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Verify Your Identity</title>
+  <title>$heading</title>
   <style>
     body { font-family: system-ui, Arial, sans-serif; max-width: 520px; margin: 40px auto; }
     form { display: grid; gap: 12px; }
@@ -53,9 +71,9 @@ function render_form(string $err = '', string $reason = '',
   </style>
 </head>
 <body>
-  <h2>Verify Your Identity</h2>
+  <h2>$heading</h2>
   $errHtml
-  <p class="hint">Enter your First Name, Last Name, Email, and Date of Birth to continue.</p>
+  <p class="hint">$hint</p>
   <form method="post" action="/SystemsProject/verify_identity.php">
     <input type="hidden" name="reason" value="$reason">
 
@@ -83,15 +101,15 @@ function render_form(string $err = '', string $reason = '',
 HTML;
 }
 
+/* ---------------- MAIN LOGIC ---------------- */
 try {
   $mysqli = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME, $DB_PORT);
   $mysqli->set_charset('utf8mb4');
 
   if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Prefill email from forgot_password.html if present
     $prefillEmail = (string)($_GET['email'] ?? '');
     $reason       = (string)($_GET['reason'] ?? '');
-    loghit("GET email={$prefillEmail}");
+    loghit("GET email={$prefillEmail} reason={$reason}");
     render_form('', $reason, '', '', $prefillEmail, '');
     exit;
   }
@@ -103,7 +121,7 @@ try {
     $email  = trim((string)($_POST['email'] ?? ''));
     $dobRaw = trim((string)($_POST['dob'] ?? ''));
 
-    // Basic validation
+    /* ---------- Validate Inputs ---------- */
     if ($first === '' || $last === '' || $email === '' || $dobRaw === '') {
       render_form('Please fill out all fields.', $reason, $first, $last, $email, $dobRaw); exit;
     }
@@ -116,7 +134,7 @@ try {
                   $reason, $first, $last, $email, $dobRaw); exit;
     }
 
-    // Verify identity via Users + Login (joined by Email)
+    /* ---------- Verify identity ---------- */
     $stmt = $mysqli->prepare("
       SELECT l.LoginID
         FROM Users u
@@ -140,14 +158,14 @@ try {
       exit;
     }
 
-    // Generate reset token & expiry
+    /* ---------- Generate Reset Token ---------- */
     $tok = bin2hex(random_bytes(32));          // 64-char hex
-    $exp = date('Y-m-d H:i:s', time() + 3600); // 1 hour
+    $exp = date('Y-m-d H:i:s', time() + 3600); // 1 hour from now
 
-    // Save token on the matched Login row
+    /* ---------- Save token, reset attempts but keep MustReset ---------- */
     $set = $mysqli->prepare("
       UPDATE Login
-         SET ResetToken = ?, ResetExpiry = ?, LoginAttempts = 0
+         SET ResetToken = ?, ResetExpiry = ?, LoginAttempts = 0, MustReset = 1
        WHERE LoginID = ?
        LIMIT 1
     ");
@@ -155,7 +173,7 @@ try {
     $set->execute();
     $set->close();
 
-    loghit("IDENTITY OK email='$email' loginid=$loginId -> reset_password.php");
+    loghit("IDENTITY OK email='$email' loginid=$loginId reason=$reason -> reset_password.php");
     header('Location: /SystemsProject/reset_password.php?token=' . urlencode($tok));
     exit;
   }

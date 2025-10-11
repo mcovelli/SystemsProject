@@ -3,7 +3,7 @@ declare(strict_types=1);
 ob_start();
 session_start();
 
-/* Show mysqli errors in the Apache log */
+/* Log all mysqli errors to Apache error log */
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 function fail_500(string $msg): never {
@@ -31,7 +31,6 @@ try {
   }
 
   /* ------------------ READ FORM FIELDS ------------------ */
-  // Expect name="email" and name="password" on the form
   $emailRaw = trim((string)($_POST['email'] ?? ''));
   $passIn   = (string)($_POST['password'] ?? '');
 
@@ -40,23 +39,22 @@ try {
     exit;
   }
 
-  // Basic email validation
   if (!filter_var($emailRaw, FILTER_VALIDATE_EMAIL)) {
     header('Location: /SystemsProject/login.html?err=invalid');
     exit;
   }
 
-  /* ------------------ FETCH LOGIN ROW BY EMAIL ------------------ */
-  // Assumes Login.Email exists and references Users.Email (UNIQUE)
+  /* ------------------ FETCH LOGIN ROW ------------------ */
   $sql = "
     SELECT
       l.LoginID,
       l.Email,
       l.Password,
       COALESCE(l.LoginAttempts, 0) AS LoginAttempts,
-      l.UserType          AS LoginUserType,
-      u.UserID            AS UserID,
-      u.UserType          AS UsersUserType
+      COALESCE(l.MustReset, 0)     AS MustReset,
+      l.UserType                   AS LoginUserType,
+      u.UserID                     AS UserID,
+      u.UserType                   AS UsersUserType
     FROM Login l
     LEFT JOIN Users u ON u.Email = l.Email
     WHERE l.Email = ?
@@ -70,12 +68,20 @@ try {
   $stmt->close();
 
   if (!$row) {
-    // No login row for that email
     header('Location: /SystemsProject/login.html?err=invalid');
     exit;
   }
 
   $loginId = (int)$row['LoginID'];
+  $attempts = (int)$row['LoginAttempts'];
+  $mustReset = (int)$row['MustReset'];
+
+  /* ------------------ CHECK LOCKOUT STATUS ------------------ */
+  if ($attempts >= 3 || $mustReset === 1) {
+    // user is locked out until password reset
+    header('Location: /SystemsProject/verify_identity.php?loginid=' . urlencode((string)$loginId) . '&reason=locked');
+    exit;
+  }
 
   /* ------------------ VERIFY PASSWORD ------------------ */
   $stored = (string)$row['Password'];
@@ -83,49 +89,26 @@ try {
   $ok = $looksHashed ? password_verify($passIn, $stored) : ($passIn === $stored);
 
   if ($ok) {
-    // Reset attempts on success + clear reset fields if present
-    $upd = $mysqli->prepare("UPDATE Login SET LoginAttempts = 0, ResetToken = NULL, ResetExpiry = NULL WHERE LoginID = ?");
+    /* ---------- SUCCESSFUL LOGIN ---------- */
+    $upd = $mysqli->prepare("
+      UPDATE Login
+      SET LoginAttempts = 0, MustReset = 0, ResetToken = NULL, ResetExpiry = NULL
+      WHERE LoginID = ?
+    ");
     $upd->bind_param("i", $loginId);
     $upd->execute();
     $upd->close();
 
-    // Harden session
     session_regenerate_id(true);
-
-    // Set session user identifiers
     $_SESSION['login_id'] = $loginId;
-    // Prefer Users.UserID if present (join by email). If null, leave unset or handle gracefully.
     if (isset($row['UserID']) && $row['UserID'] !== null) {
       $_SESSION['user_id'] = (int)$row['UserID'];
     }
 
-    // Role: prefer Users.UserType; fallback to Login.UserType
-    $roleSource = $row['UsersUserType'] ?: $row['LoginUserType'];   // 'Student','Faculty','Admin','StatStaff'
-    $role = strtolower(preg_replace('/\s+/', '', (string)$roleSource)); // -> 'student','faculty','admin','statstaff'
+    $roleSource = $row['UsersUserType'] ?: $row['LoginUserType'];
+    $role = strtolower(preg_replace('/\s+/', '', (string)$roleSource));
     $_SESSION['role'] = $role;
 
-    $routes = [
-      'student'   => '/SystemsProject/student_dashboard.php',
-      'faculty'   => '/SystemsProject/faculty_dashboard.php',
-      'admin'     => '/SystemsProject/admin_dashboard.php',
-      'statstaff' => '/SystemsProject/statstaff_dashboard.php',
-    ];
-
-    if (!isset($routes[$role])) {
-      error_log("[LOGIN] SUCCESS but unknown role=$role");
-      header('Location: /SystemsProject/login.html?err=route');
-      exit;
-    }
-
-    // When $target is an absolute web path (/SystemsProject/...), use DOCUMENT_ROOT to check file existence
-    $abs = rtrim((string)($_SERVER['DOCUMENT_ROOT'] ?? ''), '/') . $target;
-    if (!is_file($abs)) {
-      error_log("[LOGIN] SUCCESS but file missing for role=$role path=$abs");
-      header('Location: /SystemsProject/login.html?err=route');
-      exit;
-    }
-
-    error_log("[LOGIN] SUCCESS email={$row['Email']} loginId=$loginId role=$role redirect=$target");
     function target_for_role(string $role): string { 
       switch (strtolower($role)) {
         case 'student':   return '/SystemsProject/student_dashboard.php';
@@ -138,15 +121,16 @@ try {
 
     $target = target_for_role($role ?? '');
     if (strpos($target, '/SystemsProject/') !== 0) {
-      // safety: never redirect outside the app root
       error_log("[LOGIN] Unsafe redirect target: " . var_export($target, true));
       $target = '/SystemsProject/login.html?err=route';
     }
+
+    error_log("[LOGIN] SUCCESS email={$row['Email']} loginId=$loginId role=$role redirect=$target");
     header('Location: ' . $target, true, 302);
     exit;
 
   } else {
-    /* ------------------ FAIL: increment attempts; on 3 → identity verify ------------------ */
+    /* ---------- FAILED LOGIN ---------- */
     $mysqli->begin_transaction();
 
     $inc = $mysqli->prepare("UPDATE Login SET LoginAttempts = COALESCE(LoginAttempts,0) + 1 WHERE LoginID = ?");
@@ -164,7 +148,13 @@ try {
     $mysqli->commit();
 
     if ((int)$attempts >= 3) {
-      header('Location: /SystemsProject/verify_identity.php?loginid=' . urlencode((string)$loginId) . '&reason=failed_attempts');
+      // Lock user and require password reset
+      $lock = $mysqli->prepare("UPDATE Login SET MustReset = 1 WHERE LoginID = ?");
+      $lock->bind_param("i", $loginId);
+      $lock->execute();
+      $lock->close();
+
+      header('Location: /SystemsProject/verify_identity.php?loginid=' . urlencode((string)$loginId) . '&reason=locked');
       exit;
     }
 

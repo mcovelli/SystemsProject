@@ -64,6 +64,16 @@ body {
   cursor: pointer;
 }
 
+#loginBtn {
+  width: 100%;
+  padding: 10px;
+  background: blue;
+  text-color: Black;
+  border: solid;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 /* checkbox should not be full width */
 .login-container input[type="checkbox"] {
   width: auto;

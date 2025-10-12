@@ -1,11 +1,16 @@
 body {
   font-family: Arial, sans-serif;
-  background: #f0f2f5;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   margin: 0;
+  background-image: url('https://media.gettyimages.com/id/2148041314/photo/locust-walk-with-students-in-fall-university-of-pennsylvania-university-city-area.jpg?s=612x612&w=gi&k=20&c=wGvL65uqByULEjQjD25O1XwYFEf2zCsR7zI6r2gABuM=');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  width: 100%;
+    
 }
 
 .login-title{
@@ -48,12 +53,6 @@ body {
   background: #0056b3;
 }
 
-#schoolimage{
-    background-image: url('https://media.gettyimages.com/id/2148041314/photo/locust-walk-with-students-in-fall-university-of-pennsylvania-university-city-area.jpg?s=612x612&w=gi&k=20&c=wGvL65uqByULEjQjD25O1XwYFEf2zCsR7zI6r2gABuM=');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-}
 
 #error-message {
   color: red;

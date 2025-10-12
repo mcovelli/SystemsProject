@@ -8,8 +8,8 @@ body {
   margin: 0;
 }
 
-.login-container {
-  background: white;
+.login-title{
+  background: blue;
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0px 4px 10px rgba(0,0,0,0.1);

@@ -48,6 +48,13 @@ body {
   background: #0056b3;
 }
 
+#schoolimage{
+    background-image: url('https://media.gettyimages.com/id/2148041314/photo/locust-walk-with-students-in-fall-university-of-pennsylvania-university-city-area.jpg?s=612x612&w=gi&k=20&c=wGvL65uqByULEjQjD25O1XwYFEf2zCsR7zI6r2gABuM=');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
 #error-message {
   color: red;
   text-align: center;
@@ -78,13 +85,4 @@ body {
 .login-container input[type="checkbox"] {
   width: auto;
   margin: 0; /* we'll space via the label */
-}
-
-/* checkbox row */
-#checkBox {
-  display: flex;
-  align-items: center;
-  gap: 8px;           /* space between box and text */
-  font-size: 14px;    /* adjust size here */
-  margin: 8px 0 15px; /* vertical spacing around the row */
 }

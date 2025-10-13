@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id'];
 
-$mysqli = new mysqli("127.0.0.1", "phpuser", "SystemsFall2025!", "University", 3306);
+$mysqli = new mysqli("127.0.0.1", "root", "Marvelman190!", "University", 3306);
 $mysqli->set_charset('utf8mb4');
 
 $sql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
@@ -32,6 +32,6 @@ if (!$student) {
     $student['FirstName'] . ' ' . $student['LastName'] . ' (' . $student['UserType'] . ')'); ?></h1>
   <p>Email: <?php echo htmlspecialchars($student['Email']); ?></p>
   <p>Status: <?php echo htmlspecialchars($student['Status']); ?></p>
-  <p><a href="logout.php">Log out</a></p>
+  <p><a href="/SystemsProject/logout.php">Log out</a></p>
 </body>
 </html>

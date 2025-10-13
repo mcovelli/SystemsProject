@@ -15,8 +15,8 @@ function fail_500(string $msg): never {
 /* ------------------ DB CONFIG ------------------ */
 $DB_HOST = "127.0.0.1";
 $DB_PORT = 3306;
-$DB_USER = "phpuser";
-$DB_PASS = "SystemsFall2025!";
+$DB_USER = "root";
+$DB_PASS = "Marvelman190!";
 $DB_NAME = "University";
 
 try {

@@ -6,8 +6,8 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 $DB_HOST = "127.0.0.1";
 $DB_PORT = 3306;
-$DB_USER = "phpuser";
-$DB_PASS = "SystemsFall2025!";
+$DB_USER = "root";
+$DB_PASS = "Marvelman190!";
 $DB_NAME = "University";
 
 function loghit(string $msg): void { error_log("[VERIFY_ID] $msg"); }

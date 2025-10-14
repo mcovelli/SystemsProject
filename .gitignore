@@ -3,6 +3,7 @@
 # ================================
 
 # Sensitive config files
+/config.php
 config.php
 *.env
 .env.*

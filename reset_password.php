@@ -2,7 +2,7 @@
 declare(strict_types=1);
 ob_start();
 session_start();
-
+require_once __DIR__ . '/config.php';
 /* Log mysqli errors to Apache log */
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 

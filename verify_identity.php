@@ -75,7 +75,7 @@ function render_form(
   <h2>$heading</h2>
   $errHtml
   <p class="hint">$hint</p>
-  <form method="post" action="/SystemsProject/verify_identity.php">
+  <form method="post" action="verify_identity.php">
     <input type="hidden" name="reason" value="$reason">
 
     <label>First Name
@@ -96,7 +96,7 @@ function render_form(
 
     <button type="submit">Continue</button>
   </form>
-  <p class="hint" style="margin-top:10px;"><a href="/SystemsProject/login.html">Back to login</a></p>
+  <p class="hint" style="margin-top:10px;"><a href="login.html">Back to login</a></p>
 </body>
 </html>
 HTML;
@@ -175,7 +175,7 @@ try {
     $set->close();
 
     loghit("IDENTITY OK email='$email' loginid=$loginId reason=$reason -> reset_password.php");
-    header('Location: /SystemsProject/reset_password.php?token=' . urlencode($tok));
+    header('Location: reset_password.php?token=' . urlencode($tok));
     exit;
   }
 

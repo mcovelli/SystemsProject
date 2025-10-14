@@ -1,49 +1,39 @@
 <?php
 declare(strict_types=1);
+session_start();
+require_once __DIR__ . '/config.php';
 
-ob_start();
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
+// Clear any old session
+session_unset();
+session_destroy();
+session_start();
 
-require_once __DIR__ . '/config.php'; // <-- defines get_db(), constants
-
-// Fail closed if not POST
+// If not POST, redirect back to login page
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /SystemsProject/login.html?err=method', true, 302);
+    header('Location: ' . PROJECT_ROOT . '/login.html');
     exit;
 }
 
-$email    = trim($_POST['email']    ?? '');
+// Sanitize input
+$email = trim($_POST['email'] ?? '');
 $password = trim($_POST['password'] ?? '');
-if ($email === '' || $password === '') {
-    header('Location: /SystemsProject/login.html?err=missing', true, 302);
-    exit;
-}
 
-// Map role -> destination
-function target_for_role(string $role): string {
-    switch (strtolower($role)) {
-        case 'student':   return '/SystemsProject/student_dashboard.php';
-        case 'faculty':   return '/SystemsProject/faculty_dashboard.php';
-        case 'admin':     return '/SystemsProject/admin_dashboard.php';
-        case 'statstaff': return '/SystemsProject/statstaff_dashboard.php';
-        default:          return '/SystemsProject/login.html?err=route';
-    }
+if ($email === '' || $password === '') {
+    header('Location: ' . PROJECT_ROOT . '/login.html?err=empty');
+    exit;
 }
 
 try {
-    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-    $db = get_db();
+    $mysqli = get_db();
 
-    // Adjust table/column names ONLY if your schema differs.
-    // Expected columns: id (INT), email (VARCHAR), password (HASH or PLAINTEXT), role (VARCHAR), active (TINYINT)
-    $sql = "SELECT id, email, password, role, COALESCE(active,1) AS active
-            FROM Users
-            WHERE email = ?
-            LIMIT 1";
-
-    $stmt = $db->prepare($sql);
+    // Join Login + Users to check both credentials and active status
+    $stmt = $mysqli->prepare("
+        SELECT l.UserID, l.Password, u.UserType, u.Status, u.FirstName, u.LastName
+        FROM Login l
+        INNER JOIN Users u ON l.UserID = u.UserID
+        WHERE u.Email = ?
+        LIMIT 1
+    ");
     $stmt->bind_param('s', $email);
     $stmt->execute();
     $res = $stmt->get_result();
@@ -51,41 +41,55 @@ try {
     $stmt->close();
 
     if (!$user) {
-        // No such email
-        header('Location: /SystemsProject/login.html?err=auth', true, 302);
+        // No matching email
+        header('Location: ' . PROJECT_ROOT . '/login.html?err=invalid');
         exit;
     }
 
-    if ((int)$user['active'] === 0) {
-        header('Location: /SystemsProject/login.html?err=inactive', true, 302);
+    // Check account status
+    if (strtoupper($user['Status']) !== 'ACTIVE') {
+        header('Location: ' . PROJECT_ROOT . '/login.html?err=inactive');
         exit;
     }
 
-    $stored = (string)$user['password'];
-
-    // Prefer password_verify(); fallback to plaintext equality if legacy DB
-    $ok = password_verify($password, $stored) || hash_equals($stored, $password);
-
-    if (!$ok) {
-        header('Location: /SystemsProject/login.html?err=auth', true, 302);
+    // Verify password
+    if (!password_verify($password, $user['Password'])) {
+        header('Location: ' . PROJECT_ROOT . '/login.html?err=invalid');
         exit;
     }
 
-    // Auth OK: establish session
-    $_SESSION['user_id'] = (int)$user['id'];
-    $_SESSION['email']   = (string)$user['email'];
-    $_SESSION['role']    = (string)$user['role'];
-
-    // Extra session hardening (optional but recommended)
+    // ✅ SUCCESS: Initialize session
     session_regenerate_id(true);
+    $_SESSION['user_id'] = (int)$user['UserID'];
+    $_SESSION['role'] = strtolower($user['UserType']);
+    $_SESSION['first_name'] = $user['FirstName'];
+    $_SESSION['last_name'] = $user['LastName'];
 
-    $target = target_for_role($_SESSION['role'] ?? '');
-    header('Location: ' . $target, true, 302);
+    // Redirect by role
+    $role = strtolower($user['UserType']);
+    switch ($role) {
+        case 'student':
+            header('Location: ' . PROJECT_ROOT . '/student_dashboard.php');
+            break;
+        case 'faculty':
+            header('Location: ' . PROJECT_ROOT . '/faculty_dashboard.php');
+            break;
+        case 'admin':
+            header('Location: ' . PROJECT_ROOT . '/admin_dashboard.php');
+            break;
+        case 'statstaff':
+            header('Location: ' . PROJECT_ROOT . '/statstaff_dashboard.php');
+            break;
+        default:
+            header('Location: ' . PROJECT_ROOT . '/login.html?err=role');
+            break;
+    }
     exit;
 
 } catch (Throwable $e) {
-    // Log server-side; show friendly redirect to user
-    error_log('[LOGIN] Fatal: ' . $e->getMessage());
-    header('Location: /SystemsProject/login.html?err=server', true, 302);
+    error_log('[LOGIN ERROR] ' . $e->getMessage());
+    http_response_code(500);
+    echo '<p>Server error. Please try again later.</p>';
     exit;
 }
+?>

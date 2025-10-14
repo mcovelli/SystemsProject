@@ -55,37 +55,21 @@ body {
 }
 
 #forgotPassword {
-  width: 100%;
-  padding: 10px;
-  background: transparent;
-  color: blue;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  color: #007BFF;
+  text-decoration: none;
 }
 
-#loginBtn {
-  width: 100%;
-  padding: 10px;
-  background: lightskyblue;
-  color: Black;
-  border: solid;
-  border-radius: 4px;
-  cursor: pointer;
+#forgotPassword:hover {
+  text-decoration: underline;
 }
 
-/* checkbox should not be full width */
-.login-container input[type="checkbox"] {
-  width: auto;
-  margin: 0; /* we'll space via the label */
-}
-
-/* checkbox row */
 #checkBox {
   display: flex;
   align-items: center;
-  gap: 8px;           /* space between box and text */
-  font-size: 14px;    /* adjust size here */
-  margin: 8px 0 15px; /* vertical spacing around the row */
+  gap: 8px;
+  font-size: 14px;
+  margin: 8px 0 15px;
 }
-

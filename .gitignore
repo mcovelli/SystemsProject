@@ -47,6 +47,7 @@ build/
 
 # Windows
 Thumbs.db
+.DS_Store
 ehthumbs.db
 Desktop.ini
 
@@ -82,4 +83,4 @@ deploy.sh
 
 # Local test data or exports
 /tmp/
-test_output/
+tAest_output/

@@ -1,13 +1,15 @@
 <?php
 session_start();
+require_once __DIR__ . '/config.php';
+
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.html");
+    header("Location: " . PROJECT_ROOT . "/login.html");
     exit;
 }
 
 $userId = $_SESSION['user_id'];
 
-$mysqli = new mysqli("127.0.0.1", "root", "Marvelman190!", "University", 3306);
+$mysqli = new mysqli("127.0.0.1", "phpuser", "SystemsFall2025!", "University", 3306);
 $mysqli->set_charset('utf8mb4');
 
 $sql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
@@ -26,12 +28,15 @@ if (!$admin) {
 ?>
 <!doctype html>
 <html>
-<head><meta charset="utf-8"><title>admin Dashboard</title></head>
+<head>
+  <meta charset="utf-8">
+  <title>Admin Dashboard</title>
+</head>
 <body>
   <h1>Welcome, <?php echo htmlspecialchars(
     $admin['FirstName'] . ' ' . $admin['LastName'] . ' (' . $admin['UserType'] . ')'); ?></h1>
   <p>Email: <?php echo htmlspecialchars($admin['Email']); ?></p>
   <p>Status: <?php echo htmlspecialchars($admin['Status']); ?></p>
-  <p><a href="/SystemsProject/logout.php">Log out</a></p>
+  <p><a href="logout.php">Log out</a></p>
 </body>
 </html>

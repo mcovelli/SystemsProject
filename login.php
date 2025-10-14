@@ -1,6 +1,11 @@
 <?php
 declare(strict_types=1);
-ob_start();
+session_start();
+require_once __DIR__ . '/config.php';
+
+// Clear any old session
+session_unset();
+session_destroy();
 session_start();
 
 /* Make mysqli throw readable errors we can log */
@@ -15,8 +20,8 @@ function fail_500(string $msg): never {
 /* ------------------ DB CONFIG ------------------ */
 $DB_HOST = "127.0.0.1";
 $DB_PORT = 3306;
-$DB_USER = "root";
-$DB_PASS = "Marvelman190!";
+$DB_USER = "phpuser";
+$DB_PASS = "SystemsFall2025!";
 $DB_NAME = "University";
 
 try {
@@ -28,132 +33,84 @@ try {
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: login.html');
     exit;
-  }
+}
 
-  /* ------------------ READ FORM FIELDS ------------------ */
-  // Accepts name="username" (or legacy name="loginid") and name="password"
-  $loginRaw = trim((string)($_POST['username'] ?? $_POST['loginid'] ?? ''));
-  $passIn   = (string)($_POST['password'] ?? '');
+// Sanitize input
+$email = trim($_POST['email'] ?? '');
+$password = trim($_POST['password'] ?? '');
 
-  if ($loginRaw === '' || $passIn === '') {
-    header('Location: login.html?err=empty');
+if ($email === '' || $password === '') {
+    header('Location: ' . PROJECT_ROOT . '/login.html?err=empty');
     exit;
-  }
+}
 
-  // Schema uses INT LoginID; switch to VARCHAR + "s" bind if you move to alphanumeric IDs
-  if (!ctype_digit($loginRaw)) {
-    header('Location: login.html?err=invalid');
-    exit;
-  }
-  $loginId = (int)$loginRaw;
+try {
+    $mysqli = get_db();
 
-  /* ------------------ FETCH LOGIN + ROLE (existing columns only) ------------------ */
-  $sql = "
-    SELECT 
-      l.LoginID, l.UserID, l.Password, l.LoginAttempts,
-      l.UserType AS LoginUserType,
-      u.UserType AS UsersUserType
-    FROM Login l
-    LEFT JOIN Users u ON u.UserID = l.UserID
-    WHERE l.LoginID = ?
-    LIMIT 1
-  ";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("i", $loginId);
-  $stmt->execute();
-  $res = $stmt->get_result();
-  $row = $res->fetch_assoc();
-  $stmt->close();
+    // Join Login + Users to check both credentials and active status
+    $stmt = $mysqli->prepare("
+        SELECT l.UserID, l.Password, u.UserType, u.Status, u.FirstName, u.LastName
+        FROM Login l
+        INNER JOIN Users u ON l.UserID = u.UserID
+        WHERE u.Email = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $user = $res->fetch_assoc();
+    $stmt->close();
 
-  if (!$row) {
-    header('Location: login.html?err=invalid');
-    exit;
-  }
+    if (!$user) {
+        // No matching email
+        header('Location: ' . PROJECT_ROOT . '/login.html?err=invalid');
+        exit;
+    }
 
-  /* ------------------ VERIFY PASSWORD ------------------ */
-  $stored = (string)$row['Password'];
-  $input  = (string)$passIn;
+    // Check account status
+    if (strtoupper($user['Status']) !== 'ACTIVE') {
+        header('Location: ' . PROJECT_ROOT . '/login.html?err=inactive');
+        exit;
+    }
 
-  $looksHashed = str_starts_with($stored, '$2y$') || str_starts_with($stored, '$argon2');
-  $ok = $looksHashed ? password_verify($input, $stored) : ($input === $stored);
+    // Verify password
+    if (!password_verify($password, $user['Password'])) {
+        header('Location: ' . PROJECT_ROOT . '/login.html?err=invalid');
+        exit;
+    }
 
-  if ($ok) {
-    // Reset attempts on success
-    $upd = $mysqli->prepare("UPDATE Login SET LoginAttempts = 0, ResetToken = NULL, ResetExpiry = NULL WHERE LoginID = ?");
-    $upd->bind_param("i", $loginId);
-    $upd->execute();
-    $upd->close();
-
-    // Harden session
+    // ✅ SUCCESS: Initialize session
     session_regenerate_id(true);
+    $_SESSION['user_id'] = (int)$user['UserID'];
+    $_SESSION['role'] = strtolower($user['UserType']);
+    $_SESSION['first_name'] = $user['FirstName'];
+    $_SESSION['last_name'] = $user['LastName'];
 
-    // Set session + role
-    $_SESSION['login_id'] = (int)$row['LoginID'];
-    $_SESSION['user_id']  = (int)$row['UserID'];
-
-    // Derive role from Users.UserType first, fallback to Login.UserType
-    $roleSource = $row['UsersUserType'] ?: $row['LoginUserType'];   // 'Student','Faculty','Admin','StatStaff'
-    $role = strtolower(preg_replace('/\s+/', '', (string)$roleSource)); // -> 'student','faculty','admin','statstaff'
-    $_SESSION['role'] = $role;
-
-    $routes = [
-      'student'   => 'student_dashboard.php',
-      'faculty'   => 'faculty_dashboard.php',
-      'admin'     => 'admin_dashboard.php',
-      'statstaff' => 'statstaff_dashboard.php',
-    ];
-
-    // Safety checks (use current folder)
-    if (!isset($routes[$role])) {
-      error_log("[LOGIN] SUCCESS but unknown role=$role");
-      header('Location: login.html?err=route');
-      exit;
+    // Redirect by role
+    $role = strtolower($user['UserType']);
+    switch ($role) {
+        case 'student':
+            header('Location: ' . PROJECT_ROOT . '/student_dashboard.php');
+            break;
+        case 'faculty':
+            header('Location: ' . PROJECT_ROOT . '/faculty_dashboard.php');
+            break;
+        case 'admin':
+            header('Location: ' . PROJECT_ROOT . '/admin_dashboard.php');
+            break;
+        case 'statstaff':
+            header('Location: ' . PROJECT_ROOT . '/statstaff_dashboard.php');
+            break;
+        default:
+            header('Location: ' . PROJECT_ROOT . '/login.html?err=role');
+            break;
     }
-
-    $target = $routes[$role];
-    $abs    = __DIR__ . '/' . $target;  // same folder as login.php (app/)
-    if (!is_file($abs)) {
-      error_log("[LOGIN] SUCCESS but file missing for role=$role path=$abs");
-      header('Location: login.html?err=route');
-      exit;
-    }
-
-    // Log, redirect once, exit
-    error_log("[LOGIN] SUCCESS LoginID=$loginId role=$role redirect=$target");
-    header('Location: ' . $target, true, 302);
     exit;
-
-  } else {
-    /* ------------------ FAIL: increment attempts; on 3 → identity verify ------------------ */
-    $mysqli->begin_transaction();
-
-    // increment attempts
-    $inc = $mysqli->prepare("UPDATE Login SET LoginAttempts = COALESCE(LoginAttempts,0) + 1 WHERE LoginID = ?");
-    $inc->bind_param("i", $loginId);
-    $inc->execute();
-    $inc->close();
-
-    // read updated attempts
-    $get = $mysqli->prepare("SELECT LoginAttempts FROM Login WHERE LoginID = ? LIMIT 1");
-    $get->bind_param("i", $loginId);
-    $get->execute();
-    $get->bind_result($attempts);
-    $get->fetch();
-    $get->close();
-
-    $mysqli->commit();
-
-    if ((int)$attempts >= 3) {
-      header('Location: verify_identity.php?loginid=' . urlencode((string)$loginId) . '&reason=failed_attempts');
-      exit;
-    }
-
-    // below threshold
-    header('Location: login.html?err=invalid');
-    exit;
-  }
 
 } catch (Throwable $e) {
-  // Anything unexpected (missing column, bad SQL, etc.) gets logged here
-  fail_500($e->getMessage());
+    error_log('[LOGIN ERROR] ' . $e->getMessage());
+    http_response_code(500);
+    echo '<p>Server error. Please try again later.</p>';
+    exit;
 }
+?>

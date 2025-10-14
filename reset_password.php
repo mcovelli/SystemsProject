@@ -2,14 +2,15 @@
 declare(strict_types=1);
 ob_start();
 session_start();
+require_once __DIR__ . '/config.php';
 
-/* Show mysqli errors in the Apache log */
+/* Log mysqli errors to Apache log */
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 $DB_HOST = "127.0.0.1";
 $DB_PORT = 3306;
-$DB_USER = "root";
-$DB_PASS = "Marvelman190!";
+$DB_USER = "phpuser";
+$DB_PASS = "SystemsFall2025!";
 $DB_NAME = "University";
 
 try {
@@ -20,81 +21,121 @@ try {
     $t = $_GET['token'] ?? '';
     if ($t === '') { http_response_code(400); exit('Missing token'); }
 
-    // Validate token is present & not expired
-    $stmt = $mysqli->prepare("SELECT LoginID FROM Login WHERE ResetToken = ? AND ResetExpiry > NOW() LIMIT 1");
-    $stmt->bind_param("s", $t);
-    $stmt->execute();
-    $stmt->bind_result($loginId);
-    $valid = $stmt->fetch();
-    $stmt->close();
+        // Validate token
+        $stmt = $mysqli->prepare("
+            SELECT LoginID FROM Login
+             WHERE ResetToken = ? AND ResetExpiry > NOW()
+             LIMIT 1
+        ");
+        $stmt->bind_param("s", $token);
+        $stmt->execute();
+        $stmt->bind_result($loginId);
+        $valid = $stmt->fetch();
+        $stmt->close();
 
-    if (!$valid) { http_response_code(400); exit('Invalid or expired token'); }
-    ?>
-    <!doctype html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <title>Reset Password</title>
-        <link rel="stylesheet" href="styles.css">
-    </head>
-    <body>
-        <div class="auth-container">
-      <h2>Reset Password</h2>
-      <form method="post" action="reset_password.php">
-        <input type="hidden" name="token" value="<?php echo htmlspecialchars($t, ENT_QUOTES); ?>">
-        <label>New password</label>
-        <input type="password" name="newpw" required>
-        <button type="submit">Update</button>
-      </form>
-      <p><a href="login.html">Back to login</a></p>
-    </body>
-    </html>
-    <?php
-    exit;
-  }
+        if (!$valid) {
+            header('Location: ' . PROJECT_ROOT . '/login.html?err=expired');
+            exit;
+        }
 
-  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $t   = $_POST['token'] ?? '';
-    $new = $_POST['newpw'] ?? '';
+        // Show form
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <title>Reset Password | Northport University</title>
+            <style>
+                body { font-family: system-ui, sans-serif; max-width: 420px; margin: 2rem auto; }
+                label { display: block; margin-top: 1rem; }
+                input[type=password], input[type=submit] { width: 100%; padding: .6rem; margin-top: .3rem; }
+                .btn { margin-top: 1rem; }
+            </style>
+        </head>
+        <body>
+            <h1>Reset Your Password</h1>
+            <p>Enter your new password below to regain access to your account.</p>
+            <form method="post" action="reset_password.php">
+                <input type="hidden" name="token" value="<?php echo htmlspecialchars($token, ENT_QUOTES); ?>">
 
-    if ($t === '' || $new === '') {
-      header('Location: login.html?err=badreset'); exit;
+                <label for="p1">New Password</label>
+                <input id="p1" name="p1" type="password" required minlength="8" placeholder="At least 8 characters">
+
+                <label for="p2">Confirm New Password</label>
+                <input id="p2" name="p2" type="password" required minlength="8" placeholder="Re-enter password">
+
+                <input class="btn" type="submit" value="Set New Password">
+            </form>
+        </body>
+        </html>
+        <?php
+        exit;
     }
 
-    // Confirm token again (still valid)
-    $sel = $mysqli->prepare("SELECT LoginID FROM Login WHERE ResetToken = ? AND ResetExpiry > NOW() LIMIT 1");
-    $sel->bind_param("s", $t);
-    $sel->execute();
-    $sel->bind_result($loginId);
-    $ok = $sel->fetch();
-    $sel->close();
+    /* ------------------ POST: PROCESS RESET ------------------ */
+    $token = trim((string)($_POST['token'] ?? ''));
+    $p1    = (string)($_POST['p1'] ?? '');
+    $p2    = (string)($_POST['p2'] ?? '');
 
-    if (!$ok) { header('Location: login.html?err=expired'); exit; }
+    if ($token === '' || $p1 === '' || $p2 === '') {
+        header('Location: ' . PROJECT_ROOT . '/login.html?err=empty');
+        exit;
+    }
+    if ($p1 !== $p2) {
+        header('Location: ' . PROJECT_ROOT . '/login.html?err=nomatch');
+        exit;
+    }
+    if (strlen($p1) < 8) {
+        header('Location: ' . PROJECT_ROOT . '/login.html?err=weak');
+        exit;
+    }
 
-    // Hash the new password
-    $hash = password_hash($new, PASSWORD_DEFAULT);
-
-    // Update password, clear reset fields & attempts
-    $upd = $mysqli->prepare("
-      UPDATE Login
-         SET Password = ?, ResetToken = NULL, ResetExpiry = NULL, LoginAttempts = 0
-       WHERE LoginID = ?
+    // Validate token
+    $stmt = $mysqli->prepare("
+        SELECT LoginID FROM Login
+         WHERE ResetToken = ? AND ResetExpiry > NOW()
+         LIMIT 1
     ");
-    $upd->bind_param("si", $hash, $loginId);
-    $upd->execute();
-    $upd->close();
+    $stmt->bind_param("s", $token);
+    $stmt->execute();
+    $stmt->bind_result($loginId);
+    $ok = $stmt->fetch();
+    $stmt->close();
 
-    // Send back to login page with a success message
-    error_log("[RESET] Password updated for LoginID=$loginId, redirecting to login.html");
-    header('Location: login.html?info=reset_ok'); 
+    if (!$ok) {
+        header('Location: ' . PROJECT_ROOT . '/login.html?err=expired');
+        exit;
+    }
+
+    // Hash and update password
+    $hash = password_hash($p1, PASSWORD_DEFAULT);
+    $up = $mysqli->prepare("
+        UPDATE Login
+           SET Password = ?,
+               ResetToken = NULL,
+               ResetExpiry = NULL,
+               LoginAttempts = 0,
+               MustReset = 0
+         WHERE LoginID = ?
+         LIMIT 1
+    ");
+    $up->bind_param("si", $hash, $loginId);
+    $up->execute();
+    $affected = $up->affected_rows;
+    $up->close();
+
+    if ($affected !== 1) {
+        header('Location: ' . PROJECT_ROOT . '/login.html?err=badreset');
+        exit;
+    }
+
+    // ✅ Success
+    header('Location: ' . PROJECT_ROOT . '/login.html?info=reset_ok');
     exit;
-  }
-
-  http_response_code(405); // method not allowed
-  exit;
 
 } catch (Throwable $e) {
-  error_log("[RESET] 500: " . $e->getMessage());
-  http_response_code(500);
-  exit; // keep body empty; see Apache error_log for details
+    error_log("[RESET] 500: " . $e->getMessage());
+    http_response_code(500);
+    echo "Server error. Please try again later.";
+    exit;
 }

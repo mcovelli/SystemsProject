@@ -1,16 +1,86 @@
-# Secrets
+# ================================
+#  PHP / Web App Ignore Rules
+# ================================
+
+# Sensitive config files
 config.php
-.env.php
+*.env
+.env.*
 
-# Logs & junk
+# Local database dumps or seeds
+*.sql
+*.sqlite
+
+# Backup archives
+*.tar
+*.tar.gz
+*.zip
+*.bak
+*.backup
+backups/
+home/ubuntu/backups/
+
+# Logs and debug files
 *.log
-.DS_Store
-Thumbs.db
+error_log
+logs/
+*.tmp
+*.swp
 
-# Dependencies (if used)
-vendor/
+# Apache / server files
+.htaccess
+.htpasswd
+
+# Node / front-end build (if added later)
 node_modules/
+dist/
+build/
 
-# Uploads (if your app stores files)
-storage/
-uploads/
+# ================================
+#  IDE / OS / System Files
+# ================================
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+.DS_Store
+ehthumbs.db
+Desktop.ini
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs (PHPStorm, IntelliJ)
+.idea/
+*.iml
+out/
+
+# Temporary / compiled cache
+vendor/
+composer.lock
+__pycache__/
+*.pyc
+
+# ================================
+#  Deployment / Server Scripts
+# ================================
+
+# Deployment scripts are server-only
+deploy.sh
+*.pem
+*.key
+*.crt
+*.csr
+
+# ================================
+#  Miscellaneous
+# ================================
+
+# Local test data or exports
+/tmp/
+tAest_output/

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Northport University Faculty Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
+      color: #1e293b;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+    header input {
+      padding: 6px 10px;
+      border: 1px solid #94a3b8;
+      border-radius: 5px;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .stat {
+      padding: 15px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table th, table td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    table th {
+      background: #f8fafc;
+    }
+    .current-semester, .next-semester {
+      display: none;
+    }
+    .active {
+      display: block;
+    }
+  .tab-buttons {
+     display: flex;
+     justify-content: center; /* centers them horizontally */
+     gap: 10px; /* space between buttons */
+     margin-bottom: 10px;
+    }
+
+    .tab-buttons button {
+      width: 150px;
+      margin-right: 5px;
+      padding: 8px 12px;
+      border: none;
+      background: #e2e8f0;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .tab-buttons button.active {
+      background: #334155;
+      color: #fff;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.8rem;
+      color: #64748b;
+      border-top: 1px solid #cbd5e1;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎓 Northport University Faculty</h1>
+    <input type="text" placeholder="Search courses, people, etc..." />
+  </header>
+  <main>
+    <section>
+      <div class="card">
+        <h2>Overview</h2>
+        <div class="stats">
+          <div class="stat"><strong>Faculty ID</strong><br>13201</div>
+          <div class="stat"><strong>Office ID</strong><br>C514</div>
+          <div class="stat"><strong>Specialty</strong><br>Chemistry</div>
+          <div class="stat"><strong>Ranking</strong><br>Professor</div>
+          <div class="stat"><strong>Faculty Type</strong><br>Full-Time</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Semester Navigation</h2>
+        <div class="tab-buttons">
+          <button id="current-semester-tab" class="active">Current Semester</button>
+          <button id="next-semester-tab">Next Semester</button>
+        </div>
+        <div id="current-semester" class="current-semester active">
+          <table>
+          <tr><th>CRN</th><th>CourseID</th><th>SemesterID</th><th>Date</th><th>Time</th><th>Building Room</th><th>Room Type</th></th></tr>
+          <tr><td>11657</td><td>MANA 110</td><td>FALL2025</td><td>Friday</td><td>10:00-11:15 AM</td><td>F113</td><td>Lab</td></tr>
+        </table>
+        </div>
+        <div id="next-semester" class="next-semester">
+          <table>
+          <tr><th>CRN</th><th>CourseID</th><th>SemesterID</th><th>Date</th><th>Time</th><th>Building Room</th><th>Room Type</th></tr>
+          <tr><td>11916</td><td>BIOL 106</td><td>SPRING2026</td><td>Thursday</td><td>10:00-11:15 AM</td><td>B102</td><td>Lab</td></tr>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <aside>
+      <div class="card">
+        <div class="tab-buttons">
+        <h2>Email</h2>
+          <button id="email-list-tab" class="active">List of Emails</button>
+          <button id="compose-tab">Write Email</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Grades</h2>
+      </div>
+
+      <div class="card">
+        <h2>Attendance</h2>
+      </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>© 2025 Northport University • All rights reserved</footer>
+
+  <script>
+    const curSemTab = document.getElementById('current-semester-tab');
+    const nextSemTab = document.getElementById('next-semester-tab');
+    const curSem = document.getElementById('current-semester');
+    const nextSem = document.getElementById('next-semester');
+
+    curSemTab.addEventListener('click', () => {
+      curSem.classList.add('active');
+      nextSem.classList.remove('active');
+      curSemTab.classList.add('active');
+      nextSemTab.classList.remove('active');
+    });
+
+    nextSemTab.addEventListener('click', () => {
+      nextSem.classList.add('active');
+      curSem.classList.remove('active');
+      nextSemTab.classList.add('active');
+      curSemTab.classList.remove('active');
+    });
+  </script>
+</body>
+</html>

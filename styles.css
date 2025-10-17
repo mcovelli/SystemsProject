@@ -1,91 +1,137 @@
-body {
-  font-family: Arial, sans-serif;
-  background: #f0f2f5;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
+/* Northport University — Vanilla CSS Dashboard */
+:root{
+  --bg: #0b0b0c;
+  --panel: #111214;
+  --border: #212227;
+  --text: #e7e7ea;
+  --muted: #a3a3ad;
+  --primary: #4f46e5;
+  --pill: #1f2233;
+  --surface: #0f1012;
+  --shadow: 0 10px 25px rgba(0,0,0,.25);
+}
+[data-theme="light"]{
+  --bg: #f8fafc;
+  --panel: #ffffff;
+  --border: #e5e7eb;
+  --text: #0f172a;
+  --muted: #6b7280;
+  --primary: #4f46e5;
+  --pill: #eef2ff;
+  --surface: #ffffff;
+  --shadow: 0 10px 25px rgba(2,6,23,.08);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: linear-gradient(to bottom, var(--surface), var(--bg));
+  color: var(--text);
 }
 
-.login-container {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-  width: 300px;
+/* Topbar */
+.topbar{
+  position: sticky; top:0; z-index:40;
+  display:flex; align-items:center; gap:16px;
+  height:64px; padding:0 20px; border-bottom:1px solid var(--border);
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--panel) 80%, transparent);
 }
-
-.login-container h2 {
-  text-align: center;
-  margin-bottom: 20px;
+.brand{display:flex; align-items:center; gap:12px}
+.brand h1{font-size:16px; font-weight:600; margin:0}
+.logo{
+  width:32px; height:32px; border-radius:10px;
+  display:grid; place-items:center; background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
 }
-
-.login-container label {
-  display: block;
-  margin: 10px 0 5px;
+.pill{font-size:12px; padding:4px 10px; border-radius:999px; background: var(--pill); color: var(--muted)}
+.top-actions{margin-left:auto; display:flex; align-items:center; gap:8px}
+.search{position:relative; width:min(420px, 45vw)}
+.search input{
+  width:100%; padding:10px 12px 10px 34px; border-radius:10px; border:1px solid var(--border);
+  background: var(--panel); color:var(--text);
 }
-
-.login-container input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.search .search-icon{position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); width:16px; height:16px}
+.icon-btn{
+  height:36px; width:36px; border-radius:10px; border:1px solid var(--border);
+  display:grid; place-items:center; background: var(--panel); color:var(--text); cursor:pointer;
 }
+.icon-btn:hover{border-color: color-mix(in srgb, var(--primary) 40%, var(--border))}
+.divider{height:24px; width:1px; background:var(--border); margin:0 2px}
+.user{display:flex; align-items:center; gap:10px}
+.avatar{width:32px; height:32px; border-radius:50%}
+.user-meta .name{font-size:14px; font-weight:600}
+.user-meta .sub{font-size:12px; color:var(--muted)}
 
-.login-container button {
-  width: 100%;
-  padding: 10px;
-  background: #007BFF;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+/* Layout */
+.container{
+  max-width:1120px; margin:0 auto; padding:24px;
+  display:grid; grid-template-columns: 1fr; gap:24px;
 }
-
-.login-container button:hover {
-  background: #0056b3;
+@media (min-width:1024px){
+  .container{grid-template-columns: 2fr 1fr;}
 }
+.left{display:grid; gap:24px}
+.right{display:grid; gap:24px}
+.stats{display:grid; grid-template-columns:1fr; gap:16px}
+@media (min-width:640px){ .stats{grid-template-columns: repeat(2,1fr);} }
+@media (min-width:1280px){ .stats{grid-template-columns: repeat(4,1fr);} }
 
-#error-message {
-  color: red;
-  text-align: center;
-  margin-top: 10px;
+.card{
+  background: var(--panel); border:1px solid var(--border);
+  border-radius:16px; box-shadow: var(--shadow); padding:16px;
 }
+.card-title{font-weight:600; margin-bottom:8px}
+.card-head{display:flex; align-items:center; justify-content:space-between}
+.muted{color: var(--muted)}
+.sub{margin-top:4px; font-size:12px}
+.stat-value{font-size:26px; font-weight:600; margin-top:4px}
+.grid-two{display:grid; grid-template-columns:1fr; gap:16px}
+@media (min-width:1024px){ .grid-two{grid-template-columns:1fr 1fr} }
+.sm-one{grid-template-columns:1fr}
+.row{display:flex; align-items:center}
+.between{justify-content:space-between}
+.gap{gap:10px}
+.small{font-size:14px}
+.pt-8{padding-top:8px}
+.vstack{display:flex; flex-direction:column}
+.table-wrap{overflow:auto}
+table{width:100%; border-collapse:collapse}
+th, td{padding:10px 12px; border-bottom:1px solid var(--border); text-align:left}
+th.w-90{width:90px}
 
-#forgotPassword {
-  width: 100%;
-  padding: 10px;
-  background: transparent;
-  text-color: blue;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+/* Buttons & Badges */
+.btn{
+  appearance:none; border:none; border-radius:10px; padding:8px 12px;
+  background: var(--primary); color:white; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:8px
 }
+.btn:hover{filter:brightness(1.05)}
+.btn.outline{background: transparent; color: var(--text); border:1px solid var(--border)}
+.badges{display:flex; gap:8px; margin-top:8px}
+.badge{font-size:12px; padding:6px 10px; border-radius:999px; background: color-mix(in srgb, var(--primary) 12%, transparent); color:var(--text)}
 
-#loginBtn {
-  width: 100%;
-  padding: 10px;
-  background: lightskyblue;
-  text-color: Black;
-  border: solid;
-  border-radius: 4px;
-  cursor: pointer;
-}
+/* Progress */
+.progress{height:10px; background: color-mix(in srgb, var(--panel) 70%, var(--border)); border-radius:999px; overflow:hidden; margin:12px 0}
+.progress .bar{height:100%; background:var(--primary); border-radius:999px}
 
-/* checkbox should not be full width */
-.login-container input[type="checkbox"] {
-  width: auto;
-  margin: 0; /* we'll space via the label */
-}
+/* Quick Links */
+.quick-grid{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:8px}
+.quick-grid .ql{display:flex; align-items:center; gap:8px; border:1px solid var(--border); padding:8px; border-radius:10px; background:var(--panel); cursor:pointer}
+.quick-grid .ql span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 
-/* checkbox row */
-#checkBox {
-  display: flex;
-  align-items: center;
-  gap: 8px;           /* space between box and text */
-  font-size: 14px;    /* adjust size here */
-  margin: 8px 0 15px; /* vertical spacing around the row */
-}
+/* Tabs */
+.tabs{display:block}
+.tabs-list{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px}
+.tab{padding:8px; border:1px solid var(--border); border-radius:10px; background:var(--panel); color:var(--text); cursor:pointer}
+.tab.active{outline:2px solid color-mix(in srgb, var(--primary) 45%, transparent)}
+.tab-panels .tab-panel{display:none}
+.tab-panels .tab-panel.active{display:block}
 
+/* Footer */
+.footer{border-top:1px solid var(--border); text-align:center; padding:24px; font-size:12px; color:var(--muted)}
+.footer .link{color:inherit}
+.chart-wrap{height:220px}
+
+/* Utilities */
+.row.gap i, .btn i{width:16px; height:16px}

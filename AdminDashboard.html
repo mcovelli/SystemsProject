@@ -160,7 +160,7 @@
             <label for="course_title">Course Title</label><br>
             <input type="text" id="title" name="title" value="Enter course title"><br>
             <label for="course_credits">Course Credits</label><br>
-            <input type="number" id="course_credits" name="tcred" value="Enter number of course credits"><br>
+            <input type="number" id="course_credits" name="credit" value="Enter number of course credits"><br>
              <label for="course_dept">Course Department</label><br>
             <input type="text" id="course_dept" name="dept" value="Enter course department"><br>
             <label for="course_title">Course Instructor</label><br>
@@ -172,6 +172,22 @@
     </section>
 
     <aside>
+      <div class="card">
+        <h2>Create Courses</h2>
+        <form>
+            <label for="CRN">CRN</label><br>
+            <input type="text" id="CRN" name="crn" value="Enter course registration number" required><br>
+            <label for="course_title">Course Title</label><br>
+            <input type="text" id="title" name="title" value="Enter course title" required><br>
+            <label for="section">Course Section</label><br>
+            <input type="number" id="section" name="section" value="Enter course section" required><br>
+             <label for="course_dept">Faculty</label><br>
+            <input type="text" id="course_dept" name="dept" value="Enter course department" required><br>
+            <label for="course_title">Course Instructor</label><br>
+            <input type="text" id="instructor" name="instructor" value="Enter course instructor" required><br>
+            </select>
+          </form>
+      </div>
     </aside>
   </main>
 

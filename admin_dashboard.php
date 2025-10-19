@@ -37,6 +37,8 @@ if (!$admin) {
 <body>
   <header>
     <h1>🎓 Northport University Admin</h1>
+    <h3>Welcome, <?php echo htmlspecialchars(
+    $admin['FirstName'] . ' ' . $admin['LastName'] . $admn['UserType']); ?></h3>
     <input type="text" placeholder="Search courses, people, etc..." />
   </header>
   <main>

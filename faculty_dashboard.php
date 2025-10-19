@@ -46,6 +46,8 @@ if (!$admin) {
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
       <span class="pill">Faculty Portal</span>
+      <h3>Welcome, <?php echo htmlspecialchars(
+    $faculty['FirstName'] . ' ' . $faculty['LastName'] . $faculty['UserType']); ?></h3>
     </div>
     <div class="top-actions">
       <div class="search">

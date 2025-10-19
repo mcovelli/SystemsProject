@@ -1,5 +1,5 @@
 <?php
-$mysqli = new mysqli("127.0.0.1", "phpuser", "SystemsFall2025!", "University");
+$mysqli = get_db();
 
 if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["token"])) {
     $token = $_GET["token"];

@@ -28,16 +28,225 @@ if (!$admin) {
 ?>
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="utf-8">
-  <title>Faculty Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Northport University — Faculty Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="northport-dashboard-vanilla/styles.css" />
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
-  <h1>Welcome, <?php echo htmlspecialchars(
-    $faculty['FirstName'] . ' ' . $faculty['LastName'] . ' (' . $faculty['UserType'] . ')'); ?></h1>
-  <p>Email: <?php echo htmlspecialchars($faculty['Email']); ?></p>
-  <p>Status: <?php echo htmlspecialchars($faculty['Status']); ?></p>
-  <p><a href="logout.php">Log out</a></p>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><i data-lucide="graduation-cap"></i></div>
+      <h1>Northport University</h1>
+      <span class="pill">Faculty Portal</span>
+    </div>
+    <div class="top-actions">
+      <div class="search">
+        <i class="search-icon" data-lucide="search"></i>
+        <input type="text" placeholder="Search courses, people, anything…" />
+      </div>
+      <button class="icon-btn" aria-label="Notifications"><i data-lucide="bell"></i></button>
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
+      <div class="divider"></div>
+      <div class="user">
+        <img class="avatar" src="https://i.pravatar.cc/400?img=59" alt="avatar" />
+        <div class="user-meta">
+          <div class="name">Dr. Patel</div>
+        </div>
+        <div class="sub">Lecturer • Email: npatel@northportuniversity.edu</div>
+        <button class="icon-btn" aria-label="Sign out"><i data-lucide="log-out"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="left">
+      <div class="stats">
+        <div class="card stat">
+          <div class="card-head">
+            <div class="muted">Number of Courses (This Semester)</div>
+            <i data-lucide="pencil"></i>
+          </div>
+          <div class="stat-value">4</div>
+        </div>
+
+        <div class="card stat">
+          <div class="card-head">
+            <div class="muted">Faculty ID</div>
+            <i data-lucide="person-standing"></i>
+          </div>
+          <div class="stat-value">842196</div>
+        </div>
+
+        <div class="card stat">
+          <div class="card-head">
+            <div class="muted">Unread Messages</div>
+            <i data-lucide="inbox"></i>
+          </div>
+          <div class="stat-value">2</div>
+        </div>
+
+        <div class="card stat">
+          <div class="card-head">
+            <div class="muted">Specialty</div>
+            <i data-lucide="book"></i>
+          </div>
+          <div class="stat-value">Computer Science</div>
+        </div>
+
+        <div class="card stat">
+          <div class="card-head">
+            <div class="muted">Date of Birth</div>
+            <i data-lucide="calendar"></i>
+          </div>
+          <div class="stat-value">08/27/1965</div>
+        </div>
+
+        <div class="card stat">
+          <div class="card-head">
+            <div class="muted">Office Location</div>
+            <i data-lucide="map-pin"></i>
+          </div>
+          <div class="stat-value">A502</div>
+        </div>
+      </div>
+
+      <!--<div class="grid-two">
+        <div class="card">
+          <div class="card-title">Degree Progress</div>
+          <div class="row between small muted">
+            <span>CS B.S. • 120 Credits</span>
+            <span>68% complete</span>
+          </div>
+          <div class="progress">
+            <div class="bar" style="width:68%"></div>
+          </div>
+          <div class="badges">
+            <span class="badge">45 core</span>
+            <span class="badge">18 elective</span>
+            <span class="badge">19 gen-ed</span>
+          </div>
+          <div class="row gap">
+            <button class="btn">View Degree Plan</button>
+            <button class="btn outline">Book Advising</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">GPA Trend</div>
+          <div class="chart-wrap">
+            <canvas id="gpaChart" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+      -->
+
+      <div class="card">
+        <div class="card-head between">
+          <div class="card-title">Semester Schedule</div>
+          <div class="row gap">
+            <button class="btn outline"><i data-lucide="calendar-days"></i> Open Calendar</button>
+            <button class="btn">Add Course</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="w-90">CRN</th>
+                <th>Course</th>
+                <th>Days</th>
+                <th>Time</th>
+                <th>Location</th>
+              </tr>
+            </thead>
+            <tbody id="facultyScheduleBody"></tbody>
+          </table>
+        </div>
+
+        <div class="card-head between">
+          <div class="card-title">Student Roster</div>
+          <div class="row gap">
+            <label for="rosters">Choose a roster</label>
+            <button class="btn">Add Event</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="w-90">Student Name</th>
+                <th>Course</th>
+                <th>Days</th>
+                <th>Time</th>
+                <th>Location</th>
+              </tr>
+            </thead>
+            <tbody id="rosterBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <aside class="right">
+      <div class="card">
+        <div class="card-title">Quick Actions</div>
+        <div class="quick-grid" id="teacherQuickLinks"></div>
+      </div>
+
+      <div class="tabs">
+        <div class="tabs-list">
+          <button class="tab active" data-tab="tasks">To-Dos</button>
+          <button class="tab" data-tab="announcements">Announcements</button>
+        </div>
+        <div class="tab-panels">
+          <div class="tab-panel active" id="panel-tasks">
+            <div class="card">
+              <div class="card-title">Upcoming Deadlines</div>
+              <div id="studentTasksList" class="vstack gap"></div>
+              <div class="pt-8">
+                <button class="btn"><i data-lucide="clipboard-list"></i> View All Tasks</button>
+              </div>
+            </div>
+          </div>
+          <div class="tab-panel" id="panel-announcements">
+            <div class="card">
+              <div class="card-title">Campus Updates</div>
+              <div id="studentAnnList" class="vstack gap"></div>
+              <div class="pt-8">
+                <button class="btn outline">View All Announcements</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-two sm-one">
+        <div class="card">
+          <div class="card-title">Messages</div>
+          <div id="facultyMsgList" class="vstack gap"></div>
+          <div class="pt-8">
+            <button class="btn outline">Open Inbox</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    © <span id="year"></span> Northport University • All rights reserved • <a href="#" class="link">Privacy</a>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+  </script>
+  <script src="northport-dashboard-vanilla/app.js"></script>
 </body>
 </html>

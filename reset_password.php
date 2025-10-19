@@ -7,14 +7,8 @@ require_once __DIR__ . '/config.php';
 /* Log mysqli errors to Apache log */
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-$DB_HOST = "127.0.0.1";
-$DB_PORT = 3306;
-$DB_USER = "phpuser";
-$DB_PASS = "SystemsFall2025!";
-$DB_NAME = "University";
-
 try {
-  $mysqli = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME, $DB_PORT);
+  $mysqli = get_db();
   $mysqli->set_charset('utf8mb4');
 
   if ($_SERVER['REQUEST_METHOD'] === 'GET') {

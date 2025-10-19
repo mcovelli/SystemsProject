@@ -1,14 +1,15 @@
 <?php
 session_start();
 require_once __DIR__ . '/config.php';
-if (!isset($_SESSION['user_id'])) {
-    header("Location: /SystemsProject/login.html");
+
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
+    header("Location: " . PROJECT_ROOT . "/login.html");
     exit;
 }
 
 $userId = $_SESSION['user_id'];
 
-$mysqli = new mysqli("127.0.0.1", "root", "Marvelman190!", "University", 3306);
+$mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
 $sql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
@@ -17,10 +18,10 @@ $stmt = $mysqli->prepare($sql);
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $res = $stmt->get_result();
-$statstaff = $res->fetch_assoc();
+$admin = $res->fetch_assoc();
 $stmt->close();
 
-if (!$statstaff) {
+if (!$admin) {
     echo "<p>Profile not found for your account.</p>";
     exit;
 }

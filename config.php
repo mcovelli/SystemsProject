@@ -48,3 +48,4 @@ function fail_500(string $msg): never {
     echo "Server error. Please try again later.";
     exit;
 }
+?>

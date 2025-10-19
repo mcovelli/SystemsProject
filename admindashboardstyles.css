@@ -1,0 +1,102 @@
+<style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
+      color: #1e293b;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+    header input {
+      padding: 6px 10px;
+      border: 1px solid #94a3b8;
+      border-radius: 5px;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      margin-bottom: 40px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .stat {
+      padding: 15px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table th, table td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    table th {
+      background: #f8fafc;
+    }
+    .current-semester, .next-semester {
+      display: none;
+    }
+    .active {
+      display: block;
+    }
+  .tab-buttons {
+     display: flex;
+     justify-content: center; /* centers them horizontally */
+     gap: 10px; /* space between buttons */
+     margin-bottom: 10px;
+    }
+
+    .tab-buttons button {
+      width: 150px;
+      margin-right: 5px;
+      padding: 8px 12px;
+      border: none;
+      background: #e2e8f0;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .tab-buttons button.active {
+      background: #334155;
+      color: #fff;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.8rem;
+      color: #64748b;
+      border-top: 1px solid #cbd5e1;
+      margin-top: 30px;
+    }
+  </style>

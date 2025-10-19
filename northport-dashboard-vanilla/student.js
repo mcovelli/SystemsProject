@@ -1,5 +1,5 @@
 // Northport University — Vanilla JS for Dashboard
-const data = {
+const studentData = {
   gpaTrend: [
     { term: "F23", gpa: 3.1 },
     { term: "S24", gpa: 3.3 },
@@ -12,10 +12,6 @@ const data = {
     { crn: 11802, course: "CS 340 – DB Systems", days: "TR", time: "2:40 - 4:20 PM", location: "SCI 132" },
     { crn: 12544, course: "MATH 245 – Stats", days: "MW", time: "2:40 - 4:20 PM", location: "MAT 108" },
     { crn: 13001, course: "HUM 210 – Ethics", days: "TR", time: "4:30 - 6:10 PM", location: "LIB 204" },
-  ],
-  teacherSchedule: [
-    { crn: 10423, course: "CS 301 – Networks", days: "MW", time: "9:50 - 11:30 AM", location: "ENG 210" },
-    { crn: 10116, course: "CS 101 – DB Systems", days: "TR", time: "2:40 - 4:20 PM", location: "SCI 132" },
   ],
   studentTasks: [
     { id: 1, title: "Networks HW#3", due: "Oct 15, 11:59 PM", status: "due-soon" },
@@ -31,23 +27,11 @@ const data = {
     { from: "Dr. Patel", subject: "Project milestones feedback", at: "Today 10:12 AM" },
     { from: "Bursar", subject: "Statement available", at: "Yesterday" },
   ],
-  teacherMessages: [
-    { from: "Mike B.", subject: "ChatGPT okay for help", at: "Wednesday 12:52 PM" },
-    { from: "Dean Berbari", subject: "Meeting about possible program", at: "Yesterday" },
-  ],
   studentQuickLinks: [
     { icon: "book-open", label: "Courses" },
     { icon: "clipboard-list", label: "To‑Dos" },
     { icon: "credit-card", label: "Billing" },
     { icon: "graduation-cap", label: "Degree Plan" },
-    { icon: "calendar-days", label: "Calendar" },
-    { icon: "settings", label: "Settings" },
-  ],
-  teacherQuickLinks: [
-    { icon: "book-open", label: "Courses" },
-    { icon: "brain", label: "Student Grades" },
-    { icon: "check-circle", label: "Attendance" },
-    { icon: "upload", label: "Create Assignment" },
     { icon: "calendar-days", label: "Calendar" },
     { icon: "settings", label: "Settings" },
   ],
@@ -58,19 +42,7 @@ document.getElementById("year").textContent = new Date().getFullYear();
 
 // Render student schedule
 const studentScheduleBody = document.getElementById("studentScheduleBody");
-studentScheduleBody.innerHTML = data.studentSchedule.map(r => `
-  <tr>
-    <td class="font-medium">${r.crn}</td>
-    <td>${r.course}</td>
-    <td>${r.days}</td>
-    <td>${r.time}</td>
-    <td>${r.location}</td>
-  </tr>
-`).join("");
-
-//Render teacherSchedule
-const facultyScheduleBody = document.getElementById("facultyScheduleBody");
-facultyScheduleBody.innerHTML = data.teacherSchedule.map(r => `
+studentScheduleBody.innerHTML = studentData.studentSchedule.map(r => `
   <tr>
     <td class="font-medium">${r.crn}</td>
     <td>${r.course}</td>
@@ -82,18 +54,13 @@ facultyScheduleBody.innerHTML = data.teacherSchedule.map(r => `
 
 // Render quick links
 const qlStudent = document.getElementById("studentQuickLinks");
-qlStudent.innerHTML = data.studentQuickLinks.map(q => `
-  <button class="ql"><i data-lucide="${q.icon}"></i><span>${q.label}</span></button>
-`).join("");
-
-const qlFaculty = document.getElementById("facultyQuickLinks");
-qlFaculty.innerHTML = data.teacherQuickLinks.map(q => `
+qlStudent.innerHTML = studentData.studentQuickLinks.map(q => `
   <button class="ql"><i data-lucide="${q.icon}"></i><span>${q.label}</span></button>
 `).join("");
 
 // Render tasks
 const studentTasks = document.getElementById("studentTasksList");
-studentTasks.innerHTML = data.studentTasks.map(t => `
+studentTasks.innerHTML = studentData.studentTasks.map(t => `
   <div class="row gap card" style="padding:12px">
     <i data-lucide="check-circle-2" class="${t.status === 'due-soon' ? 'text-amber' : t.status === 'in-progress' ? 'text-blue' : 'text-muted'}"></i>
     <div class="vstack" style="gap:4px">
@@ -108,7 +75,7 @@ studentTasks.innerHTML = data.studentTasks.map(t => `
 
 // Render announcements
 const studentAnn = document.getElementById("studentAnnList");
-studentAnn.innerHTML = data.studentAnnouncements.map(a => `
+studentAnn.innerHTML = studentData.studentAnnouncements.map(a => `
   <div class="card" style="padding:12px">
     <div class="row gap muted small">
       <span class="badge">${a.tag}</span><span>•</span><span>${a.date}</span>
@@ -119,21 +86,7 @@ studentAnn.innerHTML = data.studentAnnouncements.map(a => `
 
 // Render messages
 const studentMsg = document.getElementById("studentMsgList");
-studentMsg.innerHTML = data.studentMessages.map(m => {
-  const initials = m.from.split(" ").map(s => s[0]).join("");
-  return `
-  <div class="row gap">
-    <div class="avatar" style="background:var(--pill); display:grid; place-items:center; color:var(--text)">${initials}</div>
-    <div class="vstack" style="gap:2px">
-      <div style="font-size:14px; font-weight:600">${m.from}</div>
-      <div class="muted" style="font-size:12px">${m.subject}</div>
-    </div>
-    <span class="muted small" style="margin-left:auto">${m.at}</span>
-  </div>`;
-}).join("");
-
-const facultyMsg = document.getElementById("facultyMsgList");
-facultyMsg.innerHTML = data.teacherMessages.map(m => {
+studentMsg.innerHTML = studentData.studentMessages.map(m => {
   const initials = m.from.split(" ").map(s => s[0]).join("");
   return `
   <div class="row gap">
@@ -171,8 +124,8 @@ themeToggle.addEventListener("click", () => {
 
 // GPA Chart (Chart.js)
 const ctx = document.getElementById("gpaChart").getContext("2d");
-const labels = data.gpaTrend.map(d => d.term);
-const values = data.gpaTrend.map(d => d.gpa);
+const labels = studentData.gpaTrend.map(d => d.term);
+const values = studentData.gpaTrend.map(d => d.gpa);
 const chart = new Chart(ctx, {
   type: 'line',
   data: {
@@ -196,8 +149,6 @@ const chart = new Chart(ctx, {
     }
   }
 });
-
-  document.getElementById("year").textContent = new Date().getFullYear();
 
 
 // Init icons

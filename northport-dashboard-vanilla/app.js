@@ -7,31 +7,47 @@ const data = {
     { term: "F24", gpa: 3.5 },
     { term: "S25", gpa: 3.6 },
   ],
-  schedule: [
-    { crn: 10423, course: "CS 301 – Networks", days: "MW", time: "10:30–11:45 AM", location: "ENG 210" },
-    { crn: 11802, course: "CS 340 – DB Systems", days: "TR", time: "1:00–2:15 PM", location: "SCI 132" },
-    { crn: 12544, course: "MATH 245 – Stats", days: "MWF", time: "2:30–3:20 PM", location: "MAT 108" },
-    { crn: 13001, course: "HUM 210 – Ethics", days: "TR", time: "3:30–4:45 PM", location: "LIB 204" },
+  studentSchedule: [
+    { crn: 10423, course: "CS 301 – Networks", days: "MW", time: "9:50 - 11:30 AM", location: "ENG 210" },
+    { crn: 11802, course: "CS 340 – DB Systems", days: "TR", time: "2:40 - 4:20 PM", location: "SCI 132" },
+    { crn: 12544, course: "MATH 245 – Stats", days: "MW", time: "2:40 - 4:20 PM", location: "MAT 108" },
+    { crn: 13001, course: "HUM 210 – Ethics", days: "TR", time: "4:30 - 6:10 PM", location: "LIB 204" },
   ],
-  tasks: [
+  teacherSchedule: [
+    { crn: 10423, course: "CS 301 – Networks", days: "MW", time: "9:50 - 11:30 AM", location: "ENG 210" },
+    { crn: 10116, course: "CS 101 – DB Systems", days: "TR", time: "2:40 - 4:20 PM", location: "SCI 132" },
+  ],
+  studentTasks: [
     { id: 1, title: "Networks HW#3", due: "Oct 15, 11:59 PM", status: "due-soon" },
     { id: 2, title: "DB Project ERD", due: "Oct 17, 5:00 PM", status: "in-progress" },
     { id: 3, title: "Stats Quiz 4", due: "Oct 18, 9:00 AM", status: "scheduled" },
   ],
-  announcements: [
+  studentAnnouncements: [
     { id: 1, tag: "Registrar", text: "Spring 2026 registration opens Nov 5.", date: "Oct 10" },
     { id: 2, tag: "IT", text: "Portal maintenance Oct 20, 1–3 AM.", date: "Oct 12" },
     { id: 3, tag: "Career", text: "Tech Career Fair Oct 21 @ Student Center.", date: "Oct 13" },
   ],
-  messages: [
+  studentMessages: [
     { from: "Dr. Patel", subject: "Project milestones feedback", at: "Today 10:12 AM" },
     { from: "Bursar", subject: "Statement available", at: "Yesterday" },
   ],
-  quickLinks: [
+  teacherMessages: [
+    { from: "Mike B.", subject: "ChatGPT okay for help", at: "Wednesday 12:52 PM" },
+    { from: "Dean Berbari", subject: "Meeting about possible program", at: "Yesterday" },
+  ],
+  studentQuickLinks: [
     { icon: "book-open", label: "Courses" },
     { icon: "clipboard-list", label: "To‑Dos" },
     { icon: "credit-card", label: "Billing" },
     { icon: "graduation-cap", label: "Degree Plan" },
+    { icon: "calendar-days", label: "Calendar" },
+    { icon: "settings", label: "Settings" },
+  ],
+  teacherQuickLinks: [
+    { icon: "book-open", label: "Courses" },
+    { icon: "brain", label: "Student Grades" },
+    { icon: "check-circle", label: "Attendance" },
+    { icon: "upload", label: "Create Assignment" },
     { icon: "calendar-days", label: "Calendar" },
     { icon: "settings", label: "Settings" },
   ],
@@ -40,9 +56,21 @@ const data = {
 // Fill current year
 document.getElementById("year").textContent = new Date().getFullYear();
 
-// Render schedule
-const scheduleBody = document.getElementById("scheduleBody");
-scheduleBody.innerHTML = data.schedule.map(r => `
+// Render student schedule
+const studentScheduleBody = document.getElementById("studentScheduleBody");
+studentScheduleBody.innerHTML = data.studentSchedule.map(r => `
+  <tr>
+    <td class="font-medium">${r.crn}</td>
+    <td>${r.course}</td>
+    <td>${r.days}</td>
+    <td>${r.time}</td>
+    <td>${r.location}</td>
+  </tr>
+`).join("");
+
+//Render teacherSchedule
+const facultyScheduleBody = document.getElementById("facultyScheduleBody");
+facultyScheduleBody.innerHTML = data.teacherSchedule.map(r => `
   <tr>
     <td class="font-medium">${r.crn}</td>
     <td>${r.course}</td>
@@ -53,14 +81,19 @@ scheduleBody.innerHTML = data.schedule.map(r => `
 `).join("");
 
 // Render quick links
-const ql = document.getElementById("quickLinks");
-ql.innerHTML = data.quickLinks.map(q => `
+const qlStudent = document.getElementById("studentQuickLinks");
+qlStudent.innerHTML = data.studentQuickLinks.map(q => `
+  <button class="ql"><i data-lucide="${q.icon}"></i><span>${q.label}</span></button>
+`).join("");
+
+const qlFaculty = document.getElementById("facultyQuickLinks");
+qlFaculty.innerHTML = data.teacherQuickLinks.map(q => `
   <button class="ql"><i data-lucide="${q.icon}"></i><span>${q.label}</span></button>
 `).join("");
 
 // Render tasks
-const tasksList = document.getElementById("tasksList");
-tasksList.innerHTML = data.tasks.map(t => `
+const studentTasks = document.getElementById("studentTasksList");
+studentTasks.innerHTML = data.studentTasks.map(t => `
   <div class="row gap card" style="padding:12px">
     <i data-lucide="check-circle-2" class="${t.status === 'due-soon' ? 'text-amber' : t.status === 'in-progress' ? 'text-blue' : 'text-muted'}"></i>
     <div class="vstack" style="gap:4px">
@@ -74,8 +107,8 @@ tasksList.innerHTML = data.tasks.map(t => `
 `).join("");
 
 // Render announcements
-const ann = document.getElementById("annList");
-ann.innerHTML = data.announcements.map(a => `
+const studentAnn = document.getElementById("studentAnnList");
+studentAnn.innerHTML = data.studentAnnouncements.map(a => `
   <div class="card" style="padding:12px">
     <div class="row gap muted small">
       <span class="badge">${a.tag}</span><span>•</span><span>${a.date}</span>
@@ -85,8 +118,22 @@ ann.innerHTML = data.announcements.map(a => `
 `).join("");
 
 // Render messages
-const msgList = document.getElementById("msgList");
-msgList.innerHTML = data.messages.map(m => {
+const studentMsg = document.getElementById("studentMsgList");
+studentMsg.innerHTML = data.studentMessages.map(m => {
+  const initials = m.from.split(" ").map(s => s[0]).join("");
+  return `
+  <div class="row gap">
+    <div class="avatar" style="background:var(--pill); display:grid; place-items:center; color:var(--text)">${initials}</div>
+    <div class="vstack" style="gap:2px">
+      <div style="font-size:14px; font-weight:600">${m.from}</div>
+      <div class="muted" style="font-size:12px">${m.subject}</div>
+    </div>
+    <span class="muted small" style="margin-left:auto">${m.at}</span>
+  </div>`;
+}).join("");
+
+const facultyMsg = document.getElementById("facultyMsgList");
+facultyMsg.innerHTML = data.teacherMessages.map(m => {
   const initials = m.from.split(" ").map(s => s[0]).join("");
   return `
   <div class="row gap">
@@ -123,7 +170,7 @@ themeToggle.addEventListener("click", () => {
 });
 
 // GPA Chart (Chart.js)
-const ctx = document.getElementById("gpaChart");
+const ctx = document.getElementById("gpaChart").getContext("2d");
 const labels = data.gpaTrend.map(d => d.term);
 const values = data.gpaTrend.map(d => d.gpa);
 const chart = new Chart(ctx, {
@@ -149,6 +196,9 @@ const chart = new Chart(ctx, {
     }
   }
 });
+
+  document.getElementById("year").textContent = new Date().getFullYear();
+
 
 // Init icons
 lucide.createIcons();

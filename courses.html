@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Courses • Northport University</title>
+  <!-- Reuse your existing stylesheet if present -->
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    /* ===== Light Theme — aligned with student dashboard look ===== */
+    :root{
+      --bg:#f8fafc;           /* page background */
+      --card:#ffffff;         /* cards/rows */
+      --line:#e5e7eb;         /* borders */
+      --text:#111827;         /* main text */
+      --muted:#475569;        /* muted text */
+      --brand:#111827;        /* primary button */
+      --ok:#dcfce7;           /* seats open chip */
+      --full:#fee2e2;         /* full chip */
+      --focus:#0ea5e9;        /* focus ring */
+    }
+    html,body{height:100%;}
+    body{background:var(--bg);color:var(--text);margin:0;font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, "Apple Color Emoji","Segoe UI Emoji";}
+
+    /* Top bar (matches light dashboard header) */
+    .topbar{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;z-index:10}
+    .brand a{color:inherit;text-decoration:none}
+
+    .page{max-width:1100px;margin:24px auto;padding:0 16px}
+    h1,h2{margin:0}
+    h2{font-size:1.25rem;margin-bottom:6px}
+    .subtitle{color:var(--muted);margin:0 0 14px}
+
+    /* Toolbar */
+    .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0 16px}
+    .control{display:flex;align-items:center;gap:8px}
+    .control label{font-size:.85rem;color:var(--muted)}
+    .toolbar input[type="search"], .toolbar select{
+      background:#fff;color:var(--text);padding:10px 12px;border:1px solid var(--line);border-radius:12px;outline:none;min-width:220px
+    }
+    .toolbar input[type="search"]:focus, .toolbar select:focus{box-shadow:0 0 0 3px color-mix(in oklab, var(--focus) 25%, transparent)}
+
+    /* Table as card-rows */
+    .table{width:100%;border-collapse:separate;border-spacing:0 10px}
+    .table thead th{font-weight:600;font-size:.9rem;color:var(--muted);text-align:left;padding:0 12px 6px}
+    .row{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .row td{padding:14px 12px;vertical-align:middle}
+    .row td small{color:var(--muted)}
+
+    .badge{font-size:.8rem;padding:4px 8px;border-radius:999px;display:inline-block;background:#eef2ff}
+
+    /* Actions */
+    .actions{white-space:nowrap;text-align:right}
+    .btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--text);padding:8px 12px;border-radius:10px;text-decoration:none;cursor:pointer}
+    .btn.primary{border:none;background:var(--brand);color:#fff}
+    .btn:focus{outline:none;box-shadow:0 0 0 3px color-mix(in oklab, var(--focus) 25%, transparent)}
+
+    /* Utilities */
+    .crumb a{color:var(--muted);text-decoration:none}
+    .muted{color:var(--muted)}
+
+    /* Mobile tweaks */
+    @media (max-width:720px){
+      .hide-sm{display:none}
+      .toolbar input[type="search"], .toolbar select{min-width:unset;flex:1}
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="topbar" role="banner">
+    <div class="brand">
+      <div class="crumb"><a href="student dashboard.html" aria-label="Back to Student Dashboard">← Back to Dashboard</a></div>
+    </div>
+    <div class="muted" aria-hidden="true">Northport University • Courses</div>
+  </header>
+
+  <!-- Main -->
+  <main class="page" role="main">
+    <h2>Course Sections (Spring 2026)</h2>
+    <p class="subtitle">Light theme, clean cards, subtle borders — consistent with your student dashboard.</p>
+
+    <!-- Filters / Search -->
+    <div class="toolbar" role="region" aria-label="Course filters">
+      <input id="q" type="search" placeholder="Search code, title, or instructor…" aria-label="Search courses" />
+      <div class="control">
+        <label for="dept">Dept</label>
+        <select id="dept" aria-label="Department">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="days">Days</label>
+        <select id="days" aria-label="Days">
+          <option value="">Any</option>
+          <option>MWF</option>
+          <option>TR</option>
+          <option>MW</option>
+          <option>F</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="delivery">Delivery</label>
+        <select id="delivery" aria-label="Delivery">
+          <option value="">Any</option>
+          <option>In-Person</option>
+          <option>Hybrid</option>
+          <option>Online</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <table class="table" role="table" aria-describedby="courseTableCaption">
+      <caption id="courseTableCaption" class="sr-only" style="position:absolute;left:-9999px;">Course section list</caption>
+      <thead>
+        <tr>
+          <th scope="col">CRN</th>
+          <th scope="col">Course</th>
+          <th scope="col" class="hide-sm">Section</th>
+          <th scope="col">Instructor</th>
+          <th scope="col" class="hide-sm">Days/Time</th>
+          <th scope="col" class="hide-sm">Room</th>
+          <th scope="col">Seats</th>
+          <th scope="col" aria-label="Actions"></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </main>
+
+  <script>
+    // ===== Sample data (swap for fetch to your PHP later) =====
+    const sections = [
+      { crn:21001, code:"CS 1101", title:"Intro to Programming", dept:"CS", section:"A", instructor:"Dr. M. Patel", days:"MWF", time:"09:00–09:50", room:"ENGR 120", capacity:30, enrolled:27, delivery:"In-Person" },
+      { crn:21002, code:"CS 2200", title:"Data Structures", dept:"CS", section:"B", instructor:"Prof. A. Gomez", days:"TR", time:"11:00–12:15", room:"CS 214", capacity:35, enrolled:35, delivery:"In-Person" },
+      { crn:21003, code:"CS 3472", title:"Machine Learning", dept:"CS", section:"A", instructor:"Dr. L. Chen", days:"TR", time:"14:00–15:15", room:"CS 318", capacity:40, enrolled:31, delivery:"Hybrid" },
+      { crn:21004, code:"MATH 241", title:"Calculus III", dept:"MATH", section:"C", instructor:"Dr. J. Rivera", days:"MWF", time:"10:00–10:50", room:"SCI 201", capacity:28, enrolled:22, delivery:"In-Person" },
+      { crn:21005, code:"STAT 321", title:"Probability & Stats", dept:"STAT", section:"A", instructor:"Prof. K. Osei", days:"MW", time:"16:00–17:15", room:"SCI 108", capacity:32, enrolled:29, delivery:"Online" },
+      { crn:21006, code:"CS 4720", title:"Data Mining", dept:"CS", section:"A", instructor:"Dr. S. Ahmed", days:"TR", time:"12:30–13:45", room:"CS 220", capacity:36, enrolled:33, delivery:"Hybrid" },
+    ];
+
+    // Populate Dept filter from data
+    const deptSelect = document.getElementById('dept');
+    [...new Set(sections.map(s => s.dept))].sort().forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d; opt.textContent = d; deptSelect.appendChild(opt);
+    });
+
+    const rowsEl = document.getElementById('rows');
+
+    function seatsChip(s){
+      const open = s.capacity - s.enrolled;
+      const full = open <= 0;
+      const bg = full ? 'var(--full)' : 'var(--ok)';
+      const label = full ? 'Full' : `${open} open`;
+      return `<span class="badge" style="background:${bg}">${label}</span>`;
+    }
+
+    function viewDetails(s){
+      alert(`Section ${s.crn}: ${s.code} – ${s.title}\nInstructor: ${s.instructor}\n${s.days} ${s.time}\nRoom: ${s.room}\nDelivery: ${s.delivery}`);
+    }
+
+    function enroll(crn){
+      const s = sections.find(x=>x.crn===crn);
+      if(!s) return;
+      const open = s.capacity - s.enrolled;
+      if(open <= 0){ alert('Sorry, this section is full.'); return; }
+      // Demo behavior — integrate with PHP later
+      s.enrolled += 1;
+      alert(`Added CRN ${crn} to your cart (demo).`);
+      render();
+    }
+
+    function render(){
+      const q = document.getElementById('q').value.trim().toLowerCase();
+      const dept = document.getElementById('dept').value;
+      const days = document.getElementById('days').value;
+      const delivery = document.getElementById('delivery').value;
+
+      const filtered = sections.filter(s => {
+        const matchQ = !q || [s.code, s.title, s.instructor].some(v => v.toLowerCase().includes(q));
+        const matchDept = !dept || s.dept === dept;
+        const matchDays = !days || s.days === days;
+        const matchDelivery = !delivery || s.delivery === delivery;
+        return matchQ && matchDept && matchDays && matchDelivery;
+      });
+
+      rowsEl.innerHTML = filtered.map(s => `
+        <tr class="row">
+          <td>${s.crn}</td>
+          <td><strong>${s.code}</strong><br><small>${s.title}</small></td>
+          <td class="hide-sm">${s.section}</td>
+          <td>${s.instructor}</td>
+          <td class="hide-sm">${s.days} <small>${s.time}</small></td>
+          <td class="hide-sm">${s.room}</td>
+          <td>${seatsChip(s)}</td>
+          <td class="actions">
+            <button class="btn" onclick='viewDetails(${JSON.stringify(s)})'>View</button>
+            <button class="btn primary" onclick="enroll(${s.crn})">Enroll</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Events
+    document.getElementById('q').addEventListener('input', render);
+    document.getElementById('dept').addEventListener('change', render);
+    document.getElementById('days').addEventListener('change', render);
+    document.getElementById('delivery').addEventListener('change', render);
+
+    render();
+  </script>
+</body>
+</html>

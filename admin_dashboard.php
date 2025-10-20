@@ -26,6 +26,10 @@ if (!$admin) {
     exit;
 }
 ?>
+
+//****Add Email and UserID generation****
+
+
 <!doctype html>
 <html lang="en">
 <head>

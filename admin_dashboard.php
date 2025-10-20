@@ -12,8 +12,8 @@ $userId = $_SESSION['user_id'];
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$sql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
-        FROM Users WHERE UserID = ? LIMIT 1";
+$sql = "SELECT u.UserID, u.FirstName, u.LastName, u.Email, u.UserType, u.Status, u.DOB, a.SecurityType, a.AdminID
+        FROM Users u JOIN Admin a ON u.UserID = a.AdminID WHERE UserID = ? LIMIT 1";
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param("i", $userId);
 $stmt->execute();
@@ -27,7 +27,7 @@ if (!$admin) {
 }
 ?>
 
-//****Add Email and UserID generation****
+<!-- ****Add Email and UserID generation**** -->
 
 
 <!doctype html>
@@ -39,6 +39,15 @@ if (!$admin) {
   <link rel="stylesheet" href="admindashboardstyles.css">
   <style>
     #subTypeMenu { display: none; }
+    .tab-selection { display: none; }
+
+    .tab-selection.active { display: block; }
+
+    .tab-buttons button.active 
+    {
+      background-color: #004080;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -54,21 +63,35 @@ if (!$admin) {
     <section>
       <div class="card">
         <div class="tab-buttons">
-          <h2>Account</h2>
-          <button id="create-tab" class="active">Create New User Account</button>
+          <button id="account-tab" class="active">Account</button>
+          <button id="create-tab">Create New User Account</button>
           <button id="search-tab">Search User Account</button>
         </div>
 
+          <!-- Account Info -->
+        <div id = "account-section" class = "tab-selection active">
+      
+          <p>Name: <?php echo htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']); ?> </p>
+          <p>Security Level: <?php echo htmlspecialchars($admin['SecurityType']); ?> </p>
+
+          <p>Admin ID: <?php echo htmlspecialchars($admin['AdminID']); ?> </p>
+
+          <p>Email: <?php echo htmlspecialchars($admin['Email']); ?> </p>
+
+        </div>
+
         <!-- CREATE USER FORM -->
-        <form id="CreateUser">
-          <label for="UserType">User Type:</label>
-          <select id="UserType" name="UserType">
-            <option value="">-- Select User Type --</option>
-            <option value="student">Student</option>
-            <option value="faculty">Faculty</option>
-            <option value="admin">Admin</option>
-            <option value="staff">Stat Staff</option>
-          </select>
+        <div id = "create-section" class= "tab-selection">
+          <form id="CreateUser">
+            <label for="UserType">User Type:</label>
+            <select id="UserType" name="UserType">
+              <option value="">-- Select User Type --</option>
+              <option value="student">Student</option>
+              <option value="faculty">Faculty</option>
+              <option value="admin">Admin</option>
+              <option value="staff">Stat Staff</option>
+            </select>
+            <br>
 
           <div id="subTypeMenu">
             <label for="subType">Select User Sub Type:</label>
@@ -86,7 +109,8 @@ if (!$admin) {
           <input type="text" id="lname" name="lname" required><br>
 
           <label for="address">Address:</label>
-          <input type="text" id="address" name="address" placeholder="ex. 123 Main St."><br>
+          <input type="text" id="address" name="address" placeholder="ex. 123 Main St.">
+          <br>
 
           <label for="city">City:</label>
           <input type="text" id="city" name="city"><br>
@@ -97,11 +121,7 @@ if (!$admin) {
           <label for="zip">Zip Code:</label>
           <input type="text" id="zip" name="zip"><br>
 
-          <label for="status">Status:</label>
-          <input type="radio" id="ft" name="status" value="Full Time">
-          <label for="ft">Full Time</label>
-          <input type="radio" id="pt" name="status" value="Part Time">
-          <label for="pt">Part Time</label><br>
+          <br>
 
           <label for="gender">Gender:</label>
           <select id="gender" name="gender">
@@ -115,12 +135,49 @@ if (!$admin) {
           <button type="submit" id="submit">Submit</button>
         </form>
       </div>
+
+      <!-- Search User -->
+      <div id = "search-section" class = "tab-selection">
+        <form id = "searchUser">
+          <label for = "search">Search: </label>
+          <input type = "text" id = "userSearch" name = "userSearch">
+          <button type="submit" id="submit">Search</button>
+        </form>
+
+      </div>
+
     </section>
   </main>
 
   <footer>© 2025 Northport University • All rights reserved</footer>
 
   <script>
+
+    // --- Tab switching logic ---
+    const accountTab = document.getElementById("account-tab");
+    const createTab = document.getElementById("create-tab");
+    const searchTab = document.getElementById("search-tab");
+
+    const accountSection = document.getElementById("account-section");
+    const createSection = document.getElementById("create-section");
+    const searchSection = document.getElementById("search-section");
+
+    function activateTab(tab, section) {
+      // Remove active from all
+      [accountTab, createTab, searchTab].forEach(btn => btn.classList.remove("active"));
+      [accountSection, createSection, searchTab].forEach(div => div.classList.remove("active"));
+
+      // Activate chosen tab + section
+      tab.classList.add("active");
+      section.classList.add("active");
+    }
+
+    accountTab.addEventListener("click", () => activateTab(accountTab, accountSection));
+    createTab.addEventListener("click", () => activateTab(createTab, createSection));
+    searchTab.addEventListener("click", () => activateTab(searchTab, searchSection));
+
+    // Subtype menu
+
     const UserType = document.getElementById("UserType");
     const subType = document.getElementById("subType");
     const subTypeMenu = document.getElementById("subTypeMenu");
@@ -129,7 +186,7 @@ if (!$admin) {
       student: ["Undergraduate", "Graduate"],
       faculty: ["Full Time", "Part Time"],
       admin: ["Update", "View-Only"],
-      staff: ["HR", "IT Support"]
+      staff: [""]
     };
 
     UserType.addEventListener("change", function() {

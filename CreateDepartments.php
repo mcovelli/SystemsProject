@@ -88,12 +88,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for ="roomID">Room ID: </label>
                             <select name="roomID" id="roomID">
                                 <option value="">-- Select Office --</option>
-                                </select><br>
+                            </select><br>
 
                         <label for = "chairID">Chair:</label>
                             <select name="chairID" id="chairID">
                                 <option value="">-- Select Chair --</option>
-                                </select><br>
+                            </select><br>
 
                         <button type="submit" id = "submit">Submit</button>
                     </form>
@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         officeSelect.appendChild(opt);
         });
     })
-    .catch(err => console.error('Error loading offices:', err));
+    .catch(err => console.error('Error loading faculty:', err));
 
 
     document.getElementById("CreateDepartment").addEventListener("submit", (e) => {

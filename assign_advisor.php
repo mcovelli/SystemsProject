@@ -22,14 +22,41 @@ $res = $stmt->get_result();
 $admin = $res->fetch_assoc();
 $stmt->close();
 
-$student_sql = "SELECT CONCAT(su.FirstName, ' ', su.LastName) AS StudentName, s.StudentID
-        FROM Student s LEFT JOIN Advisor a ON s.StudentID = a.StudentID
-        JOIN Users su ON s.StudentID = su.UserID";
-$student_stmt = $mysqli->prepare($student_sql);
-$student_stmt->execute();
-$student_res = $student_stmt->get_result();
-$student = $student_res->fetch_assoc();
-$student_stmt->close();
+$search = $_GET['search'] ?? '';
+
+$sql = "SELECT 
+        s.StudentID,
+        CONCAT(u.FirstName, ' ', u.LastName) AS StudentName
+    FROM Student s
+    LEFT JOIN Advisor a ON s.StudentID = a.StudentID
+    JOIN Users u ON s.StudentID = u.UserID
+    WHERE a.FacultyID IS NULL";
+
+if (!empty($search)) {
+    $sql .= " 
+    GROUP BY s.StudentID, u.FirstName, u.LastName, u.Email
+    HAVING 
+        StudentID LIKE CONCAT('%', ?, '%')
+    ";
+} else {
+    $sql .= "
+    GROUP BY s.StudentID, u.FirstName, u.LastName, u.Email
+    ";
+}
+
+$sql .= " ORDER BY s.StudentID ASC";
+
+
+$stmt = $mysqli->prepare($sql);
+
+if (!empty($search)) {
+    $stmt->bind_param("s", $search);
+}
+
+$stmt->execute();
+$res = $stmt->get_result();
+$student = $res->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $FacultyID = $_POST['facultyID'] ?? '';
@@ -104,19 +131,19 @@ $mysqli->commit();
 
   <div>
     <form name = "assignStudent" method = "POST" action = "">
-        <label for = "studentID" required>
-        <select name = "studentID" id = "studentID">
-            <option value="">-- Select Student --</option>
-            <?php while ($row = $student_res->fetch_assoc()): ?>
-                <option value="<?= $row['StudentID'] ?>">
-                    <?= htmlspecialchars($row['StudentName']) ?>
-                </option>
-            <?php endwhile; ?>
-        </select>
+        <label for = "studentID" required>StudentID: </label>
+          <input type="text" id="studentID" name="studentID" placeholder="Enter StudentID"><br>
+          <label for = "facultyID" required>Faculty: </label>
+          <select name="facultyID" id ="facultyID">
+            <option value="">-- Select Faculty--</option>
+          </select><br>
+      <button type="submit">Assign</button>
     </form>
 
 </body>
+  <footer>© <span id="year"></span> Northport University</footer>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
 
 <script>
     // Immediately create Lucide icons
@@ -135,6 +162,26 @@ $mysqli->commit();
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       if (window.lucide) lucide.createIcons();
     });
+
+    // Fetch faculty from get_faculty.php
+    fetch('get_faculty.php')
+  .then(response => response.json())
+  .then(data => {
+    const deptSelect = document.getElementById('facultyID');
+    const selected = new URLSearchParams(window.location.search).get('facultyID');
+
+    data.forEach(faculty => {
+      const opt = document.createElement('option');
+      opt.value = faculty.FacultyID;
+      opt.textContent = faculty.FacultyName + ' - ' + faculty.DeptNames;
+
+      if (faculty.FacultyID == selected) {
+        opt.selected = true;
+      }
+
+      deptSelect.appendChild(opt);
+    });
+  });
 
 </script>
 </html>

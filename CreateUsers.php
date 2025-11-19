@@ -40,9 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $subType2  = $_POST['subType2'] ?? '';
     $major     = $_POST['Major'] ?? null;
     $minor     = $_POST['Minor'] ?? null;
-    $housenumber = $_POST['HouseNumber'] ?? null;
+    $housenumber = $_POST['housenumber'] ?? null;
      if ($housenumber === '' || $housenumber === null) $housenumber = null;
-    $street    = $_POST['Street'] ?? '';
+    $street    = $_POST['street'] ?? '';
     $city      = $_POST['city'] ?? '';
     $state     = $_POST['state'] ?? '';
     $zip       = $_POST['zip'] ?? '';

@@ -67,7 +67,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $mysqli->begin_transaction();
 
-  $sql = "INSERT INTO Advisor (FacultyID, StudentID, DOA, Status, AssignedBy) VALUES (?, ?, CURRENT_DATE(), ?, ?)";
+  $sql = "
+    INSERT INTO Advisor (FacultyID, StudentID, DOA, Status, AssignedBy)
+    VALUES (?, ?, CURRENT_DATE(), ?, ?)
+    ON DUPLICATE KEY UPDATE
+        FacultyID = VALUES(FacultyID),
+        DOA = CURRENT_DATE(),
+        Status = VALUES(Status),
+        AssignedBy = VALUES(AssignedBy)
+    ";
   $stmt = $mysqli->prepare($sql);
   $stmt->bind_param("iisi", $FacultyID, $StudentID, $Status, $AssignedBy);
         

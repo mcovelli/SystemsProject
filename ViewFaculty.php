@@ -217,13 +217,13 @@ switch ($userRole) {
       </div>
 
       <form method="GET" style="margin-bottom: 20px;">
-  <label for="search">Search:</label>
-  <input type="text" id="search" name="search"
+        <label for="search">Search:</label>
+        <input type="text" id="search" name="search"
          placeholder="Search name or department..."
          value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
 
-  <button type="submit">Search</button>
-</form>
+        <button type="submit">Search</button>
+      </form>
   
     <div class="table-wrap">
       <table border="1" cellpadding="5" cellspacing="0">

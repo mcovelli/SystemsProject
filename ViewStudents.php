@@ -75,6 +75,55 @@ $res = $stmt->get_result();
 $student = $res->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
+$search = $_GET['search'] ?? '';
+
+$sql = "SELECT 
+        s.StudentID,
+        CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
+        dm.MajorName
+        dmn.MinorName
+    FROM Student s
+    JOIN Users u ON s.StudentID = u.UserID
+    JOIN StudentMajor sm ON s.StudentID = sm.StudentID
+    JOIN StudentMinor smn ON s.StudentID = smn.StudentID
+    JOIN Major dm ON sm.MajorID dm.MajorID
+    JOIN Minor dmn ON smn.MinorID ON dmn.MinorID";
+
+if (!empty($search)) {
+    $sql .= " 
+    GROUP BY s.StudentID, u.FirstName, u.LastName
+    HAVING 
+        s.StudentID LIKE CONCAT('%', ?, '%')
+        OR
+        s.FirstName LIKE CONCAT('%', ?, '%')
+        OR
+        s.LastName LIKE CONCAT('%', ?, '%')
+        OR
+        dm.MajorName LIKE CONCAT('%', ?, '%')
+        OR
+       dmn. MinorName LIKE CONCAT('%', ?, '%')
+    ";
+} else {
+    $sql .= "
+    GROUP BY s.StudentID, u.FirstName, u.LastName, u.Email
+    ";
+}
+
+$sql .= " ORDER BY s.StudentID ASC";
+
+
+$stmt = $mysqli->prepare($sql);
+
+if (!empty($search)) {
+    $stmt->bind_param("sssss", $search, $search, $search, $search, $search);
+}
+
+$stmt->execute();
+$res = $stmt->get_result();
+$student = $res->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
     case 'admin':
@@ -222,6 +271,14 @@ switch ($userRole) {
           <div class="sub muted">Filter By Student Type, Major/Minor</div>
         </div>
       </div>
+      <form method="GET" style="margin-bottom: 20px;">
+        <label for="search">Search:</label>
+        <input type="text" id="search" name="search"
+         placeholder="Search name or department..."
+         value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+
+        <button type="submit">Search</button>
+      </form>
       <div style="margin-top:12px">
         <form method="GET" id="filterForm" style="margin-bottom: 20px;">
           <label for="major">Filter by Major:</label>

@@ -5,8 +5,8 @@
 *.key
 *.crt
 *.p12
-config.php
-config-local.php
+#config.php
+#config-local.php
 secrets/
 .env
 .env.*

@@ -32,21 +32,76 @@ if (!$student) {
     exit;
 }
 
-// Fetch major information
-$major_sql = "
-    SELECT m.MajorName, m.CreditsNeeded
-    FROM Major m
-    JOIN StudentMajor sm ON m.MajorID = sm.MajorID
-    JOIN Student s ON sm.StudentID = s.StudentID
-    WHERE s.StudentID = ?
-";
-$major_stmt = $mysqli->prepare($major_sql);
-$major_stmt->bind_param('i', $userId);
-$major_stmt->execute();
-$major = $major_stmt->get_result()->fetch_assoc();
-$major_stmt->close();
-$totalCreditsNeeded = $major['CreditsNeeded'] ?? 0;
-$majorName = $major['MajorName'] ?? 'Undeclared';
+// What kind of student is this?
+$stype_sql = "SELECT StudentType FROM Student WHERE StudentID = ? LIMIT 1";
+$stype_stmt = $mysqli->prepare($stype_sql);
+$stype_stmt->bind_param('i', $userId);
+$stype_stmt->execute();
+$stype = $stype_stmt->get_result()->fetch_assoc();
+$stype_stmt->close();
+
+// Determine if grad or undergrad
+$isGrad = (strcasecmp($stype['StudentType'] ?? '', 'Graduate') === 0);
+
+// Initialize defaults
+$majorName = 'Undeclared';
+$minorName = 'Undeclared';
+$totalCreditsNeeded = 0;
+$totalCreditsNeededMinor = 0;
+
+if ($isGrad) {
+    // Graduate: use Program table
+    $prog_sql = "
+      SELECT p.ProgramName, p.CreditsRequired
+      FROM Graduate g
+      JOIN Program p ON p.ProgramID = g.ProgramID
+      WHERE g.StudentID = ?
+      LIMIT 1";
+    $prog_stmt = $mysqli->prepare($prog_sql);
+    $prog_stmt->bind_param('i', $userId);
+    $prog_stmt->execute();
+    $prog = $prog_stmt->get_result()->fetch_assoc();
+    $prog_stmt->close();
+
+    if ($prog) {
+        $majorName = $prog['ProgramName'] ?? 'Graduate Program';
+        $totalCreditsNeeded = (int)($prog['CreditsRequired'] ?? 0);
+    }
+    $minorName = 'N/A';
+} else {
+    // Undergraduate: use Major/Minor tables
+    $major_sql = "
+      SELECT m.MajorName, m.CreditsNeeded
+      FROM Major m
+      JOIN StudentMajor sm ON m.MajorID = sm.MajorID
+      JOIN Student s ON sm.StudentID = s.StudentID
+      WHERE s.StudentID = ?
+    ";
+    $major_stmt = $mysqli->prepare($major_sql);
+    $major_stmt->bind_param('i', $userId);
+    $major_stmt->execute();
+    $major = $major_stmt->get_result()->fetch_assoc();
+    $major_stmt->close();
+
+    $totalCreditsNeeded = (int)($major['CreditsNeeded'] ?? 0);
+    $majorName = $major['MajorName'] ?? 'Undeclared';
+
+    $minor_sql = "
+      SELECT mn.MinorName, mn.CreditsNeeded
+      FROM Minor mn
+      JOIN StudentMinor smn ON mn.MinorID = smn.MinorID
+      JOIN Student s ON smn.StudentID = s.StudentID
+      WHERE s.StudentID = ?
+    ";
+    $minor_stmt = $mysqli->prepare($minor_sql);
+    $minor_stmt->bind_param('i', $userId);
+    $minor_stmt->execute();
+    $minor = $minor_stmt->get_result()->fetch_assoc();
+    $minor_stmt->close();
+
+    $totalCreditsNeededMinor = (int)($minor['CreditsNeeded'] ?? 0);
+    $minorName = $minor['MinorName'] ?? 'Undeclared';
+}
 
 // Degree audit summary (credits & GPA)
 $progress_sql = "

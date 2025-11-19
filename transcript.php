@@ -330,16 +330,24 @@ if (!$student) {
                 <th>Course</th>
               </tr>
             </thead>
+            <tbody>
               <?php
                 // Convert Courses_Needed string into lines
-                $neededLines = preg_split("/\r\n|\r|\n/", trim($coursesNeeded));
+                $raw = trim($coursesNeeded ?? '');
 
-                // Remove header line like "--- Major Courses Still Needed ---"
-                $neededLines = array_filter($neededLines, function($line) {
-                    return trim($line) !== '' && strpos($line, '---') !== 0;
-                });
-                ?>
-                <tbody>
+                if ($raw === '') {
+                    $neededLines = [];
+                } else {
+                    // Remove any header lines like --- Major Courses Still Needed ---
+                    $raw = preg_replace('/^---.*?---/m', '', $raw);
+
+                    // Split by comma, semicolon, OR newline OR multiple spaces
+                    $neededLines = preg_split("/,|;|\r\n|\r|\n|\s{2,}/", $raw);
+
+                    // Clean blank entries
+                    $neededLines = array_filter(array_map('trim', $neededLines));
+                }
+              ?>
                 <?php if (!empty($neededLines)): ?>
                     <tr>
                         <td colspan="6">

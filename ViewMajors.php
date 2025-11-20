@@ -169,6 +169,7 @@ $stmt->close();
 
           <button type="submit">Apply Filters</button>
         </form>
+        <p>Click ID to pull up requirements</p>
     </div>
 
       <div class="table-wrap">

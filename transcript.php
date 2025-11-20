@@ -8,17 +8,57 @@ require_once __DIR__ . '/config.php';
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-// If admin is viewing another student
-if (isset($_GET['studentID']) && ($_SESSION['role'] ?? '') === 'admin' && ($_SESSION['role'] ?? '') === 'faculty') {
-    $studentID = intval($_GET['studentID']);
+$role = strtolower($_SESSION['role'] ?? '');
+
+// If not logged in
+if (!$role) {
+    redirect('login.php');
 }
-// If student
-else {
-    if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'student') {
+
+if ($role === 'admin') {
+
+    // Admin with ?studentID=  → view that student's profile
+    if (isset($_GET['studentID'])) {
+        $studentID = intval($_GET['studentID']);
+    }
+
+    // Update admin → redirect to update admin dashboard
+    elseif (($_SESSION['admin_type'] ?? '') === 'update') {
+        redirect('update_admin_dashboard.php');
+    }
+
+    // View admin → redirect to view admin dashboard
+    elseif (($_SESSION['admin_type'] ?? '') === 'view') {
+        redirect('view_admin_dashboard.php');
+    }
+
+    // Invalid admin type → send to login
+    else {
         redirect('login.php');
     }
+}
+
+elseif ($role === 'faculty') {
+
+    if (isset($_GET['studentID'])) {
+        // Faculty viewing a single student's profile
+        $studentID = intval($_GET['studentID']);
+    } else {
+        // No studentID → redirect to faculty dashboard
+        redirect('faculty_dashboard.php');
+    }
+}
+
+elseif ($role === 'student') {
+
+    // Students can only access their own profile
     $studentID = $_SESSION['user_id'];
 }
+
+else {
+    redirect('login.php');
+}
+
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -223,6 +263,23 @@ if (!$student) {
     echo "<p>Profile not found for your account.</p>";
     exit;
 }
+
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'faculty':
+        $dashboard = 'faculty_dashboard.php';
+        break;
+    case 'admin':
+        if (($_SESSION['admin_type'] ?? '') === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+        } else {
+            $dashboard = 'view_admin_dashboard.php';
+        }
+        break;
+    default:
+        $dashboard = 'login.html'; // fallback
+}
+
 ?>
 
 <!doctype html>
@@ -275,7 +332,7 @@ if (!$student) {
         <div>Northport University</div>
       </div><br>
       <div class="top-actions">
-      <a href="student_dashboard.php" title="Back to Dashboard">← Back to Dashboard</a>
+      <div class="crumb"><a href="<?= htmlspecialchars($dashboard) ?>" aria-label="Back to Dashboard">← Back to Dashboard</a></div>
 
       <div class="actions">
         <button class="btn ghost" id="printBtn">Print</button>

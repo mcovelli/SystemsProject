@@ -17,19 +17,46 @@ if (!$role) {
     redirect('login.php');
 }
 
-// ADMIN → viewing any faculty profile
 if ($role === 'admin') {
+
+    // Admin with ?studentID=  → view that student's profile
     if (isset($_GET['studentID'])) {
         $studentID = intval($_GET['studentID']);
-    } else {
-        redirect('student_profile.php'); // Or wherever you want admin to go
+    }
+
+    // Update admin → redirect to update admin dashboard
+    elseif (($_SESSION['admin_type'] ?? '') === 'update') {
+        redirect('update_admin_dashboard.php');
+    }
+
+    // View admin → redirect to view admin dashboard
+    elseif (($_SESSION['admin_type'] ?? '') === 'view') {
+        redirect('view_admin_dashboard.php');
+    }
+
+    // Invalid admin type → send to login
+    else {
+        redirect('login.php');
     }
 }
-// FACULTY → always view their own profile
+
+elseif ($role === 'faculty') {
+
+    if (isset($_GET['studentID'])) {
+        // Faculty viewing a single student's profile
+        $studentID = intval($_GET['studentID']);
+    } else {
+        // No studentID → redirect to faculty dashboard
+        redirect('faculty_dashboard.php');
+    }
+}
+
 elseif ($role === 'student') {
+
+    // Students can only access their own profile
     $studentID = $_SESSION['user_id'];
 }
-// ANYONE ELSE → no access
+
 else {
     redirect('login.php');
 }
@@ -347,7 +374,7 @@ switch ($userRole) {
     .btn.primary{background:var(--accent); color:#fff; border-color:var(--accent)}
     .section{display:grid; gap:14px}
     .section h2{margin:0; font-size:1.05rem}
-    .kv{display:grid; grid-template-columns:180px 1fr; gap:8px; padding:10px 0; border-bottom:1px dashed var(--line)}
+    .kv{display:grid; grid-template-columns:80px 1fr; gap:8px; padding:10px 0; border-bottom:1px dashed var(--line)}
     .kv:last-child{border-bottom:0}
     /* --- CONTACT INFO FIX --- */
     .section .kv div:last-child {
@@ -620,17 +647,17 @@ switch ($userRole) {
           </div>
         </div>
 
-        <?php if ($userRole === 'student'): ?>
           <div class="section">
             <h2>Links</h2>
             <div class="links" id="links">
-              <a href="transcript.php">Transcript</a>
+              <a href="transcript.php?studentID=<?= urlencode($studentID) ?>">Transcript</a>
+              <?php if ($userRole === 'student'): ?>
               <a href="degree_audit.php">Degree Audit</a>
               <a href="inbox.php">Messages</a>
               <a href="bursar.php">Billing</a>
+              <?php endif; ?>
             </div>
           </div>
-        <?php endif; ?>
         <br>
       <div class="card">
         <div class="card-head between">

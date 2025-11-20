@@ -52,73 +52,101 @@ switch ($userRole) {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#f7f8fb; --card:#ffffff; --text:#111827; --muted:#6b7280;
-      --primary:#0b1d39; --accent:#4f46e5; --line:#e5e7eb; --chip:#f2f4f7;
+      --bg:#f7f8fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+      --primary:#0b1d39; --accent:#4f46e5; --line:#e5e7eb;
       --radius:14px;
     }
     *{box-sizing:border-box}
-    body{margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text)}
-    header{position:sticky; top:0; z-index:10; background:var(--card); border-bottom:1px solid var(--line)}
-    .wrap{max-width:1100px; margin:0 auto; padding:18px 16px}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg); color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      background:var(--card); border-bottom:1px solid var(--line);
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:18px 16px;}
     .topbar{display:flex; align-items:center; gap:12px; justify-content:space-between}
     .brand{display:flex; align-items:center; gap:10px; font-weight:700; color:var(--primary)}
     .brand .logo{width:36px; height:36px; border-radius:50%; background:var(--primary); display:grid; place-items:center; color:#fff; font-size:14px}
     .top-actions a{display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:var(--primary); color:#fff; padding:10px 14px; border-radius:10px}
     main .grid{display:grid; grid-template-columns:320px 1fr; gap:20px; padding:24px 16px}
     @media (max-width:880px){ main .grid{grid-template-columns:1fr} }
-    .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:0 1px 2px rgba(0,0,0,.03); padding:18px}
-    /* LEFT: Profile */
-    .profile{display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px}
-    .avatar{width:120px; height:120px; border-radius:50%; border:3px solid var(--accent); display:grid; place-items:center; font-weight:700; color:#fff; background:radial-gradient(circle at 35% 30%, #7aa2ff, #4f46e5 60%, #312e81)}
-    .avatar span{font-size:34px}
-    .name{font-size:1.35rem; font-weight:700}
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+      box-shadow:0 1px 2px rgba(0,0,0,.03); padding:18px;
+    }
+    .profile{
+      display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px
+    }
+    .avatar{
+      width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid var(--accent);
+      background:#ddd;
+    }
+    .name{font-size:1.3rem; font-weight:700}
     .muted{color:var(--muted)}
     .chips{display:flex; flex-wrap:wrap; gap:8px; justify-content:center}
-    .chip{padding:6px 10px; border-radius:999px; background:var(--chip); border:1px solid var(--line); font-size:.9rem}
+    .chip{padding:6px 10px; border-radius:999px; background:#f2f4f7; border:1px solid var(--line); font-size:.9rem}
     .btn-row{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
     .btn{border:1px solid var(--line); background:#fff; padding:10px 12px; border-radius:10px; cursor:pointer}
     .btn.primary{background:var(--accent); color:#fff; border-color:var(--accent)}
-    /* RIGHT sections */
     .section{display:grid; gap:14px}
     .section h2{margin:0; font-size:1.05rem}
-    .kv{display:grid; grid-template-columns:180px 1fr; gap:8px; padding:10px 0; border-bottom:1px dashed var(--line)}
+    .kv{display:grid; grid-template-columns:80px 1fr; gap:8px; padding:10px 0; border-bottom:1px dashed var(--line)}
     .kv:last-child{border-bottom:0}
-
-    .kv div {
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      white-space: normal;
+    /* --- CONTACT INFO FIX --- */
+    .section .kv div:last-child {
+      word-break: break-word;         /* allow breaking long words or emails */
+      overflow-wrap: anywhere;        /* force wrap for long strings */
+      white-space: normal;            /* allow wrapping on small screens */
+      max-width: 100%;                /* prevent overflow beyond card edge */
     }
 
-    #email, #address, #phone {
-      max-width: 100%;
-      word-break: break-word;
-      overflow-wrap: anywhere;
+    .section .kv {
+      align-items: start;             /* aligns label and value top-aligned */
+      gap: 12px;                      /* add breathing room */
+    }
+
+    .section .label {
+      font-weight: 600;
+      color: var(--muted);
+      min-width: 100px;               /* keeps labels consistent width */
+      word-wrap: normal;
+    }
+
+    #address, #email, #phone {
+      display: block;
       line-height: 1.4;
+    }
+
+    @media (max-width: 600px) {
+      .kv {
+        grid-template-columns: 1fr;   /* stack label/value on mobile */
+      }
+      .section .label {
+        min-width: auto;
+      }
     }
     .label{color:var(--muted)}
     .two{display:grid; grid-template-columns:1fr 1fr; gap:14px}
     @media (max-width:620px){ .kv{grid-template-columns:1fr} .two{grid-template-columns:1fr} }
-    table{width:100%; border-collapse:collapse; font-size:.95rem}
-    th,td{padding:10px 8px; border-bottom:1px solid var(--line); text-align:left}
-    th{background:#f8fafc}
-    .pub{border-left:3px solid var(--accent); padding-left:10px}
     .links a{display:inline-block; margin-right:10px; color:var(--primary); text-decoration:none}
     .links a:hover{text-decoration:underline}
     footer{padding:24px 16px; text-align:center; color:var(--muted)}
 
-     /* Card style popup */
-   .popup-overlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.4);
-          backdrop-filter: blur(4px);
-          display: none;
-          justify-content: center;
-          align-items: center;
-          z-index: 9999;
+    /* Overlay background */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
     }
 
+    /* Card style popup */
     .popup-card {
       background: var(--panel, #fff);
       color: var(--text, #111);
@@ -178,6 +206,7 @@ switch ($userRole) {
     .popup-card .form-grid textarea:focus {
       outline: 2px solid var(--primary, #4f46e5);
     }
+
   </style>
 </head>
 <body>

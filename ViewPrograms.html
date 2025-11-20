@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Program Page Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><i data-lucide="graduation-cap"></i></div>
+      <h1>Northport University</h1>
+      <span class="pill">View Directory</span>
+    </div>
+    <div class="top-actions">
+      <div class="search">
+        <i class="search-icon" data-lucide="search"></i>
+        <input type="text" placeholder="Search courses, people, anything…" />
+      </div>
+      <button class="icon-btn" aria-label="Notifications"><i data-lucide="bell"></i></button>
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
+      <div class="divider"></div>
+      <div class="user">
+        <img class="avatar" src="https://i.pravatar.cc/64?img=20" alt="avatar" />
+        <div class="user-meta"><div class="name">Admin User</div><div class="sub">Administrator</div></div>
+        <div class="dropdown">
+          <button>☰ Menu</button>
+          <div class="dropdown-content">
+            <a href="#">Profile</a><br>
+            <a href="#">Create Directory</a><br>
+            <a href="#">View Directory</a><br>
+            <a href="#">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <h2 style="width:95%; margin:30px auto; font-weight:600;">Program Directory</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Program ID</th>
+        <th>Program Code</th>
+        <th>Program Name</th>
+        <th>Degree Level</th>
+        <th>Dept ID</th>
+        <th>Credits Required</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>101</td>
+        <td>CS-BS</td>
+        <td>Computer Science</td>
+        <td>Bachelor</td>
+        <td>ENG01</td>
+        <td>120</td>
+        <td>Active</td>
+      </tr>
+      <tr>
+        <td>205</td>
+        <td>BUS-BA</td>
+        <td>Business Administration</td>
+        <td>Bachelor</td>
+        <td>BUS01</td>
+        <td>121</td>
+        <td>Active</td>
+      </tr>
+      <tr>
+        <td>330</td>
+        <td>NURS-BSN</td>
+        <td>Nursing</td>
+        <td>Bachelor</td>
+        <td>NUR01</td>
+        <td>124</td>
+        <td>Active</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <footer>© 2025 Northport University</footer>
+</body>
+</html>

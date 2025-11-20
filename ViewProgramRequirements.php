@@ -91,7 +91,7 @@ switch ($userRole) {
     <section class="hero card">
       <div class="card-head between">
         <div>
-          <h2 class="card-title">View <?= htmlspecialchars($programName) ?>  Requirements</h2>
+          <h2 class="card-title">View <?= htmlspecialchars($programName) ?> Requirements</h2>
         </div>
       </div>
     </section>

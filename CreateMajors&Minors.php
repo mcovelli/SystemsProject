@@ -205,7 +205,7 @@ switch ($majorOrMinor){
             </div>
                 <div id = "create-section-majorminor">
                     <form id = "CreateMajorMinor" method = "POST" action = "">
-                        <label for="majorOrMinor">Select Major or Minor to Create: </label>
+                        <label for="majorOrMinor">Select Major/Minor: </label>
                         <select id="majorOrMinor" name="majorOrMinor" required>
                             <option value="">-- Select --</option>
                             <option value="major">Major</option>

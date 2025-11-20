@@ -418,12 +418,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div id="MajorMenu">
               <label for="Major">Major:</label>
-              <select id="Major" name="Major"></select>
+              <select id="Major" name="Major">
+                <option value="" selected>Undeclared</option>
+              </select>
             </div>
 
             <div id="MinorMenu">
               <label for="Minor">Minor:</label>
-              <select id="Minor" name="Minor"></select>
+              <select id="Minor" name="Minor">
+                <option value="" selected>Undeclared</option>
+              </select>
             </div>
 
             <div id="DepartmentMenu">

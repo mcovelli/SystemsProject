@@ -179,7 +179,7 @@ $stmt->close();
               <?php if (!empty($minors)): ?>
                 <?php foreach ($minors as $m): ?>
                   <tr>
-                    <td><a href="ViewMinorRequirements.php?minorID=<?= urlencode($m['MinorID']) ?>">
+                    <td><a href="ViewMinorRequirements.php?minorID=<?= urlencode($m['MinorID']) ?>&MinorName=<?= urlencode($m['MinorName']) ?>">
                       <?= htmlspecialchars($m['MinorID']) ?> </a></td>
                     <td><?= htmlspecialchars($m['MinorName']) ?></td>
                     <td><?= htmlspecialchars($m['DeptID']) ?></td>

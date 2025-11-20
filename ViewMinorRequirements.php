@@ -11,6 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id'];
 $minorID = $_GET['minorID'] ?? null;
+$minorName = $_GET['MinorName'] ?? 'Minor';
 if (!$minorID) die("No minorID provided.");
 
 $mysqli = get_db();
@@ -90,7 +91,7 @@ switch ($userRole) {
     <section class="hero card">
       <div class="card-head between">
         <div>
-          <h2 class="card-title">View Requirements</h2>
+          <h2 class="card-title">View <?= htmlspecialchars($minorName) ?> Requirements</h2>
         </div>
       </div>
     </section>

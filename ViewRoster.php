@@ -5,8 +5,12 @@ ini_set('display_errors', 1);
 session_start();
 require_once __DIR__ . '/config.php';
 
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'faculty' && ($_SESSION['role'] ?? '') !== 'admin') &&
-((($_SESSION['admin_type'] ?? '') !== 'view')) {
+if (
+    !isset($_SESSION['user_id']) || (
+        ($_SESSION['role'] ?? '') !== 'faculty' &&
+            ($_SESSION['role'] ?? '') !== 'admin')
+    )
+{
     redirect(PROJECT_ROOT . "/login.html");
 }
 
@@ -26,7 +30,7 @@ $stmt->close();
 
 $roster_sql = "
   SELECT 
-    u.FirstName, u.LastName, 
+    u.FirstName, u.LastName, se.StudentID,
     c.CourseName, 
     GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
     DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
@@ -123,9 +127,8 @@ switch ($userRole) {
               </tr>
             </thead>
             <tbody>
-              <?php if (empty($roster)): ?>
-                <tr><td colspan="5">No students enrolled.</td></tr>
-              <?php else: ?>
+              <tbody id="adviseesBody">
+              <?php if (!empty($roster)): ?>
                 <?php foreach ($roster as $r): ?>
                   <?php
                     $name = trim(($r['FirstName'] ?? '') . ' ' . ($r['LastName'] ?? '')) ?: '—';
@@ -138,13 +141,16 @@ switch ($userRole) {
                     $room = $r['RoomID'] ?? ' — ';
                   ?>
                   <tr>
-                    <td><?= htmlspecialchars($name) ?></td>
+                    <td><a href="student_profile.php?studentID=<?= urlencode($r['StudentID']) ?>">
+                      <?= htmlspecialchars($name) ?> </a></td>
                     <td><?= htmlspecialchars($course) ?></td>
                     <td><?= htmlspecialchars($days) ?></td>
                     <td><?= htmlspecialchars($timeStr) ?></td>
                     <td><?= htmlspecialchars($room) ?></td>
                   </tr>
                 <?php endforeach; ?>
+              <?php else: ?>
+                <tr><td colspan="6">No roster found.</td></tr>
               <?php endif; ?>
             </tbody>
           </table>

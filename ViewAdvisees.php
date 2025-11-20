@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 session_start();
 require_once __DIR__ . '/config.php';
 
-if (!isset($_SESSION['user_id']){
+if (!isset($_SESSION['user_id'])) {
     redirect(PROJECT_ROOT . "/login.html");
 }
 
@@ -26,17 +26,27 @@ $stmt->close();
 $student_sql = "SELECT 
                   a.StudentID, 
                   CONCAT(u.FirstName, ' ', u.LastName) AS StudentName, 
-                  COALESCE(ftug.Year, ftg.Year, ptug.Year, ptg.Year) AS Year, s.StudentType, u.Email, m.MajorName, mn.MinorName
+                  COALESCE(ftug.Year, ftg.Year, ptug.Year, ptg.Year) AS Year, s.StudentType, u.Email, 
+                  CASE 
+                      WHEN s.StudentType = 'Graduate' THEN p.ProgramName
+                      ELSE m.MajorName
+                  END AS MajorName, 
+                  CASE 
+                      WHEN s.StudentType = 'Graduate' THEN 'N/A'
+                      ELSE mn.MinorName
+                  END AS MinorName
                 FROM Advisor a JOIN Users u ON a.StudentID =  u.UserID
                 JOIN Student s ON a.StudentID = s.StudentID
                 LEFT JOIN FullTimeUG ftug ON s.StudentID = ftug.StudentID
                 LEFT JOIN FullTimeGrad ftg ON s.StudentID = ftg.StudentID
                 LEFT JOIN PartTimeUG ptug ON s.StudentID = ptug.StudentID
                 LEFT JOIN PartTimeGrad ptg ON s.StudentID = ptg.StudentID
-                JOIN StudentMajor sm ON a.StudentID = sm.StudentID
-                JOIN Major m ON sm.MajorID = m.MajorID
+                LEFT JOIN StudentMajor sm ON a.StudentID = sm.StudentID
+                LEFT JOIN Major m ON sm.MajorID = m.MajorID
                 LEFT JOIN StudentMinor smn ON a.StudentID = smn.StudentID
                 LEFT JOIN Minor mn ON smn.MinorID = mn.MinorID
+                LEFT JOIN Graduate g ON s.StudentID = g.StudentID
+                LEFT JOIN Program p ON g.ProgramID = p.ProgramID
                 WHERE a.FacultyID = ?";
 
 $student_stmt = $mysqli->prepare($student_sql);
@@ -107,11 +117,14 @@ switch ($userRole) {
               <?php if (!empty($advisee)): ?>
                 <?php foreach ($advisee as $a): ?>
                   <tr>
-                    <td><?= htmlspecialchars($a['StudentID']) ?></td>
+                    <td>
+                      <a href="student_profile.php?studentID=<?= urlencode($a['StudentID']) ?>">
+                      <?= htmlspecialchars($a['StudentID']) ?> </a>
+                    </td>
                     <td><?= htmlspecialchars($a['StudentName']) ?></td>
                     <td><?= htmlspecialchars($a['Year']) ?></td>
                     <td><?= htmlspecialchars($a['StudentType']) ?></td>
-                    <td><?= htmlspecialchars($a['Email']) ?></td>
+                    <td><a href="mailto:<?= htmlspecialchars($a['Email']) ?>"><?= htmlspecialchars($a['Email']) ?></a></td>
                     <td><?= htmlspecialchars($a['MajorName']) ?? 'Undeclared' ?></td>
                     <td><?= htmlspecialchars($a['MinorName']) ?? 'Undeclared' ?></td>
                   </tr>

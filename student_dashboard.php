@@ -312,13 +312,51 @@ $messages = [
           <div class="sub muted"><?php echo $creditsEarned; ?>/<?php echo $totalCreditsNeeded; ?> completed</div>
         </div>
 
-        <div class="card stat">
-          <div class="card-head">
-            <div class="muted">Unread Messages</div>
-            <i data-lucide="inbox"></i>
-          </div>
-          <div class="stat-value"><?php echo count($messages); ?></div>
-          <div class="sub muted">Inbox</div>
+         <div class="grid-two sm-one">
+        <div class="card">
+          <div class="card-title">Recent Messages</div>
+              <?php
+              $list = $mysqli->prepare("
+                  SELECT 
+                      c.CopyID,
+                      c.MessageID,
+                      m.Title,
+                      m.Message,
+                      m.DatePosted,
+                      m.SenderEmail,
+                      m.RecipientEmail
+                  FROM MessageCopies c
+                  JOIN Messages m ON m.MessageID = c.MessageID
+                  WHERE c.OwnerEmail = ?
+                    AND c.Folder = ?
+                    AND c.IsDeleted = 0
+                  ORDER BY m.DatePosted DESC
+              ");
+              $list->bind_param("ss", $userEmail, $folderSQL);
+              $list->execute();
+              $list_res = $list->get_result();
+
+              if ($list_res->num_rows > 0):
+              ?>
+                <ul style="list-style:none; padding:0; margin:0;">
+                  <?php while ($m = $list_res->fetch_assoc()): ?>
+                    <li style="border-bottom:1px solid var(--line); padding:10px 0;">
+                      <strong><?= htmlspecialchars($m['Title']) ?></strong>
+                      <span style="color:var(--muted);"> — <?= htmlspecialchars($m['Email']) ?></span>
+                      <div style="margin-top:4px;"><?= nl2br(htmlspecialchars($m['Message'])) ?></div>
+                      <small style="color:var(--muted);">Posted <?= htmlspecialchars($m['DatePosted']) ?></small>
+                    </li>
+                  <?php endwhile; ?>
+                </ul>
+                <div style="text-align:right; margin-top:10px;">
+                  <a href="messages.php" class="btn outline">View All Messages →</a>
+                </div>
+              <?php else: ?>
+                <p>No recent Messages.</p>
+              <?php endif;
+              $list->close();
+              ?>
+            </div>
         </div>
 
         <div class="card stat">
@@ -488,54 +526,7 @@ $messages = [
           </div>
         </div>
       </div>
-
-      <div class="grid-two sm-one">
-        <div class="card">
-          <div class="card-title">Recent Messages</div>
-              <?php
-              $list = $mysqli->prepare("
-                  SELECT 
-                      c.CopyID,
-                      c.MessageID,
-                      m.Title,
-                      m.Message,
-                      m.DatePosted,
-                      m.SenderEmail,
-                      m.RecipientEmail
-                  FROM MessageCopies c
-                  JOIN Messages m ON m.MessageID = c.MessageID
-                  WHERE c.OwnerEmail = ?
-                    AND c.Folder = ?
-                    AND c.IsDeleted = 0
-                  ORDER BY m.DatePosted DESC
-              ");
-              $list->bind_param("ss", $userEmail, $folderSQL);
-              $list->execute();
-              $list_res = $list->get_result();
-
-              if ($list_res->num_rows > 0):
-              ?>
-                <ul style="list-style:none; padding:0; margin:0;">
-                  <?php while ($m = $list_res->fetch_assoc()): ?>
-                    <li style="border-bottom:1px solid var(--line); padding:10px 0;">
-                      <strong><?= htmlspecialchars($m['Title']) ?></strong>
-                      <span style="color:var(--muted);"> — <?= htmlspecialchars($m['Email']) ?></span>
-                      <div style="margin-top:4px;"><?= nl2br(htmlspecialchars($m['Message'])) ?></div>
-                      <small style="color:var(--muted);">Posted <?= htmlspecialchars($m['DatePosted']) ?></small>
-                    </li>
-                  <?php endwhile; ?>
-                </ul>
-                <div style="text-align:right; margin-top:10px;">
-                  <a href="messages.php" class="btn outline">View All Messages →</a>
-                </div>
-              <?php else: ?>
-                <p>No recent Messages.</p>
-              <?php endif;
-              $list->close();
-              ?>
-            </div>
-        </div>
-
+      
         <div class="card">
           <div class="card-title">Billing Snapshot</div>
           <div class="row between small">

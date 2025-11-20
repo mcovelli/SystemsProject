@@ -5,11 +5,20 @@ ini_set('display_errors', 1);
 session_start();
 require_once __DIR__ . '/config.php';
 
-if (!isset($_SESSION['user_id'])) {
-    redirect(PROJECT_ROOT . "/login.html");
-}
+$mysqli = get_db();
+$mysqli->set_charset('utf8mb4');
 
-$userId = $_SESSION['user_id'];
+// If admin is viewing another student
+if (isset($_GET['studentID']) && ($_SESSION['role'] ?? '') === 'admin' && ($_SESSION['role'] ?? '') === 'faculty') {
+    $studentID = intval($_GET['studentID']);
+}
+// If student
+else {
+    if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'student') {
+        redirect('login.php');
+    }
+    $studentID = $_SESSION['user_id'];
+}
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -17,7 +26,7 @@ $mysqli->set_charset('utf8mb4');
 $sql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB, HouseNumber, Street, City, State, ZIP, PhoneNumber
         FROM Users WHERE UserID = ? LIMIT 1";
 $stmt = $mysqli->prepare($sql);
-$stmt->bind_param("i", $userId);
+$stmt->bind_param("i", $studentID);
 $stmt->execute();
 $res = $stmt->get_result();
 $student = $res->fetch_assoc();
@@ -26,7 +35,7 @@ $stmt->close();
 // What kind of student is this?
 $stype_sql = "SELECT StudentType FROM Student WHERE StudentID = ? LIMIT 1";
 $stype_stmt = $mysqli->prepare($stype_sql);
-$stype_stmt->bind_param('i', $userId);
+$stype_stmt->bind_param('i', $studentID);
 $stype_stmt->execute();
 $stype = $stype_stmt->get_result()->fetch_assoc();
 $stype_stmt->close();
@@ -51,7 +60,7 @@ if ($isGrad) {
       WHERE g.StudentID = ?
       LIMIT 1";
     $prog_stmt = $mysqli->prepare($prog_sql);
-    $prog_stmt->bind_param('i', $userId);
+    $prog_stmt->bind_param('i', $studentID);
     $prog_stmt->execute();
     $prog = $prog_stmt->get_result()->fetch_assoc();
     $prog_stmt->close();
@@ -71,7 +80,7 @@ if ($isGrad) {
       WHERE s.StudentID = ?
     ";
     $major_stmt = $mysqli->prepare($major_sql);
-    $major_stmt->bind_param('i', $userId);
+    $major_stmt->bind_param('i', $studentID);
     $major_stmt->execute();
     $major = $major_stmt->get_result()->fetch_assoc();
     $major_stmt->close();
@@ -87,7 +96,7 @@ if ($isGrad) {
       WHERE s.StudentID = ?
     ";
     $minor_stmt = $mysqli->prepare($minor_sql);
-    $minor_stmt->bind_param('i', $userId);
+    $minor_stmt->bind_param('i', $studentID);
     $minor_stmt->execute();
     $minor = $minor_stmt->get_result()->fetch_assoc();
     $minor_stmt->close();
@@ -115,7 +124,7 @@ $courses_sql = "
   ORDER BY s.Year DESC, s.SemesterName DESC
 ";
 $courses_stmt = $mysqli->prepare($courses_sql);
-$courses_stmt->bind_param('i', $userId);
+$courses_stmt->bind_param('i', $studentID);
 $courses_stmt->execute();
 $courses_result = $courses_stmt->get_result();
 $courses = $courses_result->fetch_all(MYSQLI_ASSOC);
@@ -129,7 +138,7 @@ $progress_sql = "
   WHERE StudentID = ?
 ";
 $progress_stmt = $mysqli->prepare($progress_sql);
-$progress_stmt->bind_param('i', $userId);
+$progress_stmt->bind_param('i', $studentID);
 $progress_stmt->execute();
 $progress = $progress_stmt->get_result()->fetch_assoc();
 $progress_stmt->close();
@@ -176,7 +185,7 @@ $advisor_sql = "
   WHERE a.StudentID = ?
 ";
 $advisor_stmt = $mysqli->prepare($advisor_sql);
-$advisor_stmt->bind_param('i', $userId);
+$advisor_stmt->bind_param('i', $studentID);
 $advisor_stmt->execute();
 $advisor = $advisor_stmt->get_result()->fetch_assoc();
 $advisor_stmt->close();
@@ -203,7 +212,7 @@ $credits_sql = "
   WHERE se.StudentID = ? AND se.Status = 'IN-PROGRESS'
 ";
 $credits_stmt = $mysqli->prepare($credits_sql);
-$credits_stmt->bind_param('i', $userId);
+$credits_stmt->bind_param('i', $studentID);
 $credits_stmt->execute();
 $credits_result = $credits_stmt->get_result()->fetch_assoc();
 $credits_stmt->close();
@@ -267,6 +276,10 @@ if (!$student) {
       </div><br>
       <div class="top-actions">
       <a href="student_dashboard.php" title="Back to Dashboard">← Back to Dashboard</a>
+
+      <div class="actions">
+        <button class="btn ghost" id="printBtn">Print</button>
+      </div>
 
       <div class="divider"></div>
     </div>
@@ -379,6 +392,8 @@ if (!$student) {
 
     // Populate the year in the footer
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    document.getElementById('printBtn').addEventListener('click', ()=>window.print());
 
   </script>
 

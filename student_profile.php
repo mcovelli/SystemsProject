@@ -5,11 +5,27 @@ ini_set('display_errors', 1);
 session_start();
 require_once __DIR__ . '/config.php';
 
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'student') {
-    redirect(PROJECT_ROOT . "/login.html");
-}
+$mysqli = get_db();
+$mysqli->set_charset('utf8mb4');
 
-$userId = $_SESSION['user_id'];
+$userID = $_SESSION['user_id'];
+
+// If admin or faculty is viewing another student
+$role = strtolower($_SESSION['role'] ?? '');
+
+if ($role === 'admin' || $role === 'faculty') {
+    if (isset($_GET['studentID'])) {
+        $studentID = intval($_GET['studentID']);
+    } else {
+        redirect('login.php');
+    }
+}
+else if ($role === 'student') {
+    $studentID = $_SESSION['user_id'];
+}
+else {
+    redirect('login.php');
+}
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -17,7 +33,7 @@ $mysqli->set_charset('utf8mb4');
 $sql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB, HouseNumber, Street, City, State, ZIP, PhoneNumber
         FROM Users WHERE UserID = ? LIMIT 1";
 $stmt = $mysqli->prepare($sql);
-$stmt->bind_param("i", $userId);
+$stmt->bind_param("i", $studentID);
 $stmt->execute();
 $res = $stmt->get_result();
 $student = $res->fetch_assoc();
@@ -26,7 +42,7 @@ $stmt->close();
 // What kind of student is this?
 $stype_sql = "SELECT StudentType FROM Student WHERE StudentID = ? LIMIT 1";
 $stype_stmt = $mysqli->prepare($stype_sql);
-$stype_stmt->bind_param('i', $userId);
+$stype_stmt->bind_param('i', $studentID);
 $stype_stmt->execute();
 $stype = $stype_stmt->get_result()->fetch_assoc();
 $stype_stmt->close();
@@ -49,7 +65,7 @@ if ($isGrad) {
       WHERE g.StudentID = ?
       LIMIT 1";
     $prog_stmt = $mysqli->prepare($prog_sql);
-    $prog_stmt->bind_param('i', $userId);
+    $prog_stmt->bind_param('i', $studentID);
     $prog_stmt->execute();
     $prog = $prog_stmt->get_result()->fetch_assoc();
     $prog_stmt->close();
@@ -69,7 +85,7 @@ if ($isGrad) {
       WHERE s.StudentID = ?
     ";
     $major_stmt = $mysqli->prepare($major_sql);
-    $major_stmt->bind_param('i', $userId);
+    $major_stmt->bind_param('i', $studentID);
     $major_stmt->execute();
     $major = $major_stmt->get_result()->fetch_assoc();
     $major_stmt->close();
@@ -85,7 +101,7 @@ if ($isGrad) {
       WHERE s.StudentID = ?
     ";
     $minor_stmt = $mysqli->prepare($minor_sql);
-    $minor_stmt->bind_param('i', $userId);
+    $minor_stmt->bind_param('i', $studentID);
     $minor_stmt->execute();
     $minor = $minor_stmt->get_result()->fetch_assoc();
     $minor_stmt->close();
@@ -113,7 +129,7 @@ $courses_sql = "
   ORDER BY s.Year DESC, s.SemesterName DESC
 ";
 $courses_stmt = $mysqli->prepare($courses_sql);
-$courses_stmt->bind_param('i', $userId);
+$courses_stmt->bind_param('i', $studentID);
 $courses_stmt->execute();
 $courses_result = $courses_stmt->get_result();
 $courses = $courses_result->fetch_all(MYSQLI_ASSOC);
@@ -165,7 +181,7 @@ if ($selectedSemester) {
         ORDER BY MIN(p.StartTime)
     ";
     $sched_stmt = $mysqli->prepare($sched_sql);
-    $sched_stmt->bind_param('is', $userId, $selectedSemester);
+    $sched_stmt->bind_param('is', $studentID, $selectedSemester);
     $sched_stmt->execute();
     $sched_result = $sched_stmt->get_result();
     $schedule = $sched_result->fetch_all(MYSQLI_ASSOC);
@@ -180,7 +196,7 @@ $progress_sql = "
   WHERE StudentID = ?
 ";
 $progress_stmt = $mysqli->prepare($progress_sql);
-$progress_stmt->bind_param('i', $userId);
+$progress_stmt->bind_param('i', $studentID);
 $progress_stmt->execute();
 $progress = $progress_stmt->get_result()->fetch_assoc();
 $progress_stmt->close();
@@ -226,7 +242,7 @@ $advisor_sql = "
   WHERE a.StudentID = ?
 ";
 $advisor_stmt = $mysqli->prepare($advisor_sql);
-$advisor_stmt->bind_param('i', $userId);
+$advisor_stmt->bind_param('i', $studentID);
 $advisor_stmt->execute();
 $advisor = $advisor_stmt->get_result()->fetch_assoc();
 $advisor_stmt->close();
@@ -253,16 +269,24 @@ $credits_sql = "
   WHERE se.StudentID = ? AND se.Status = 'IN-PROGRESS'
 ";
 $credits_stmt = $mysqli->prepare($credits_sql);
-$credits_stmt->bind_param('i', $userId);
+$credits_stmt->bind_param('i', $studentID);
 $credits_stmt->execute();
 $credits_result = $credits_stmt->get_result()->fetch_assoc();
 $credits_stmt->close();
 
 $semesterCredits = (int)($credits_result['TotalCredits'] ?? 0);
 
-if (!$student) {
-    echo "<p>Profile not found for your account.</p>";
-    exit;
+// Determine back dashboard
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'student':  $dashboard = 'student_dashboard.php'; break;
+    case 'faculty':  $dashboard = 'faculty_dashboard.php'; break;
+    case 'admin':
+        $dashboard = ($_SESSION['admin_type'] ?? '') === 'update'
+            ? 'update_admin_dashboard.php'
+            : 'view_admin_dashboard.php';
+        break;
+    default: $dashboard = 'login.php';
 }
 ?>
 
@@ -441,12 +465,14 @@ if (!$student) {
         <div>Northport University</div>
       </div>
       <div class="top-actions">
-        <a href="student_dashboard.php" title="Back to Dashboard">← Back to Dashboard</a>
+        <a href="<?= htmlspecialchars($dashboard) ?>">← Back to Dashboard</a>
       </div>
     </div>
   </header>
 
+
   <!-- Edit Profile Popup -->
+<?php if ($userRole === 'student'): ?>
   <div id="editProfilePopup" class="popup-overlay">
     <div class="popup-card">
       <span class="close-btn" onclick="closePopup()">&times;</span>
@@ -481,6 +507,7 @@ if (!$student) {
           <textarea name="bio" rows="3"><?= htmlspecialchars($_SESSION['bio'] ?? '') ?></textarea>
         </label>
 
+
         <div class="btn-row">
           <button type="submit" class="btn primary">Save Changes</button>
           <button type="button" class="btn outline" onclick="closePopup()">Cancel</button>
@@ -488,6 +515,7 @@ if (!$student) {
       </form>
     </div>
   </div>
+<?php endif; ?>
 
   <main>
     <?php if (isset($_GET['saved'])): ?>
@@ -510,10 +538,12 @@ if (!$student) {
           <span class="chip" id="classYearChip">Class of <?= htmlspecialchars($gradYear) ?></span>
           <span class="chip" id="gpaChip">GPA: <?= htmlspecialchars($gpa) ?></span>
         </div>
+      <?php if ($userRole === 'student'): ?>
         <div class="btn-row">
           <button class="btn primary" id="editProfileBtn" onclick="openPopup()">Edit Profile</button>
           <button class="btn" id="changePhotoBtn">Change Photo</button>
         </div>
+      <?php endif; ?>
         <div class="section" style="width:100%; margin-top:10px">
       <h2>Contact</h2>
 
@@ -583,17 +613,19 @@ if (!$student) {
           </div>
         </div>
 
-        <div class="section">
-          <h2>Links</h2>
-          <div class="links" id="links">
-            <a href="transcript.php">Transcript</a>
-            <a href="degree_audit.php">Degree Audit</a>
-            <a href="inbox.php">Messages</a>
-            <a href="bursar.php">Billing</a>
+        <?php if ($userRole === 'student'): ?>
+          <div class="section">
+            <h2>Links</h2>
+            <div class="links" id="links">
+              <a href="transcript.php">Transcript</a>
+              <a href="degree_audit.php">Degree Audit</a>
+              <a href="inbox.php">Messages</a>
+              <a href="bursar.php">Billing</a>
+            </div>
           </div>
-        </div>
+        <?php endif; ?>
         <br>
-<div class="card">
+      <div class="card">
         <div class="card-head between">
           <div class="card-title">Semester Schedule</div>
           <div class="row gap">
@@ -603,6 +635,10 @@ if (!$student) {
         </div>
         <div class="table-wrap">
           <form method="get" class="semester-selector" style="margin-bottom:10px">
+            <?php if (isset($_GET['studentID'])): ?>
+                <input type="hidden" name="studentID" value="<?= htmlspecialchars($_GET['studentID']) ?>">
+            <?php endif; ?>
+
             <label for="semester" style="margin-right:6px">View Semester:</label>
             <select name="semester" id="semester" onchange="this.form.submit()">
               <option value="">Current Semester</option>

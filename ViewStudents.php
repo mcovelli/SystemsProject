@@ -23,9 +23,14 @@ $sql = "SELECT CONCAT(su.FirstName, ' ', su.LastName) AS StudentName,
               su.Email,
               sm.MajorID,
               smn.MinorID,
-              m.MajorName AS Major,
-              mn.MinorName AS Minor,
-              
+              CASE 
+                WHEN s.StudentType = 'Graduate' THEN p.ProgramName
+                ELSE m.MajorName
+              END AS MajorName,
+              CASE 
+                WHEN s.StudentType = 'Graduate' THEN 'N/A'
+                  ELSE mn.MinorName
+                END AS MinorName,
               CONCAT(fu.FirstName, ' ', fu.LastName) AS AdvisorName
 
         FROM Student s
@@ -34,6 +39,8 @@ $sql = "SELECT CONCAT(su.FirstName, ' ', su.LastName) AS StudentName,
         LEFT JOIN StudentMinor smn ON s.StudentID = smn.StudentID
         LEFT JOIN Major m ON m.MajorID = sm.MajorID
         LEFT JOIN Minor mn ON mn.MinorID = smn.MinorID
+        LEFT JOIN Graduate g ON s.StudentID = g.StudentID
+        LEFT JOIN Program p ON g.ProgramID = p.ProgramID
         LEFT JOIN Advisor a ON s.StudentID = a.StudentID
         LEFT JOIN Department dm ON m.DeptID = dm.DeptID
         LEFT JOIN Users fu ON a.FacultyID = fu.UserID";
@@ -80,14 +87,27 @@ $search = $_GET['search'] ?? '';
 $sql = "SELECT 
         s.StudentID,
         CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
-        dm.MajorName
-        dmn.MinorName
+        CASE 
+          WHEN s.StudentType = 'Graduate' THEN p.ProgramName
+            ELSE m.MajorName
+          END AS MajorName,
+        CASE 
+          WHEN s.StudentType = 'Graduate' THEN 'N/A'
+            ELSE mn.MinorName
+          END AS MinorName,
+        u.Email,
+        s.StudentType,
+        CONCAT(fu.FirstName, ' ', fu.LastName) AS AdvisorName
     FROM Student s
     JOIN Users u ON s.StudentID = u.UserID
-    JOIN StudentMajor sm ON s.StudentID = sm.StudentID
-    JOIN StudentMinor smn ON s.StudentID = smn.StudentID
-    JOIN Major dm ON sm.MajorID dm.MajorID
-    JOIN Minor dmn ON smn.MinorID ON dmn.MinorID";
+    LEFT JOIN Advisor a ON s.StudentID = a.StudentID
+    LEFT JOIN Users fu ON a.FacultyID = fu.UserID
+    LEFT JOIN StudentMajor sm ON s.StudentID = sm.StudentID
+    LEFT JOIN StudentMinor smn ON s.StudentID = smn.StudentID
+    LEFT JOIN Major m ON sm.MajorID = m.MajorID
+    LEFT JOIN Minor mn ON smn.MinorID = mn.MinorID
+    LEFT JOIN Graduate g ON s.StudentID = g.StudentID
+    LEFT JOIN Program p ON g.ProgramID = p.ProgramID";
 
 if (!empty($search)) {
     $sql .= " 
@@ -95,13 +115,15 @@ if (!empty($search)) {
     HAVING 
         s.StudentID LIKE CONCAT('%', ?, '%')
         OR
-        s.FirstName LIKE CONCAT('%', ?, '%')
+        u.FirstName LIKE CONCAT('%', ?, '%')
         OR
-        s.LastName LIKE CONCAT('%', ?, '%')
+        u.LastName LIKE CONCAT('%', ?, '%')
         OR
-        dm.MajorName LIKE CONCAT('%', ?, '%')
+        MajorName LIKE CONCAT('%', ?, '%')
         OR
-       dmn. MinorName LIKE CONCAT('%', ?, '%')
+        MinorName LIKE CONCAT('%', ?, '%')
+        OR
+        s.StudentType = ?
     ";
 } else {
     $sql .= "
@@ -115,12 +137,12 @@ $sql .= " ORDER BY s.StudentID ASC";
 $stmt = $mysqli->prepare($sql);
 
 if (!empty($search)) {
-    $stmt->bind_param("sssss", $search, $search, $search, $search, $search);
+    $stmt->bind_param("ssssss", $search, $search, $search, $search, $search, $search);
 }
 
 $stmt->execute();
 $res = $stmt->get_result();
-$student = $res->fetch_all(MYSQLI_ASSOC);
+$student_search = $res->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 
@@ -271,7 +293,7 @@ switch ($userRole) {
           <div class="sub muted">Filter By Student Type, Major/Minor</div>
         </div>
       </div>
-      <form method="GET" style="margin-bottom: 20px;">
+      <form method="GET" id="filterForm" style="margin-bottom: 20px;">
         <label for="search">Search:</label>
         <input type="text" id="search" name="search"
          placeholder="Search name or department..."
@@ -279,19 +301,6 @@ switch ($userRole) {
 
         <button type="submit">Search</button>
       </form>
-      <div style="margin-top:12px">
-        <form method="GET" id="filterForm" style="margin-bottom: 20px;">
-          <label for="major">Filter by Major:</label>
-          <select name="major" id="major">
-            <option value="">-- All Majors --</option>
-          </select>
-          <label for="minor">Filter by Minor:</label>
-          <select name="minor" id="minor">
-            <option value="">-- All Minors --</option>
-          </select>
-          <button type="submit">Filter</button>
-        </form>
-    </div>
 
     <div class="table-wrap">
       <table border="1" cellpadding="5" cellspacing="0">
@@ -307,21 +316,25 @@ switch ($userRole) {
           </tr>
         </thead>
         <tbody>
-          <?php if (!empty($student)): ?>
-            <?php foreach ($student as $s): ?>
+          <?php 
+            $rows = !empty($search) ? $student_search : $student;
+
+            if (!empty($rows)):
+                foreach ($rows as $s):
+          ?>
               <tr>
                 <td><?= htmlspecialchars($s['StudentType']) ?></td>
                 <td><?= htmlspecialchars($s['StudentName'])?></td>
                 <td><?= htmlspecialchars($s['StudentID']) ?></td>
                 <td><?= htmlspecialchars($s['Email']) ?></td>
-                <td><?= $s['Major'] ? htmlspecialchars($s['Major']) : 'Undeclared' ?></td>
-                <td><?= $s['Minor'] ? htmlspecialchars($s['Minor']) : 'Undeclared'  ?></td>
+                <td><?= $s['MajorName'] ? htmlspecialchars($s['MajorName']) : 'Undeclared' ?></td>
+                <td><?= $s['MinorName'] ? htmlspecialchars($s['MinorName']) : 'Undeclared'  ?></td>
                 <td><?= $s['AdvisorName'] ?htmlspecialchars($s['AdvisorName']) : 'Unassigned'  ?></td>
               </tr>
             <?php endforeach; ?>
-          <?php else: ?>
-            <tr><td colspan="7">No student found.</td></tr>
-          <?php endif; ?>
+              <?php else: ?>
+                  <tr><td colspan="7">No student found.</td></tr>
+            <?php endif; ?>
         </tbody>
       </table>
     </div>

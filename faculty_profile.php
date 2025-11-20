@@ -336,9 +336,9 @@ if (!empty($user['FirstName']) || !empty($user['LastName'])) {
           <span class="chip" id="research2">N/A</span>
         </div>
         <div class="btn-row">
-          <button class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</button>
-          <button class="btn primary" id="editProfileBtn" onclick="openPopup()">Edit Profile</button>
-          <button class="btn primary" href="#office-hours">Office Hours</button>
+          <a class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</a>
+          <a class="btn primary" id="editProfileBtn" onclick="openPopup()">Edit Profile</a>
+          <a class="btn primary" href="#office-hours">Office Hours</a>
         </div>
         <div class="section" style="width:100%; margin-top:10px">
          <h2>Contact</h2>

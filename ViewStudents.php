@@ -325,7 +325,8 @@ switch ($userRole) {
               <tr>
                 <td><?= htmlspecialchars($s['StudentType']) ?></td>
                 <td><?= htmlspecialchars($s['StudentName'])?></td>
-                <td><?= htmlspecialchars($s['StudentID']) ?></td>
+                <td><a href="student_profile.php?studentID=<?= urlencode($s['StudentID']) ?>">
+                      <?= htmlspecialchars($s['StudentID']) ?> </a></td>
                 <td><?= htmlspecialchars($s['Email']) ?></td>
                 <td><?= $s['MajorName'] ? htmlspecialchars($s['MajorName']) : 'Undeclared' ?></td>
                 <td><?= $s['MinorName'] ? htmlspecialchars($s['MinorName']) : 'Undeclared'  ?></td>

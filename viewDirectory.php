@@ -51,10 +51,19 @@ $quickLinks = [
     ['label' => 'View Departments',     'href' => 'ViewDepartments.php',                      'icon' => 'mail'],
     ['label' => 'View Programs',      'href' => 'ViewPrograms.php',                      'icon' => 'brain'],
     ['label' => 'View Requirements',      'href' => 'ViewRequirements.php',                      'icon' => 'list'],
-    ['label' => 'View Students',      'href' => 'ViewStudents.php',                      'icon' => 'brain'],
     ['label' => 'View Majors',      'href' => 'ViewMajors.php',                      'icon' => 'check'],
     ['label' => 'View Minors',      'href' => 'ViewMinors.php',                      'icon' => 'check']
 ];
+
+
+if ($userRole === 'admin') {
+    $quickLinks[] = [
+        'label' => 'View Students',
+        'href'  => 'ViewStudents.php',
+        'icon'  => 'brain',
+    ];
+}
+
 ?>
 
 <!doctype html>

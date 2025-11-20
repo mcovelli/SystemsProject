@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 session_start();
 require_once __DIR__ . '/config.php';
 
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['user_id']) || ($_SESSION('role' ?? '') !== 'faculty')) {
     redirect(PROJECT_ROOT . "/login.html");
 }
 

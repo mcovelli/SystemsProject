@@ -178,7 +178,8 @@ $stmt->close();
               <?php if (!empty($majors)): ?>
                 <?php foreach ($majors as $m): ?>
                   <tr>
-                    <td><?= htmlspecialchars($m['MajorID']) ?></td>
+                    <td><a href="ViewMajorRequirements.php?majorID=<?= urlencode($m['MajorID']) ?>">
+                      <?= htmlspecialchars($m['MajorID']) ?> </a></td>
                     <td><?= htmlspecialchars($m['MajorName']) ?></td>
                     <td><?= htmlspecialchars($m['DeptID']) ?></td>
                     <td><?= htmlspecialchars($m['DeptName']) ?></td>

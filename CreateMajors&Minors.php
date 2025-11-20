@@ -216,7 +216,9 @@ switch ($majorOrMinor){
                              <select name="deptID" id="deptID">
                                 <option value="">-- All Departments --</option>
                                 </select><br>
-                        <label for ="major_name">Major Name: </label>
+                        <?php $type = $_POST['majorOrMinor'] ?? ''; ?>
+                        <label id="typeLabel" for ="major_name"><?php echo htmlspecialchars($type) ?></label>
+                        <?= $type === 'major' ? 'Major ' : ($type === 'minor' ? 'Minor ' : 'Name:') ?>
                             <input type = "text" id="major_name" name="major_name" required><br>
                         <label for = "major_credits_needed">Credits Needed:</label>
                             <input type = "number" id = "major_credits_needed" name = "major_credits_needed" required><br>
@@ -231,6 +233,19 @@ switch ($majorOrMinor){
 </body>
 
 <script>
+
+    document.getElementById('majorOrMinor').addEventListener('change', function() {
+    const type = this.value; // 'major' or 'minor'
+    const label = document.getElementById('typeLabel');
+
+        if (type === 'major') {
+            label.textContent = "Major ";
+        } else if (type === 'minor') {
+            label.textContent = "Minor ";
+        } else {
+            label.textContent = "";
+        }
+    });
 
     // Fetch departments from get_departments.php
     fetch('get_departments.php')

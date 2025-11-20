@@ -608,6 +608,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       .then(res => res.json())
       .then(data => {
         majorSelect.innerHTML = "";
+        const undeclared = document.createElement("option");
+        undeclared.value = "";
+        undeclared.textContent = "Undeclared";
+        majorSelect.appendChild(undeclared);
         data.forEach(m => {
           const opt = document.createElement("option");
           opt.textContent = m.name;
@@ -622,6 +626,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       .then(res => res.json())
       .then(data => {
         minorSelect.innerHTML = "";
+        const undeclaredMinor = document.createElement("option");
+        undeclaredMinor.value = "";
+        undeclaredMinor.textContent = "Undeclared";
+        minorSelect.appendChild(undeclaredMinor);
         data.forEach(m => {
           const opt = document.createElement("option");
           opt.textContent = m.name;
@@ -637,6 +645,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       .then(res => res.json())
       .then(data => {
         majorSelect.innerHTML = "";
+        const undeclared = document.createElement("option");
+        undeclared.value = "";
+        undeclared.textContent = "Undeclared";
+        majorSelect.appendChild(undeclared);
         data.forEach(p => {
           const opt = document.createElement("option");
           opt.textContent = p.name;

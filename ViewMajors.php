@@ -13,7 +13,7 @@ $mysqli->set_charset('utf8mb4');
 
 $selectedDept = $_GET['dept'] ?? '';
 
-$sql = "SELECT m.MajorID, m.MajorName, m.DeptID, d.DeptName, d.Email FROM Major m JOIN Department d ON m.DeptID = d.DeptID ";
+$sql = "SELECT m.MajorID, m.MajorName, m.DeptID, d.DeptName, d.Email, m.CreditsNeeded FROM Major m JOIN Department d ON m.DeptID = d.DeptID ";
 
 if (!empty($selectedDept)) {
     $sql .= " WHERE d.DeptName = ?";
@@ -174,7 +174,7 @@ $stmt->close();
 
       <div class="table-wrap">
         <table id="majorsTable" border="1" cellpadding="5" cellspacing="0">
-          <thead><tr><th>Major ID</th><th>Major Name</th><th>Department ID</th><th>Department Name</th></tr></thead>
+          <thead><tr><th>Major ID</th><th>Major Name</th><th>Department ID</th><th>Department Name</th><th>Credits Needed</th><th>Department Email</th></tr></thead>
             <tbody id="majorsBody">
               <?php if (!empty($majors)): ?>
                 <?php foreach ($majors as $m): ?>
@@ -184,6 +184,7 @@ $stmt->close();
                     <td><?= htmlspecialchars($m['MajorName']) ?></td>
                     <td><?= htmlspecialchars($m['DeptID']) ?></td>
                     <td><?= htmlspecialchars($m['DeptName']) ?></td>
+                    <td><?= htmlspecialchars($m['CreditsNeeded']) ?></td>
                     <td><?= htmlspecialchars($m['Email']) ?></td>
                   </tr>
                 <?php endforeach; ?>

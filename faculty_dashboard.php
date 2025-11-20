@@ -36,6 +36,25 @@ $fac_stmt->close();
 $office    = $fac['OfficeID'] ?? 'N/A';
 $ranking   = $fac['Ranking'] ?? 'Faculty';
 
+// Fetch all semesters for the schedule dropdown
+$sem_sql = "SELECT SemesterID, SemesterName, Year FROM Semester ORDER BY Year DESC, SemesterName DESC";
+$sem_stmt = $mysqli->prepare($sem_sql);
+$sem_stmt->execute();
+$sem_result = $sem_stmt->get_result();
+$semesters = $sem_result->fetch_all(MYSQLI_ASSOC);
+$sem_stmt->close();
+
+// Determine which semester to show for the schedule
+$selectedSemester = isset($_GET['semester']) && $_GET['semester'] !== '' ? $_GET['semester'] : null;
+if ($selectedSemester === null) {
+    // Auto‑select current semester if available
+    $auto_sql = "SELECT SemesterID FROM Semester WHERE CURDATE() BETWEEN StartDate AND EndDate LIMIT 1";
+    $auto_res = $mysqli->query($auto_sql);
+    if ($auto_row = $auto_res->fetch_assoc()) {
+        $selectedSemester = $auto_row['SemesterID'];
+    }
+}
+
 // Count courses taught by this faculty member
 $courseCount_stmt = $mysqli->prepare("SELECT COUNT(DISTINCT CRN) AS Count FROM CourseSection WHERE FacultyID = ?");
 $courseCount_stmt->bind_param('i', $facultyId);
@@ -45,65 +64,71 @@ $courseCount_stmt->close();
 $courseCount = (int)($courseCountRes['Count'] ?? 0);
 
 // Fetch schedule for courses taught
+$schedule = [];
+if ($selectedSemester) {
 $courses_sql = "
-  SELECT 
-    cs.CRN,
-    c.CourseName,
-    GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
-    DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
-    DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
-    cs.RoomID
-  FROM CourseSection cs
-  JOIN Course c ON cs.CourseID = c.CourseID
-  JOIN Semester s ON cs.SemesterID = s.SemesterID
-  JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
-  JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
-  JOIN Day d ON tsd.DayID = d.DayID
-  JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
-  JOIN Period p ON tsp.PeriodID = p.PeriodID
-  WHERE cs.FacultyID = ?
-    AND CURRENT_DATE() BETWEEN s.StartDate AND s.EndDate
-  GROUP BY cs.CRN, c.CourseName, cs.RoomID
-  ORDER BY cs.CRN, MIN(p.StartTime);
-";
-$courses_stmt = $mysqli->prepare($courses_sql);
-$courses_stmt->bind_param('i', $facultyId);
-$courses_stmt->execute();
-$courses_result = $courses_stmt->get_result();
-$schedule = $courses_result->fetch_all(MYSQLI_ASSOC);
-$courses_stmt->close();
+      SELECT 
+        cs.CRN,
+        c.CourseName,
+        GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
+        DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
+        DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
+        cs.RoomID
+      FROM CourseSection cs
+      JOIN Course c ON cs.CourseID = c.CourseID
+      JOIN Semester s ON cs.SemesterID = s.SemesterID
+      JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
+      JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
+      JOIN Day d ON tsd.DayID = d.DayID
+      JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
+      JOIN Period p ON tsp.PeriodID = p.PeriodID
+      WHERE cs.FacultyID = ?
+        AND cs.SemesterID = ?
+      GROUP BY cs.CRN, c.CourseName, cs.RoomID
+      ORDER BY cs.CRN, MIN(p.StartTime);
+    ";
+    $courses_stmt = $mysqli->prepare($courses_sql);
+    $courses_stmt->bind_param('is', $facultyId, $selectedSemester);
+    $courses_stmt->execute();
+    $courses_result = $courses_stmt->get_result();
+    $schedule = $courses_result->fetch_all(MYSQLI_ASSOC);
+    $courses_stmt->close();
+}
 
 // Fetch roster (students enrolled in faculty's sections)
-$roster_sql = "
-  SELECT 
-    u.FirstName, 
-    u.LastName, 
-    c.CourseName, 
-    GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
-    DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
-    DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
-    cs.RoomID
-  FROM StudentEnrollment se
-  JOIN Users u ON se.StudentID = u.UserID
-  JOIN CourseSection cs ON se.CRN = cs.CRN
-  JOIN Course c ON cs.CourseID = c.CourseID
-  JOIN Semester s ON cs.SemesterID = s.SemesterID
-  JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
-  JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
-  JOIN Day d ON tsd.DayID = d.DayID
-  JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
-  JOIN Period p ON tsp.PeriodID = p.PeriodID
-  WHERE cs.FacultyID = ?
-    AND CURRENT_DATE() BETWEEN s.StartDate AND s.EndDate
-  GROUP BY se.StudentID, cs.CRN, c.CourseName, cs.RoomID
-  ORDER BY c.CourseName, u.LastName, u.FirstName;
-";
-$roster_stmt = $mysqli->prepare($roster_sql);
-$roster_stmt->bind_param('i', $facultyId);
-$roster_stmt->execute();
-$roster_result = $roster_stmt->get_result();
-$roster = $roster_result->fetch_all(MYSQLI_ASSOC);
-$roster_stmt->close();
+$roster = [];
+if ($selectedSemester) {
+    $roster_sql = "
+      SELECT 
+        u.FirstName, 
+        u.LastName, 
+        c.CourseName, 
+        GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
+        DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
+        DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
+        cs.RoomID
+      FROM StudentEnrollment se
+      JOIN Users u ON se.StudentID = u.UserID
+      JOIN CourseSection cs ON se.CRN = cs.CRN
+      JOIN Course c ON cs.CourseID = c.CourseID
+      JOIN Semester s ON cs.SemesterID = s.SemesterID
+      JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
+      JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
+      JOIN Day d ON tsd.DayID = d.DayID
+      JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
+      JOIN Period p ON tsp.PeriodID = p.PeriodID
+      WHERE cs.FacultyID = ?
+        AND cs.SemesterID = ?
+      GROUP BY se.StudentID, cs.CRN, c.CourseName, cs.RoomID
+      ORDER BY c.CourseName, u.LastName, u.FirstName;
+    ";
+    $roster_stmt = $mysqli->prepare($roster_sql);
+    $roster_stmt->bind_param('is', $facultyId, $selectedSemester);
+    $roster_stmt->execute();
+    $roster_result = $roster_stmt->get_result();
+    $roster = $roster_result->fetch_all(MYSQLI_ASSOC);
+    $roster_stmt->close();
+}
 
 $courseCount = 0;
 $courseCount = count($schedule);
@@ -235,6 +260,15 @@ $quickLinks = [
       </div>
 
       <div class="card">
+          <form method="get" class="semester-selector" style="margin-bottom:10px">
+            <label for="semester" style="margin-right:6px">View Semester:</label>
+            <select name="semester" id="semester" onchange="this.form.submit()">
+              <option value="">Current Semester</option>
+              <?php foreach ($semesters as $sem): ?>
+                <option value="<?php echo htmlspecialchars($sem['SemesterID']); ?>" <?php echo ($selectedSemester == $sem['SemesterID']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($sem['SemesterName'] . ' ' . $sem['Year']); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </form>
         <div class="card-head between">
           <div class="card-title">Schedule</div>
           <div class="row gap">
@@ -436,15 +470,7 @@ $quickLinks = [
       qlContainer.appendChild(div);
     });
     lucide.createIcons();
-    // Tasks
-    const tasks = <?php echo json_encode($tasks); ?>;
-    const taskList = document.getElementById('facultyTasksList');
-    tasks.forEach(task => {
-      const item = document.createElement('div');
-      item.className = 'row between small';
-      item.innerHTML = '<span>' + task.title + '</span><span class="muted">' + task.due + '</span>';
-      taskList.appendChild(item);
-    });
+
     // Announcements
     const announcements = <?php echo json_encode($announcements); ?>;
     const annList = document.getElementById('facultyAnnList');

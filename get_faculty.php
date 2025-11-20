@@ -6,7 +6,7 @@ $mysqli->set_charset('utf8mb4');
 $sql = "
 SELECT 
     f.FacultyID,
-    CONCAT(u.FirstName, ' ', u.LastName) AS FacultyName,
+    CONCAT(u.FirstName, ' ', substr(u.MiddleName, 1, 1), '. ', u.LastName) AS FacultyName,
     GROUP_CONCAT(DISTINCT d.DeptName ORDER BY d.DeptName SEPARATOR ', ') AS DeptNames
 FROM Faculty f
 JOIN Users u ON f.FacultyID = u.UserID

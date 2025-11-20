@@ -27,14 +27,17 @@ $mysqli->set_charset('utf8mb4');
 // Prepare statements
 $check = $mysqli->prepare("SELECT 1 FROM StudentEnrollment WHERE StudentID = ? AND CRN = ?");
 $getCourse = $mysqli->prepare("SELECT SemesterID, CourseID, AvailableSeats FROM CourseSection WHERE CRN = ?");
-$insert = $mysqli->prepare("
+
+$insertEnroll = $mysqli->prepare("
     INSERT INTO StudentEnrollment (StudentID, SemesterID, CRN, CourseID, Status, EnrollmentDate)
     VALUES (?, ?, ?, ?, ?, CURRENT_DATE())
 ");
-$insert = $mysqli->prepare("
+
+$insertHistory = $mysqli->prepare("
     INSERT INTO StudentHistory (StudentID, CRN, SemesterID, CourseID)
     VALUES (?, ?, ?, ?)
 ");
+
 $updateSeats = $mysqli->prepare("UPDATE CourseSection SET AvailableSeats = AvailableSeats - 1 WHERE CRN = ?");
 
 $enrolled = [];
@@ -67,23 +70,28 @@ foreach ($cart as $item) {
     // 3️⃣ Decide enrollment status
     if ($available > 0) {
         $status = 'ENROLLED';
-        $insert->bind_param('isiss', $userId, $semesterId, $crn, $courseId, $status);
-        $insert->execute();
+        $insertEnroll->bind_param('isiss', $userId, $semesterId, $crn, $courseId, $status);
+        $insertEnroll->execute();
         $updateSeats->bind_param('i', $crn);
         $updateSeats->execute();
         $enrolled[] = $crn;
     } else {
         $status = 'WAITLIST';
-        $insert->bind_param('isiss', $userId, $semesterId, $crn, $courseId, $status);
-        $insert->execute();
+        $insertEnroll->bind_param('isiss', $userId, $semesterId, $crn, $courseId, $status);
+        $insertEnroll->execute();
         $waitlisted[] = $crn;
     }
-}
+
+    // Always add to StudentHistory
+    $insertHistory->bind_param('iiss', $userId, $crn, $semesterId, $courseId);
+    $insertHistory->execute();
+    }
 
 // Close all
 $check->close();
 $getCourse->close();
-$insert->close();
+$insertEnroll->close();
+$insertHistory->close();
 $updateSeats->close();
 unset($_SESSION['cart']);
 

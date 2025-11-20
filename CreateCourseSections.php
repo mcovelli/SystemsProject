@@ -145,7 +145,7 @@ $mysqli->commit();
     data.forEach(faculty => {
         const opt = document.createElement('option');
         opt.value = faculty.FacultyID;
-        opt.textContent = `${faculty.FacultyName} — ${faculty.DeptName}`;
+        opt.textContent = faculty.FacultyID + ' - ' + faculty.FacultyName + ' - ' + faculty.DeptNames;
         facultySelect.appendChild(opt);
         });
     })

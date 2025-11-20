@@ -179,7 +179,7 @@ $stmt->close();
               <?php if (!empty($programs)): ?>
                 <?php foreach ($programs as $p): ?>
                   <tr>
-                    <td><a href="ViewProgramRequirements.php?ProgramID=<?= urlencode($p['ProgramID']) ?>&ProgramName=<?= urlencode($p['ProgramName']) ?>">
+                    <td><a href="ViewProgramRequirements.php?programID=<?= urlencode($p['ProgramID']) ?>">
                       <?= htmlspecialchars($p['ProgramID']) ?> </a></td>
                     <td><?= htmlspecialchars($p['ProgramName']) ?></td>
                     <td><?= htmlspecialchars($p['DeptName']) ?></td>

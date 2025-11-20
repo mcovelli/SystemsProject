@@ -10,8 +10,9 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userId = $_SESSION['user_id'];
-$majorID = $_GET['majorID'] ?? null;
-if (!$majorID) die("No majorID provided.");
+$programID = $_GET['ProgramID'] ?? null;
+$programName = $_GET['ProgramName'] ?? 'Program';
+if (!$programID) die("No ProgramID provided.");
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -25,17 +26,17 @@ $res = $stmt->get_result();
 $user = $res->fetch_assoc();
 $stmt->close();
 
-$major_requirement_sql = "SELECT mr.MajorID, m.MajorName, mr.CourseID, mr.RequirementDescription, mr.RequirementType, mr.CreditsRequired
-                       FROM MajorRequirement mr
-                       JOIN Major m ON mr.MajorID = m.MajorID
-                       WHERE mr.MajorID = ?";
+$program_requirement_sql = "SELECT pr.ProgramID, p.ProgramName, pr.CourseID, pr.RequirementType, p.CreditsRequired
+                       FROM ProgramRequirement pr
+                       JOIN Program p ON pr.ProgramID = p.ProgramID
+                       WHERE pr.ProgramID = ?";
 
-$major_requirement_stmt = $mysqli->prepare($major_requirement_sql);
-$major_requirement_stmt->bind_param("i", $majorID);
-$major_requirement_stmt->execute();
-$major_requirement_res = $major_requirement_stmt->get_result();
-$major_requirement = $major_requirement_res->fetch_all(MYSQLI_ASSOC);
-$major_requirement_stmt->close();
+$program_requirement_stmt = $mysqli->prepare($program_requirement_sql);
+$program_requirement_stmt->bind_param("i", $programID);
+$program_requirement_stmt->execute();
+$program_requirement_res = $program_requirement_stmt->get_result();
+$program_requirement = $program_requirement_res->fetch_all(MYSQLI_ASSOC);
+$program_requirement_stmt->close();
 
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
@@ -90,7 +91,7 @@ switch ($userRole) {
     <section class="hero card">
       <div class="card-head between">
         <div>
-          <h2 class="card-title">View Requirements</h2>
+          <h2 class="card-title">View <?= htmlspecialchars($programName) ?>  Requirements</h2>
         </div>
       </div>
     </section>
@@ -99,17 +100,16 @@ switch ($userRole) {
     <section>
       <div class="hero card">
         <table id="majorRequirementsTable" cellpadding="10" cellspacing="50">
-          <thead><tr><th>MajorID</th><th>MajorName</th><th>CourseID</th><th>Description</th><th>Type</th><th>Credits</th></tr></thead>
+          <thead><tr><th>ProgramID</th><th>ProgramName</th><th>CourseID</th><th>Type</th><th>Credits Required</th></tr></thead>
             <tbody id="majorRequirementsBody">
-              <?php if (!empty($major_requirement)): ?>
-                <?php foreach ($major_requirement as $mr): ?>
+              <?php if (!empty($program_requirement)): ?>
+                <?php foreach ($program_requirement as $pr): ?>
                   <tr>
-                    <td><?= htmlspecialchars($mr['MajorID']) ?> </td>
-                    <td><?= htmlspecialchars($mr['MajorName']) ?></td>
-                    <td><?= htmlspecialchars($mr['CourseID']) ?></td>
-                    <td><?= htmlspecialchars($mr['RequirementDescription']) ?></td>
-                    <td><?= htmlspecialchars($mr['RequirementType']) ?></td>
-                    <td><?= htmlspecialchars($mr['CreditsRequired']) ?></td>
+                    <td><?= htmlspecialchars($pr['ProgramID']) ?> </td>
+                    <td><?= htmlspecialchars($pr['ProgramName']) ?></td>
+                    <td><?= htmlspecialchars($pr['CourseID']) ?></td>
+                    <td><?= htmlspecialchars($pr['RequirementType']) ?></td>
+                    <td><?= htmlspecialchars($pr['CreditsRequired']) ?></td>
                   </tr>
                 <?php endforeach; ?>
               <?php else: ?>

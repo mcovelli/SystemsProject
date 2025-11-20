@@ -10,19 +10,26 @@ $mysqli->set_charset('utf8mb4');
 
 $userID = $_SESSION['user_id'];
 
-// If admin or faculty is viewing another student
 $role = strtolower($_SESSION['role'] ?? '');
 
-if ($role === 'admin' || $role === 'faculty') {
+// If not logged in
+if (!$role) {
+    redirect('login.php');
+}
+
+// ADMIN → viewing any faculty profile
+if ($role === 'admin') {
     if (isset($_GET['studentID'])) {
         $studentID = intval($_GET['studentID']);
     } else {
-        redirect('login.php');
+        redirect('student_profile.php'); // Or wherever you want admin to go
     }
 }
-else if ($role === 'student') {
+// FACULTY → always view their own profile
+elseif ($role === 'student') {
     $studentID = $_SESSION['user_id'];
 }
+// ANYONE ELSE → no access
 else {
     redirect('login.php');
 }

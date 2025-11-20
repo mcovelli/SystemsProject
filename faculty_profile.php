@@ -7,11 +7,31 @@ session_start();
 require_once __DIR__ . '/config.php';
 
 // Only allow logged‑in faculty members
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'faculty') {
+
+// If admin or faculty is viewing another student
+$role = strtolower($_SESSION['role'] ?? '');
+
+// If not logged in
+if (!$role) {
     redirect('login.php');
 }
 
-$facultyId = $_SESSION['user_id'];
+// ADMIN → viewing any faculty profile
+if ($role === 'admin') {
+    if (isset($_GET['facultyID'])) {
+        $facultyId = intval($_GET['facultyID']);
+    } else {
+        redirect('faculty_dashboard.php'); // Or wherever you want admin to go
+    }
+}
+// FACULTY → always view their own profile
+elseif ($role === 'faculty') {
+    $facultyId = $_SESSION['user_id'];
+}
+// ANYONE ELSE → no access
+else {
+    redirect('login.php');
+}
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');

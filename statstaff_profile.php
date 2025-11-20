@@ -6,12 +6,29 @@ ini_set('display_errors', 1);
 session_start();
 require_once __DIR__ . '/config.php';
 
-// Only allow logged‑in Stat Staff members
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'statstaff') {
+$role = strtolower($_SESSION['role'] ?? '');
+
+// If not logged in
+if (!$role) {
     redirect('login.php');
 }
 
-$staffId = $_SESSION['user_id'];
+// ADMIN → viewing any faculty profile
+if ($role === 'admin') {
+    if (isset($_GET['statstaffID'])) {
+        $staffId = intval($_GET['statstaffID']);
+    } else {
+        redirect('statstaff_profile.php'); // Or wherever you want admin to go
+    }
+}
+// FACULTY → always view their own profile
+elseif ($role === 'statstaff') {
+    $staffId = $_SESSION['user_id'];
+}
+// ANYONE ELSE → no access
+else {
+    redirect('login.php');
+}
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');

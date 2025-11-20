@@ -290,7 +290,7 @@ switch ($userRole) {
       <div class="card-head between">
         <div>
           <h2 class="card-title">View Students</h2>
-          <div class="sub muted">Filter By Student Type, Major/Minor</div>
+          <div class="sub muted">Filter By Student Type, Major/Minor, Name</div>
         </div>
       </div>
       <form method="GET" id="filterForm" style="margin-bottom: 20px;">
@@ -301,6 +301,7 @@ switch ($userRole) {
 
         <button type="submit">Search</button>
       </form>
+      <p>Click StudentID for students profile</p>
 
     <div class="table-wrap">
       <table border="1" cellpadding="5" cellspacing="0">

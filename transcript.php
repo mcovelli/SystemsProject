@@ -266,6 +266,9 @@ if (!$student) {
 
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
+    case 'student':
+        $dashboard = 'student_dashboard.php';
+        break;
     case 'faculty':
         $dashboard = 'faculty_dashboard.php';
         break;
@@ -275,6 +278,9 @@ switch ($userRole) {
         } else {
             $dashboard = 'view_admin_dashboard.php';
         }
+        break;
+    case 'statstaff':
+        $dashboard = 'statstaff_dashboard.php';
         break;
     default:
         $dashboard = 'login.html'; // fallback

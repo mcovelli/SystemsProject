@@ -18,7 +18,7 @@ if ($role === 'admin') {
     if (isset($_GET['statstaffID'])) {
         $staffId = intval($_GET['statstaffID']);
     } else {
-        redirect('statstaff_profile.php'); // Or wherever you want admin to go
+        redirect('statstaff_profile.php');
     }
 }
 // Statstaff → always view their own profile
@@ -41,6 +41,8 @@ $u_stmt->execute();
 $user = $u_stmt->get_result()->fetch_assoc();
 $u_stmt->close();
 
+$initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
+
 if (!$user) {
     echo "<p>Stat Staff member not found.</p>";
     exit;
@@ -54,164 +56,7 @@ if (!$user) {
   <title>Stat Staff Profile • Northport University</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bg:#f7f8fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
-      --primary:#0b1d39; --accent:#4f46e5; --line:#e5e7eb;
-      --radius:14px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:var(--bg); color:var(--text);
-    }
-    header{
-      position:sticky; top:0; z-index:10;
-      background:var(--card); border-bottom:1px solid var(--line);
-    }
-    .wrap{max-width:1100px; margin:0 auto; padding:18px 16px;}
-    .topbar{display:flex; align-items:center; gap:12px; justify-content:space-between}
-    .brand{display:flex; align-items:center; gap:10px; font-weight:700; color:var(--primary)}
-    .brand .logo{width:36px; height:36px; border-radius:50%; background:var(--primary); display:grid; place-items:center; color:#fff; font-size:14px}
-    .top-actions a{display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:var(--primary); color:#fff; padding:10px 14px; border-radius:10px}
-    main .grid{display:grid; grid-template-columns:320px 1fr; gap:20px; padding:24px 16px}
-    @media (max-width:880px){ main .grid{grid-template-columns:1fr} }
-    .card{
-      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-      box-shadow:0 1px 2px rgba(0,0,0,.03); padding:18px;
-    }
-    .profile{
-      display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px
-    }
-    .avatar{
-      width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid var(--accent);
-      background:#ddd;
-    }
-    .name{font-size:1.3rem; font-weight:700}
-    .muted{color:var(--muted)}
-    .chips{display:flex; flex-wrap:wrap; gap:8px; justify-content:center}
-    .chip{padding:6px 10px; border-radius:999px; background:#f2f4f7; border:1px solid var(--line); font-size:.9rem}
-    .btn-row{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
-    .btn{border:1px solid var(--line); background:#fff; padding:10px 12px; border-radius:10px; cursor:pointer}
-    .btn.primary{background:var(--accent); color:#fff; border-color:var(--accent)}
-    .section{display:grid; gap:14px}
-    .section h2{margin:0; font-size:1.05rem}
-    .kv{display:grid; grid-template-columns:80px 1fr; gap:8px; padding:10px 0; border-bottom:1px dashed var(--line)}
-    .kv:last-child{border-bottom:0}
-    /* --- CONTACT INFO FIX --- */
-    .section .kv div:last-child {
-      word-break: break-word;         /* allow breaking long words or emails */
-      overflow-wrap: anywhere;        /* force wrap for long strings */
-      white-space: normal;            /* allow wrapping on small screens */
-      max-width: 100%;                /* prevent overflow beyond card edge */
-    }
-
-    .section .kv {
-      align-items: start;             /* aligns label and value top-aligned */
-      gap: 12px;                      /* add breathing room */
-    }
-
-    .section .label {
-      font-weight: 600;
-      color: var(--muted);
-      min-width: 100px;               /* keeps labels consistent width */
-      word-wrap: normal;
-    }
-
-    #address, #email, #phone {
-      display: block;
-      line-height: 1.4;
-    }
-
-    @media (max-width: 600px) {
-      .kv {
-        grid-template-columns: 1fr;   /* stack label/value on mobile */
-      }
-      .section .label {
-        min-width: auto;
-      }
-    }
-    .label{color:var(--muted)}
-    .two{display:grid; grid-template-columns:1fr 1fr; gap:14px}
-    @media (max-width:620px){ .kv{grid-template-columns:1fr} .two{grid-template-columns:1fr} }
-    .links a{display:inline-block; margin-right:10px; color:var(--primary); text-decoration:none}
-    .links a:hover{text-decoration:underline}
-    footer{padding:24px 16px; text-align:center; color:var(--muted)}
-
-    /* Overlay background */
-    .popup-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(4px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-
-    /* Card style popup */
-    .popup-card {
-      background: var(--panel, #fff);
-      color: var(--text, #111);
-      padding: 24px 28px;
-      border-radius: 14px;
-      width: 90%;
-      max-width: 480px;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
-      animation: slideUp 0.25s ease-out;
-      position: relative;
-    }
-
-    /* Fade/slide animation */
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(40px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Close button */
-    .popup-card .close-btn {
-      position: absolute;
-      top: 10px;
-      right: 16px;
-      font-size: 22px;
-      color: var(--muted, #777);
-      cursor: pointer;
-      transition: color 0.2s ease;
-    }
-    .popup-card .close-btn:hover {
-      color: var(--primary, #4f46e5);
-    }
-
-    /* Form layout */
-    .popup-card .form-grid {
-      display: grid;
-      gap: 14px;
-      margin-top: 20px;
-    }
-    .popup-card .form-grid label {
-      display: flex;
-      flex-direction: column;
-      text-align: left;
-      font-size: 14px;
-      color: var(--muted, #666);
-    }
-    .popup-card .form-grid input,
-    .popup-card .form-grid textarea {
-      margin-top: 6px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border, #ccc);
-      background: var(--panel, #fff);
-      color: var(--text, #111);
-      font-size: 14px;
-    }
-    .popup-card .form-grid input:focus,
-    .popup-card .form-grid textarea:focus {
-      outline: 2px solid var(--primary, #4f46e5);
-    }
-
-  </style>
+  <link rel="stylesheet" href="profilestyles.css">
 </head>
 <body>
   <header>
@@ -311,15 +156,12 @@ if (!$user) {
       <section class="card">
         <div class="section">
           <h2>About</h2>
-          <div class="kv">
-            <div class="label"></div>
-            <div id="bio"></div>
-          </div>
-          <div class="kv">
-            <div class="label"></div>
-            <div id="roles"></div>
-          </div>
-        </div>
+          <div class="section">
+            <h2>Links</h2>
+            <div class="links" id="links">
+              <a href="messages.php">Messages</a>
+              <a href="verify_identity.php">Reset Password</a>
+            </div>
 
       </section>
     </div>

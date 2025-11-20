@@ -24,6 +24,8 @@ $u_stmt->execute();
 $user = $u_stmt->get_result()->fetch_assoc();
 $u_stmt->close();
 
+$initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
+
 if (!$user) {
     echo "<p>Admin member not found.</p>";
     exit;
@@ -50,6 +52,7 @@ switch ($userRole) {
   <title>Admin Profile • Northport University</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./profilestyles.css">
   <style>
     :root{
       --bg:#f7f8fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
@@ -308,9 +311,10 @@ switch ($userRole) {
             <div class="label"></div>
             <div id="bio"></div>
           </div>
-          <div class="kv">
-            <div class="label"></div>
-            <div id="roles"></div>
+          <div class="section">
+          <h2>Links</h2>
+          <div class="links" id="links">
+            <a href="verify_identity.php">Reset Password</a>
           </div>
         </div>
 

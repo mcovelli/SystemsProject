@@ -7,30 +7,42 @@
   <script src="script.js" defer></script>
 </head>
 <body>
+
   <div class="auth-container login-container" role="main" aria-labelledby="login-title">
+
     <h2 id="login-title">Login</h2>
-    <form id="loginForm" action="login.php" method="post" novalidate>
-      <input type="text" id="email" name="email" required placeholder="Email" autocomplete="username">
-      <input type="password" id="password" name="password" required placeholder="Password" autocomplete="current-password">
+
+    <form id="loginForm" action="login.php" method="post">
+
+      <label>Email
+        <input type="text" id="email" name="email" required placeholder="Email" autocomplete="username">
+      </label>
+
+      <label>Password
+        <input type="password" id="password" name="password" required placeholder="Password" autocomplete="current-password">
+      </label>
+
       <label id="checkBox">
         <input type="checkbox" onclick="showPassword()"> Show Password
       </label>
+
       <button type="submit">Login</button>
+
     </form>
 
     <p style="text-align:center;">
       <a id="forgotPassword" href="forgot_password.php">Forgot Password?</a>
     </p>
-    <p id="error-message"></p>
-    <p>
-      
-     <strong>Attention: Using User ID as the username will result in a failed authentication.</strong>
-<p>
 
-  
-This service and the services to which it provides access are for authorized use only. Any attempt to gain unauthorized access, or exceed authorized access, to the Northport University resources will be pursued, as applicable, under campus codes</p>
+    <p><strong>Attention:</strong> Using User ID as the username will result in a failed authentication.</p>
+
+    <p>
+      This service and the services to which it provides access are for authorized use only.  
+      Any attempt to gain unauthorized access, or exceed authorized access, to the Northport University resources  
+      will be pursued, as applicable, under campus codes.
     </p>
 
   </div>
+
 </body>
 </html>

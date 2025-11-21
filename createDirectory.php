@@ -26,20 +26,25 @@ $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
     case 'student':
         $dashboard = 'student_dashboard.php';
+        $profile = 'student_profile.php';
         break;
     case 'faculty':
         $dashboard = 'faculty_dashboard.php';
+        $profile = 'faculty_profile.php';
         break;
     case 'admin':
         // if you have update/view admin types:
         if (($_SESSION['admin_type'] ?? '') === 'update') {
             $dashboard = 'update_admin_dashboard.php';
+            $profile = 'admin_profile.php';
         } else {
             $dashboard = 'view_admin_dashboard.php';
+            $profile = 'admin_profile.php';
         }
         break;
     case 'statstaff':
         $dashboard = 'statstaff_dashboard.php';
+        $profile = 'statstaff_profile.php';
         break;
     default:
         $dashboard = 'login.html'; // fallback

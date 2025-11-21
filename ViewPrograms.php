@@ -111,7 +111,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           <button>☰ Menu</button>
           <div class="dropdown-content">
             <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
-            <a href="<?= htmlspecialchars($dashboard) ?>">Profile</a>
+            <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
             <a href="logout.php">Logout</a>
           </div>
         </div>

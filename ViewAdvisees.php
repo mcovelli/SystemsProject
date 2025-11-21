@@ -109,7 +109,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>advisee Directory</title>
+<title>Advisee Directory</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -139,7 +139,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           <button>☰ Menu</button>
           <div class="dropdown-content">
             <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
-            <a href="<?= htmlspecialchars($dashboard) ?>">Profile</a>
+            <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
             <a href="logout.php">Logout</a>
           </div>
         </div>

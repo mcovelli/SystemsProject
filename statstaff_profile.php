@@ -8,6 +8,19 @@ require_once __DIR__ . '/config.php';
 
 $role = strtolower($_SESSION['role'] ?? '');
 
+// Determine back dashboard
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'student':  $dashboard = 'student_dashboard.php'; break;
+    case 'faculty':  $dashboard = 'faculty_dashboard.php'; break;
+    case 'admin':
+        $dashboard = ($_SESSION['admin_type'] ?? '') === 'update'
+            ? 'update_admin_dashboard.php'
+            : 'view_admin_dashboard.php';
+        break;
+    default: $dashboard = 'login.php';
+}
+
 // If not logged in
 if (!$role) {
     redirect('login.php');
@@ -18,7 +31,7 @@ if ($role === 'admin') {
     if (isset($_GET['statstaffID'])) {
         $staffId = intval($_GET['statstaffID']);
     } else {
-        redirect('statstaff_profile.php');
+        redirect($dashboard);
     }
 }
 // Statstaff → always view their own profile
@@ -27,7 +40,7 @@ elseif ($role === 'statstaff') {
 }
 // ANYONE ELSE → no access
 else {
-    redirect('login.php');
+    redirect($dashboard);
 }
 
 $mysqli = get_db();

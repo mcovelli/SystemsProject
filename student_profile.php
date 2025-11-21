@@ -12,6 +12,19 @@ $userID = $_SESSION['user_id'];
 
 $role = strtolower($_SESSION['role'] ?? '');
 
+// Determine back dashboard
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'student':  $dashboard = 'student_dashboard.php'; break;
+    case 'faculty':  $dashboard = 'faculty_dashboard.php'; break;
+    case 'admin':
+        $dashboard = ($_SESSION['admin_type'] ?? '') === 'update'
+            ? 'update_admin_dashboard.php'
+            : 'view_admin_dashboard.php';
+        break;
+    default: $dashboard = 'login.php';
+}
+
 // If not logged in
 if (!$role) {
     redirect('login.php');
@@ -23,20 +36,8 @@ if ($role === 'admin') {
     if (isset($_GET['studentID'])) {
         $studentID = intval($_GET['studentID']);
     }
-
-    // Update admin → redirect to update admin dashboard
-    elseif (($_SESSION['admin_type'] ?? '') === 'update') {
-        redirect('update_admin_dashboard.php');
-    }
-
-    // View admin → redirect to view admin dashboard
-    elseif (($_SESSION['admin_type'] ?? '') === 'view') {
-        redirect('view_admin_dashboard.php');
-    }
-
-    // Invalid admin type → send to login
     else {
-        redirect('login.php');
+        redirect($dashboard);
     }
 }
 
@@ -47,7 +48,7 @@ elseif ($role === 'faculty') {
         $studentID = intval($_GET['studentID']);
     } else {
         // No studentID → redirect to faculty dashboard
-        redirect('faculty_dashboard.php');
+        redirect($dashboard);
     }
 }
 
@@ -58,7 +59,7 @@ elseif ($role === 'student') {
 }
 
 else {
-    redirect('login.php');
+    redirect($dashboard);
 }
 
 $mysqli = get_db();
@@ -311,19 +312,6 @@ $credits_stmt->close();
 $semesterCredits = (int)($credits_result['TotalCredits'] ?? 0);
 
 $initials = substr($student['FirstName'], 0, 1) . substr($student['LastName'], 0, 1);
-
-// Determine back dashboard
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-    case 'student':  $dashboard = 'student_dashboard.php'; break;
-    case 'faculty':  $dashboard = 'faculty_dashboard.php'; break;
-    case 'admin':
-        $dashboard = ($_SESSION['admin_type'] ?? '') === 'update'
-            ? 'update_admin_dashboard.php'
-            : 'view_admin_dashboard.php';
-        break;
-    default: $dashboard = 'login.php';
-}
 ?>
 
 <!doctype html>

@@ -1,36 +1,71 @@
 <?php
-// Faculty profile page: shows a faculty member's information and courses.
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 session_start();
 require_once __DIR__ . '/config.php';
 
-// Only allow logged‑in faculty members
+$mysqli = get_db();
+$mysqli->set_charset('utf8mb4');
 
-// If admin or faculty is viewing another student
+$userID = $_SESSION['user_id'];
+
 $role = strtolower($_SESSION['role'] ?? '');
+
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'faculty':
+        $dashboard = 'faculty_dashboard.php';
+        break;
+    case 'admin':
+        // if you have update/view admin types:
+        if (($_SESSION['admin_type'] ?? '') === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+        } else {
+            $dashboard = 'view_admin_dashboard.php';
+        }
+        break;
+    default:
+        $dashboard = 'login.html'; // fallback
+}
+
+// Determine back dashboard
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'student':  $dashboard = 'student_dashboard.php'; break;
+    case 'faculty':  $dashboard = 'faculty_dashboard.php'; break;
+    case 'admin':
+        $dashboard = ($_SESSION['admin_type'] ?? '') === 'update'
+            ? 'update_admin_dashboard.php'
+            : 'view_admin_dashboard.php';
+        break;
+    default: $dashboard = 'login.php';
+}
 
 // If not logged in
 if (!$role) {
     redirect('login.php');
 }
 
-// ADMIN → viewing any faculty profile
 if ($role === 'admin') {
-    if (isset($_GET['facultyID'])) {
+
+    // Admin with ?facultyId=  → view that faculty's profile
+    if (isset($_GET['studentID'])) {
         $facultyId = intval($_GET['facultyID']);
-    } else {
-        redirect('faculty_dashboard.php'); // Or wherever you want admin to go
+    }
+    else {
+        redirect('login.php');
     }
 }
-// FACULTY → always view their own profile
+
 elseif ($role === 'faculty') {
+
+    // Faculty can only access their own profile
     $facultyId = $_SESSION['user_id'];
 }
-// ANYONE ELSE → no access
+
 else {
-    redirect('login.php');
+    redirect($dashboard);
 }
 
 $mysqli = get_db();
@@ -98,23 +133,6 @@ $adv_stmt->execute();
 $advisees_result = $adv_stmt->get_result();
 $advisees = $advisees_result->fetch_all(MYSQLI_ASSOC);
 $adv_stmt->close();
-
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-    case 'faculty':
-        $dashboard = 'faculty_dashboard.php';
-        break;
-    case 'admin':
-        // if you have update/view admin types:
-        if (($_SESSION['admin_type'] ?? '') === 'update') {
-            $dashboard = 'update_admin_dashboard.php';
-        } else {
-            $dashboard = 'view_admin_dashboard.php';
-        }
-        break;
-    default:
-        $dashboard = 'login.html'; // fallback
-}
 
 ?>
 

@@ -61,6 +61,28 @@ $quickLinks = [
     ['label' => 'Create Requirements',      'href' => 'CreateRequirements.php',                      'icon' => 'list']
 ];
 
+$updateLinks = [
+  ['label' => 'Update User', 'href' => 'UpdateUsers.php',       'icon' => 'file-text'],
+    ['label' => 'Update Courses',      'href' => 'UpdateCourses.php',           'icon' => 'book'],
+    ['label' => 'Update Sections',   'href' => 'UpdateCourseSections.php',                      'icon' => 'book-open'],
+    ['label' => 'Update Departments',     'href' => 'UpdateDepartments.php',                      'icon' => 'mail'],
+    ['label' => 'Update Majors/Minors',      'href' => 'UpdateMajors&Minors.php',                      'icon' => 'check'],
+    ['label' => 'Update Programs',      'href' => 'UpdatePrograms.php',                      'icon' => 'brain'],
+    ['label' => 'Update Requirements',      'href' => 'UpdateRequirements.php',                      'icon' => 'list']
+
+];
+
+$deleteLinks = [
+  ['label' => 'Delete User', 'href' => 'DeleteUsers.php',       'icon' => 'file-text'],
+    ['label' => 'Delete Courses',      'href' => 'DeleteCourses.php',           'icon' => 'book'],
+    ['label' => 'Delete Sections',   'href' => 'DeleteCourseSections.php',                      'icon' => 'book-open'],
+    ['label' => 'Delete Departments',     'href' => 'DeleteDepartments.php',                      'icon' => 'mail'],
+    ['label' => 'Delete Majors/Minors',      'href' => 'DeleteMajors&Minors.php',                      'icon' => 'check'],
+    ['label' => 'Delete Programs',      'href' => 'DeletePrograms.php',                      'icon' => 'brain'],
+    ['label' => 'Delete Requirements',      'href' => 'DeleteRequirements.php',                      'icon' => 'list']
+
+];
+
 $initials = substr($admin['FirstName'], 0, 1) . substr($admin['LastName'], 0, 1);
 ?>
 
@@ -112,8 +134,22 @@ $initials = substr($admin['FirstName'], 0, 1) . substr($admin['LastName'], 0, 1)
 
   <main class="container">
       <div class="card">
-        <div class="card-title">Quick Actions</div>
+        <div class="card-title">Create Actions</div>
         <div class="quick-grid" id="adminQuickLinks"></div>
+      </div>
+  </main>
+
+    <main class="container">
+      <div class="card">
+        <div class="card-title">Update Actions</div>
+        <div class="quick-grid" id="adminUpdateLinks"></div>
+      </div>
+  </main>
+
+  <main class="container">
+      <div class="card">
+        <div class="card-title">Delete Actions</div>
+        <div class="quick-grid" id="adminDeleteLinks"></div>
       </div>
   </main>
 
@@ -167,6 +203,44 @@ $initials = substr($admin['FirstName'], 0, 1) . substr($admin['LastName'], 0, 1)
       div.appendChild(icon);
       div.appendChild(span);
       qlContainer.appendChild(div);
+    });
+    lucide.createIcons();
+
+    // Insert update links
+    const updateLinks = <?php echo json_encode($updateLinks); ?>;
+    const ulContainer = document.getElementById('adminUpdateLinks');
+    updateLinks.forEach(link => {
+      const div = document.createElement('div');
+      div.className = 'ul';
+      div.addEventListener('click', () => {
+        if (link.href) window.location.href = link.href;
+      });
+      const icon = document.createElement('i');
+      icon.setAttribute('data-lucide', link.icon);
+      const span = document.createElement('span');
+      span.textContent = link.label;
+      div.appendChild(icon);
+      div.appendChild(span);
+      ulContainer.appendChild(div);
+    });
+    lucide.createIcons();
+
+    // Insert delete links
+    const deleteLinks = <?php echo json_encode($deleteLinks); ?>;
+    const dlContainer = document.getElementById('adminDeleteLinks');
+    deleteLinks.forEach(link => {
+      const div = document.createElement('div');
+      div.className = 'dl';
+      div.addEventListener('click', () => {
+        if (link.href) window.location.href = link.href;
+      });
+      const icon = document.createElement('i');
+      icon.setAttribute('data-lucide', link.icon);
+      const span = document.createElement('span');
+      span.textContent = link.label;
+      div.appendChild(icon);
+      div.appendChild(span);
+      dlContainer.appendChild(div);
     });
     lucide.createIcons();
 

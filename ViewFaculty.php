@@ -168,7 +168,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           <?php if (!empty($faculty)): ?>
             <?php foreach ($faculty as $f): ?>
               <tr>
-                <td><?= htmlspecialchars($f['FacultyName']) ?></td>
+                <td><a href="faculty_profile.php?facultyID=<?= urlencode($f['FacultyID']) ?>">
+                      <?= htmlspecialchars($f['FacultyName']) ?> </a></td>
                 <td><?= htmlspecialchars($f['Email']) ?></td>
                 <td><?= htmlspecialchars($f['OfficeID']) ?></td>
                 <td><?= htmlspecialchars($f['DeptNames']) ?></td>

@@ -92,7 +92,8 @@ if ($selectedSemester) {
         DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
         DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
         cs.RoomID,
-        se.Grade
+        se.Grade,
+        se.StudentID
       FROM StudentEnrollment se
       JOIN Users u ON se.StudentID = u.UserID
       JOIN CourseSection cs ON se.CRN = cs.CRN
@@ -236,7 +237,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     $grade = $r['Grade'] ?? ' TBA ';
                   ?>
                   <tr>
-                    <td><?= htmlspecialchars($name) ?></td>
+                    <td><a href="student_profile.php?studentID=<?= urlencode($r['StudentID']) ?>">
+                      <?= htmlspecialchars($name) ?> </a></td>
                     <td><?= htmlspecialchars($course) ?></td>
                     <td><?= htmlspecialchars($days) ?></td>
                     <td><?= htmlspecialchars($timeStr) ?></td>

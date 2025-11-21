@@ -12,23 +12,6 @@ $userID = $_SESSION['user_id'];
 
 $role = strtolower($_SESSION['role'] ?? '');
 
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-    case 'faculty':
-        $dashboard = 'faculty_dashboard.php';
-        break;
-    case 'admin':
-        // if you have update/view admin types:
-        if (($_SESSION['admin_type'] ?? '') === 'update') {
-            $dashboard = 'update_admin_dashboard.php';
-        } else {
-            $dashboard = 'view_admin_dashboard.php';
-        }
-        break;
-    default:
-        $dashboard = 'login.html'; // fallback
-}
-
 // Determine back dashboard
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
@@ -50,7 +33,7 @@ if (!$role) {
 if ($role === 'admin') {
 
     // Admin with ?facultyId=  → view that faculty's profile
-    if (isset($_GET['studentID'])) {
+    if (isset($_GET['facultyID'])) {
         $facultyId = intval($_GET['facultyID']);
     }
     else {
@@ -221,7 +204,9 @@ $adv_stmt->close();
         </div>
         <div class="btn-row">
           <a class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</a>
+          <?php if ($userRole === 'faculty'): ?>
           <a class="btn primary" id="editProfileBtn" onclick="openPopup()">Edit Profile</a>
+        <?php endif; ?>
           <a class="btn primary" href="#office-hours">Office Hours</a>
         </div>
         <div class="section" style="width:100%; margin-top:10px">

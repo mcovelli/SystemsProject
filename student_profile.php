@@ -8,7 +8,7 @@ require_once __DIR__ . '/config.php';
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$userID = $_SESSION['user_id'];
+$userId = $_SESSION['user_id'];
 
 $role = strtolower($_SESSION['role'] ?? '');
 
@@ -402,7 +402,7 @@ $initials = substr($student['FirstName'], 0, 1) . substr($student['LastName'], 0
         <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
         <div class="name" id="studentName"><?php echo htmlspecialchars(
     $student['FirstName'] . ' ' . $student['LastName']); ?></div>
-        <div class="muted" id="studentId">Student ID: <?php echo htmlspecialchars(
+        <div class="muted" id="studentID">Student ID: <?php echo htmlspecialchars(
     $student['UserID']); ?></div>
         <div class="chips">
           <span class="chip" id="majorChip"><?= htmlspecialchars($majorName ?? 'Undeclared') ?></span>
@@ -490,9 +490,7 @@ $initials = substr($student['FirstName'], 0, 1) . substr($student['LastName'], 0
               <a href="transcript.php?studentID=<?= urlencode($studentID) ?>">Transcript</a>
               <?php if ($userRole === 'student'): ?>
               <a href="degree_audit.php">Degree Audit</a>
-              <a href="inbox.php">Messages</a>
-              <a href="bursar.php">Billing</a>
-              <a href="verify_identity.php">Reset Password</a>
+              <a href="messages.php">Messages</a>
               <?php endif; ?>
             </div>
           </div>

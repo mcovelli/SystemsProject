@@ -166,7 +166,9 @@ switch ($userRole) {
         </div>
         <div class="btn-row">
           <button class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</button>
+          <?php if ($userRole === 'statstaff'): ?>
           <button class="btn primary" id="editProfileBtn" onclick="openPopup()">Edit Profile</button>
+        <?php endif; ?>
           <button class="btn primary" href="#office-hours">Office Hours</button>
         </div>
         <div class="section" style="width:100%; margin-top:10px">

@@ -142,7 +142,9 @@ if (!$user) {
         </div>
         <div class="btn-row">
           <button class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</button>
+          <?php if ($userRole === 'admin'): ?>
           <button class="btn primary" id="editProfileBtn" onclick="openPopup()">Edit Profile</button>
+        <?php endif; ?>
         </div>
         <div class="section" style="width:100%; margin-top:10px">
           <h2>Contact</h2>

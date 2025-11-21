@@ -90,6 +90,42 @@
     .links a:hover{text-decoration:underline}
     footer{padding:24px 16px; text-align:center; color:var(--muted)}
 
+    .dropdown {
+    position: relative;
+    display: inline-block;
+    }
+    .dropdown button {
+    background: #e2e8f0;
+    color: #1e293b;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    }
+    .dropdown-content {
+    display: none;
+    position: absolute;
+    left: 0;
+    background: #fff;
+    min-width: 150px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    z-index: 200;
+    }
+    .dropdown-content a {
+    display: block;
+    padding: 10px 15px;
+    color: #1e293b;
+    text-decoration: none;
+    }
+    .dropdown-content a:hover {
+    background: #f1f5f9;
+    }
+    .dropdown:hover .dropdown-content {
+    display: block;
+    }
+
     /* Overlay background */
     .popup-overlay {
       position: fixed;

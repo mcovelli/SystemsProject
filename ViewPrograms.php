@@ -40,6 +40,35 @@ $res = $stmt->get_result();
 $programs = $res->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'student':
+        $dashboard = 'student_dashboard.php';
+        $profile = 'student_profile.php';
+        break;
+    case 'faculty':
+        $dashboard = 'faculty_dashboard.php';
+        $profile = 'faculty_profile.php';
+        break;
+    case 'admin':
+        // if you have update/view admin types:
+        if (($_SESSION['admin_type'] ?? '') === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        } else {
+            $dashboard = 'view_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        }
+        break;
+    case 'statstaff':
+        $dashboard = 'statstaff_dashboard.php';
+        $profile = 'admin_profile.php';
+        break;
+    default:
+        $dashboard = 'login.html'; // fallback
+        $profile = 'login.html';
+}
+
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
@@ -52,7 +81,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Program Page Preview</title>
+<title>Program Directory</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -81,7 +110,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <div class="dropdown">
           <button>☰ Menu</button>
           <div class="dropdown-content">
-            <a href="#">Logout</a>
+            <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
+            <a href="<?= htmlspecialchars($dashboard) ?>">Profile</a>
+            <a href="logout.php">Logout</a>
           </div>
         </div>
       </div>

@@ -99,14 +99,33 @@ $advisees_result = $adv_stmt->get_result();
 $advisees = $advisees_result->fetch_all(MYSQLI_ASSOC);
 $adv_stmt->close();
 
-?><!doctype html>
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'faculty':
+        $dashboard = 'faculty_dashboard.php';
+        break;
+    case 'admin':
+        // if you have update/view admin types:
+        if (($_SESSION['admin_type'] ?? '') === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+        } else {
+            $dashboard = 'view_admin_dashboard.php';
+        }
+        break;
+    default:
+        $dashboard = 'login.html'; // fallback
+}
+
+?>
+
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Faculty Profile • Northport University</title>
+  <title>Admin Profile • Northport University</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="profilestyles.css">
+  <link rel="stylesheet" href="./profilestyles.css">
 </head>
 <body>
   <header>
@@ -115,9 +134,15 @@ $adv_stmt->close();
         <div class="logo">NU</div>
         <div>Northport University</div>
       </div>
-      <div class="top-actions">
-        <a href="faculty_dashboard.php" title="Back to Dashboard">← Back to Dashboard</a>
-      </div>
+      <div class="crumb"><a href="<?= htmlspecialchars($dashboard) ?>" aria-label="Back to Dashboard">← Back to Dashboard</a></div>
+      <div class="dropdown">
+          <button>☰ Menu</button>
+          <div class="dropdown-content">
+            <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
+            <a href="verify_identity.php">Reset Password</a>
+            <a href="logout.php">Logout</a>
+          </div>
+        </div>
     </div>
   </header>
 
@@ -275,7 +300,7 @@ $adv_stmt->close();
         <div class="section">
           <h2>Links</h2>
           <div class="links" id="links">
-            <a href="verify_identity.php">Reset Password</a>
+            <a href="#"></a>
           </div>
         </div>
       </section>

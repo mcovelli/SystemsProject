@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 session_start();
 require_once __DIR__ . '/config.php';
 
-if (!isset($_SESSION['user_id']) || ($_SESSION('role' ?? '') !== 'faculty')) {
+if (!isset($_SESSION['user_id']) || (($_SESSION['role'] ?? '') !== 'faculty' && ($_SESSION['role'] ?? '') !== 'admin')) {
     redirect(PROJECT_ROOT . "/login.html");
 }
 
@@ -60,42 +60,90 @@ $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
     case 'faculty':
         $dashboard = 'faculty_dashboard.php';
+        $profile = 'faculty_profile.php';
         break;
     case 'admin':
         if (($_SESSION['admin_type'] ?? '') === 'update') {
             $dashboard = 'update_admin_dashboard.php';
+            $profile = 'admin_profile.php';
         } else {
             $dashboard = 'view_admin_dashboard.php';
+            $profile = 'admin_profile.php';
         }
         break;
     default:
         $dashboard = 'login.html'; // fallback
+        $profile = 'login.html';
 }
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'faculty':
+        $dashboard = 'faculty_dashboard.php';
+        $profile = 'faculty_profile.php';
+        break;
+    case 'admin':
+        // if you have update/view admin types:
+        if (($_SESSION['admin_type'] ?? '') === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        } else {
+            $dashboard = 'view_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        }
+        break;
+    default:
+        $dashboard = 'login.html'; // fallback
+        $profile = 'login.html';
+}
+
+$initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
 
 ?>
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Northport University — Advisee List</title>
-  <link rel="stylesheet" href="./viewstyles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>advisee Directory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="logo">NU</div>
+      <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
+      <span class="pill">Advisee Directory</span>
     </div>
     <div class="top-actions">
-      <div class="search" style="width: min(360px, 40vw)">
+      <div class="search">
         <i class="search-icon" data-lucide="search"></i>
-        <input id="q" type="text" placeholder="Search code, title, instructor…" />
+        <input type="text" placeholder="Search courses, people, anything…" />
       </div>
-      <button class="btn outline" id="themeToggle" title="Toggle theme">🌙</button>
-      <div class="crumb"><a href="<?= htmlspecialchars($dashboard) ?>" aria-label="Back to Dashboard">← Back to Dashboard</a></div>
+      <button class="icon-btn" aria-label="Notifications"><i data-lucide="bell"></i></button>
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
+      <div class="divider"></div>
+      <div class="crumb"><a href="viewDirectory.php" aria-label="Back to Directory">← Back to Directory</a></div>
+    </div>
+
+    <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
+        <div class="user-meta"><div class="name"><?php echo htmlspecialchars($user['UserType']) ?></div></div>
+        <div class="dropdown">
+          <button>☰ Menu</button>
+          <div class="dropdown-content">
+            <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
+            <a href="<?= htmlspecialchars($dashboard) ?>">Profile</a>
+            <a href="logout.php">Logout</a>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 

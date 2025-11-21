@@ -25,7 +25,6 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $programID = $_POST['programID'] ?? '';
     $programCode = $_POST['program_code'] ?? '';
     $programName = $_POST['program_name'] ?? '';
     $degreeType = $_POST['degree_type'] ?? '';
@@ -107,7 +106,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     <main>
 
-        <h3>Create Course</h3>
+        <h3>Create Program</h3>
 
         <div class="top-actions">
           <a href="javascript:history.back()" title="Back to Dashboard">← Back to Dashboard</a>
@@ -145,31 +144,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
          </form>
       </div>
 
-      <div id = "program-requirement">
-            <form id = "programRequirementMenu">
-            <label for="reqID">Program Requirement ID:</label>
-            <input type = "int" select id="reqID" name="reqID" required><br>
-
-            <label for="courseID">Program Course ID:</label>
-            <input type = "int" select id="courseID" name="courseID" required><br>
-
-            <label for="req_type">Requirement Type:</label>
-            <select id="req_type" name="req_type" required>
-              <option value="">-- Select Requirement Type --</option>
-              <option value="core">Core</option>
-              <option value="elective">Elective</option>
-              <option value="capstone">Capstone</option>
-            </select><br>
-
-            <label for="notes">Program Course Notes:</label>
-            <input type = "text" select id="notes" name="notes" required><br>
-
-            <button type="submit" name = "program_action" value ="create">Create Program Requirements</button>
-            <button type="submit" name = "program_action" value ="update">Update Program Requirements</button>
-            <button type="submit" name = "program_action" value ="delete">Delete Program Requirements</button>
-             </form>
-          </div>
-</body>
 </main>
 
  <footer>© 2025 Northport University • All rights reserved</footer>
@@ -178,8 +152,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     fetch('get_programs.php')
     .then(response => response.json())
     .then(data => {
-      const programSelect = document.getElementById('programCode');
-      const selectedProgram = new URLSearchParams(window.location.search).get('programCode');
+      const programSelect = document.getElementById('program_code');
+      const selectedProgram = new URLSearchParams(window.location.search).get('programName');
 
       data.forEach(prog =>{
         const opt = document.createElement('option');
@@ -194,3 +168,5 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       console.log("Program form submitted ✅");
     });
 </script>
+  </body>
+  </html>

@@ -134,7 +134,6 @@ switch ($userRole) {
         <div class="logo">NU</div>
         <div>Northport University</div>
       </div>
-      <div class="crumb"><a href="<?= htmlspecialchars($dashboard) ?>" aria-label="Back to Dashboard">← Back to Dashboard</a></div>
       <div class="dropdown">
           <button>☰ Menu</button>
           <div class="dropdown-content">

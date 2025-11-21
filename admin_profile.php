@@ -86,7 +86,7 @@ if (!$user) {
   </header>
 
   <!-- Edit Profile Popup -->
-  <?php if ($userRole === 'faculty'): ?>
+  <?php if ($_SESSION['user_id'] === $adminId): ?>
   <div id="editProfilePopup" class="popup-overlay">
     <div class="popup-card">
       <span class="close-btn" onclick="closePopup()">&times;</span>
@@ -142,7 +142,7 @@ if (!$user) {
         </div>
         <div class="btn-row">
           <button class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</button>
-          <?php if ($userRole === 'admin'): ?>
+          <?php if ($_SESSION['user_id'] === $adminId): ?>
           <button class="btn primary" id="editProfileBtn" onclick="openPopup()">Edit Profile</button>
         <?php endif; ?>
         </div>

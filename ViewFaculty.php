@@ -29,7 +29,7 @@ SELECT
     f.FacultyID,
     CONCAT(fu.FirstName, ' ', fu.LastName) AS FacultyName,
     GROUP_CONCAT(d.DeptName ORDER BY d.DeptName SEPARATOR ', ') AS DeptNames,
-    fd.DeptID, d.Phone, d.Email, f.OfficeID, f.Ranking
+    fd.DeptID, d.Phone, fu.Email, f.OfficeID, f.Ranking
 FROM Faculty f
 JOIN Users fu ON f.FacultyID = fu.UserID
 JOIN Faculty_Dept fd ON f.FacultyID = fd.FacultyID
@@ -140,7 +140,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <section class="hero card">
       <div class="card-head between">
         <div>
-          <h2 class="card-title">View All Course Sections</h2>
+          <h2 class="card-title">View All Faculty</h2>
         </div>
       </div>
 
@@ -168,9 +168,17 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           <?php if (!empty($faculty)): ?>
             <?php foreach ($faculty as $f): ?>
               <tr>
+
+                <?php if ($userRole === 'admin'): ?>
                 <td><a href="faculty_profile.php?facultyID=<?= urlencode($f['FacultyID']) ?>">
                       <?= htmlspecialchars($f['FacultyName']) ?> </a></td>
-                <td><?= htmlspecialchars($f['Email']) ?></td>
+                <?php else: ?> <td><?= htmlspecialchars($f['FacultyName']) ?></td>
+              <?php endif; ?>
+                <td>
+                  <a href="mailto:<?= htmlspecialchars($f['Email']) ?>">
+                    <?= htmlspecialchars($f['Email']) ?>
+                  </a>
+                </td>
                 <td><?= htmlspecialchars($f['OfficeID']) ?></td>
                 <td><?= htmlspecialchars($f['DeptNames']) ?></td>
                 <td><?= htmlspecialchars($f['Phone']) ?></td>

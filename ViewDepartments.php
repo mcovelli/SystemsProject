@@ -23,12 +23,35 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 
-$sql = "SELECT d.DeptID, d.DeptName, d.Email, d.Phone, d.RoomID, CONCAT(u.FirstName , ' ' , u.LastName) AS ChairName FROM Department d JOIN Users u ON d.ChairID = u.UserID";
+$sql = "SELECT d.DeptID, d.DeptName, d.Email, d.Phone, d.RoomID, CONCAT(u.FirstName , ' ' , u.LastName) AS ChairName, d.ChairID FROM Department d JOIN Users u ON d.ChairID = u.UserID";
 $stmt = $mysqli->prepare($sql);
 $stmt->execute();
 $res = $stmt->get_result();
-$courses = $res->fetch_all(MYSQLI_ASSOC);
+$depts = $res->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
+
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'student':
+        $dashboard = 'student_dashboard.php';
+        break;
+    case 'faculty':
+        $dashboard = 'faculty_dashboard.php';
+        break;
+    case 'admin':
+        // if you have update/view admin types:
+        if (($_SESSION['admin_type'] ?? '') === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+        } else {
+            $dashboard = 'view_admin_dashboard.php';
+        }
+        break;
+    case 'statstaff':
+        $dashboard = 'statstaff_dashboard.php';
+        break;
+    default:
+        $dashboard = 'login.html'; // fallback
+}
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
@@ -93,14 +116,21 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       <table id="coursesTable" border ="1" cellpadding="5" cellspacing="0">
         <thead><tr><th>Department</th><th>Email</th><th>Phone #</th><th>Office Location</th><th>Dept Chair</th></tr></thead>
           <tbody id="coursesBody">
-            <?php if (!empty($courses)): ?>
-              <?php foreach ($courses as $c): ?>
+            <?php if (!empty($depts)): ?>
+              <?php foreach ($depts as $d): ?>
                 <tr>
-                  <td><?= htmlspecialchars($c['DeptName']) ?></td>
-                  <td><?= htmlspecialchars($c['Email']) ?></td>
-                  <td><?= htmlspecialchars($c['Phone']) ?></td>
-                  <td><?= htmlspecialchars($c['RoomID']) ?></td>
-                  <td><?= htmlspecialchars($c['ChairName']) ?></td>
+                  <td><?= htmlspecialchars($d['DeptName']) ?></td>
+                  <td>
+                    <a href="mailto:<?= htmlspecialchars($d['Email']) ?>"><?= htmlspecialchars($d['Email']) ?></a>
+                  </td>
+                  <td><?= htmlspecialchars($d['Phone']) ?></td>
+                  <td><?= htmlspecialchars($d['RoomID']) ?></td>
+                  <?php if ($userRole === 'admin'): ?>
+                  <td><a href="faculty_profile.php?facultyID=<?= urlencode($d['ChairID']) ?>">
+                        <?= htmlspecialchars($d['ChairName']) ?> </a></td>
+                  <?php else: ?> <td><?= htmlspecialchars($d['ChairName']) ?></td>
+                <?php endif; ?>
+                <td>
                 </tr>
               <?php endforeach; ?>
             <?php else: ?>

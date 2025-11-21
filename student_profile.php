@@ -34,7 +34,7 @@ if ($role === 'admin') {
 
     // Admin with ?studentID=  → view that student's profile
     if (isset($_GET['studentID'])) {
-        $studentID = intval($_GET['studentID']);
+        $studentIf = intval($_GET['studentID']);
     }
     else {
         redirect($dashboard);
@@ -45,7 +45,7 @@ elseif ($role === 'faculty') {
 
     if (isset($_GET['studentID'])) {
         // Faculty viewing a single student's profile
-        $studentID = intval($_GET['studentID']);
+        $studentIf = intval($_GET['studentID']);
     } else {
         // No studentID → redirect to faculty dashboard
         redirect($dashboard);
@@ -55,7 +55,7 @@ elseif ($role === 'faculty') {
 elseif ($role === 'student') {
 
     // Students can only access their own profile
-    $studentID = $_SESSION['user_id'];
+    $studentId = $_SESSION['user_id'];
 }
 
 else {
@@ -68,7 +68,7 @@ $mysqli->set_charset('utf8mb4');
 $sql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB, HouseNumber, Street, City, State, ZIP, PhoneNumber
         FROM Users WHERE UserID = ? LIMIT 1";
 $stmt = $mysqli->prepare($sql);
-$stmt->bind_param("i", $studentID);
+$stmt->bind_param("i", $studentId);
 $stmt->execute();
 $res = $stmt->get_result();
 $student = $res->fetch_assoc();
@@ -77,7 +77,7 @@ $stmt->close();
 // What kind of student is this?
 $stype_sql = "SELECT StudentType FROM Student WHERE StudentID = ? LIMIT 1";
 $stype_stmt = $mysqli->prepare($stype_sql);
-$stype_stmt->bind_param('i', $studentID);
+$stype_stmt->bind_param('i', $studentId);
 $stype_stmt->execute();
 $stype = $stype_stmt->get_result()->fetch_assoc();
 $stype_stmt->close();
@@ -100,7 +100,7 @@ if ($isGrad) {
       WHERE g.StudentID = ?
       LIMIT 1";
     $prog_stmt = $mysqli->prepare($prog_sql);
-    $prog_stmt->bind_param('i', $studentID);
+    $prog_stmt->bind_param('i', $studentId);
     $prog_stmt->execute();
     $prog = $prog_stmt->get_result()->fetch_assoc();
     $prog_stmt->close();
@@ -120,7 +120,7 @@ if ($isGrad) {
       WHERE s.StudentID = ?
     ";
     $major_stmt = $mysqli->prepare($major_sql);
-    $major_stmt->bind_param('i', $studentID);
+    $major_stmt->bind_param('i', $studentId);
     $major_stmt->execute();
     $major = $major_stmt->get_result()->fetch_assoc();
     $major_stmt->close();
@@ -136,7 +136,7 @@ if ($isGrad) {
       WHERE s.StudentID = ?
     ";
     $minor_stmt = $mysqli->prepare($minor_sql);
-    $minor_stmt->bind_param('i', $studentID);
+    $minor_stmt->bind_param('i', $studentId);
     $minor_stmt->execute();
     $minor = $minor_stmt->get_result()->fetch_assoc();
     $minor_stmt->close();
@@ -164,7 +164,7 @@ $courses_sql = "
   ORDER BY s.Year DESC, s.SemesterName DESC
 ";
 $courses_stmt = $mysqli->prepare($courses_sql);
-$courses_stmt->bind_param('i', $studentID);
+$courses_stmt->bind_param('i', $studentId);
 $courses_stmt->execute();
 $courses_result = $courses_stmt->get_result();
 $courses = $courses_result->fetch_all(MYSQLI_ASSOC);
@@ -216,7 +216,7 @@ if ($selectedSemester) {
         ORDER BY MIN(p.StartTime)
     ";
     $sched_stmt = $mysqli->prepare($sched_sql);
-    $sched_stmt->bind_param('is', $studentID, $selectedSemester);
+    $sched_stmt->bind_param('is', $studentId, $selectedSemester);
     $sched_stmt->execute();
     $sched_result = $sched_stmt->get_result();
     $schedule = $sched_result->fetch_all(MYSQLI_ASSOC);
@@ -231,7 +231,7 @@ $progress_sql = "
   WHERE StudentID = ?
 ";
 $progress_stmt = $mysqli->prepare($progress_sql);
-$progress_stmt->bind_param('i', $studentID);
+$progress_stmt->bind_param('i', $studentId);
 $progress_stmt->execute();
 $progress = $progress_stmt->get_result()->fetch_assoc();
 $progress_stmt->close();
@@ -277,7 +277,7 @@ $advisor_sql = "
   WHERE a.StudentID = ?
 ";
 $advisor_stmt = $mysqli->prepare($advisor_sql);
-$advisor_stmt->bind_param('i', $studentID);
+$advisor_stmt->bind_param('i', $studentId);
 $advisor_stmt->execute();
 $advisor = $advisor_stmt->get_result()->fetch_assoc();
 $advisor_stmt->close();
@@ -304,7 +304,7 @@ $credits_sql = "
   WHERE se.StudentID = ? AND se.Status = 'IN-PROGRESS'
 ";
 $credits_stmt = $mysqli->prepare($credits_sql);
-$credits_stmt->bind_param('i', $studentID);
+$credits_stmt->bind_param('i', $studentId);
 $credits_stmt->execute();
 $credits_result = $credits_stmt->get_result()->fetch_assoc();
 $credits_stmt->close();
@@ -320,7 +320,6 @@ $initials = substr($student['FirstName'], 0, 1) . substr($student['LastName'], 0
   <meta charset="utf-8" />
   <title>User Profile • Northport University</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Optional Google Font (remove if you prefer system fonts) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="profilestyles.css">
 </head>
@@ -344,7 +343,7 @@ $initials = substr($student['FirstName'], 0, 1) . substr($student['LastName'], 0
 
 
   <!-- Edit Profile Popup -->
-<?php if ($userRole === 'student'): ?>
+<?php if ($_SESSION['user_id'] === $studentId): ?>
   <div id="editProfilePopup" class="popup-overlay">
     <div class="popup-card">
       <span class="close-btn" onclick="closePopup()">&times;</span>
@@ -409,7 +408,7 @@ $initials = substr($student['FirstName'], 0, 1) . substr($student['LastName'], 0
           <span class="chip" id="classYearChip">Class of <?= htmlspecialchars($gradYear) ?></span>
           <span class="chip" id="gpaChip">GPA: <?= htmlspecialchars($gpa) ?></span>
         </div>
-      <?php if ($userRole === 'student'): ?>
+      <?php if ($_SESSION['user_id'] === $studentId): ?>
         <div class="btn-row">
           <button class="btn primary" id="editProfileBtn" onclick="openPopup()">Edit Profile</button>
           <button class="btn" id="changePhotoBtn">Change Photo</button>
@@ -487,8 +486,8 @@ $initials = substr($student['FirstName'], 0, 1) . substr($student['LastName'], 0
           <div class="section">
             <h2>Links</h2>
             <div class="links" id="links">
-              <a href="transcript.php?studentID=<?= urlencode($studentID) ?>">Transcript</a>
-              <?php if ($userRole === 'student'): ?>
+              <a href="transcript.php?studentID=<?= urlencode($studentId) ?>">Transcript</a>
+              <?php if ($_SESSION['user_id'] === $studentId): ?>
               <a href="degree_audit.php">Degree Audit</a>
               <a href="messages.php">Messages</a>
               <?php endif; ?>

@@ -94,7 +94,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <section class="hero card">
       <div class="card-head between">
         <div>
-          <h2 class="card-title">View All Majors</h2>
+          <h2 class="card-title">View Majors</h2>
           <div class="sub muted">Filter By Department</div>
         </div>
       </div>

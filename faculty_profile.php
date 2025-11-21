@@ -8,7 +8,7 @@ require_once __DIR__ . '/config.php';
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$userID = $_SESSION['user_id'];
+$userId = $_SESSION['user_id'];
 
 $role = strtolower($_SESSION['role'] ?? '');
 
@@ -158,7 +158,7 @@ $adv_stmt->close();
   </header>
 
   <!-- Edit Profile Popup -->
-  <?php if ($userRole === 'faculty'): ?>
+  <?php if ($_SESSION['user_id'] === $facultyId): ?>
   <div id="editProfilePopup" class="popup-overlay">
     <div class="popup-card">
       <span class="close-btn" onclick="closePopup()">&times;</span>
@@ -215,7 +215,7 @@ $adv_stmt->close();
         </div>
         <div class="btn-row">
           <a class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</a>
-          <?php if ($userRole === 'faculty'): ?>
+          <?php if ($_SESSION['user_id'] === $facultyId): ?>
           <a class="btn primary" id="editProfileBtn" onclick="openPopup()">Edit Profile</a>
         <?php endif; ?>
           <a class="btn primary" href="#office-hours">Office Hours</a>

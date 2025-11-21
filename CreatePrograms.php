@@ -29,89 +29,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $programCode = $_POST['program_code'] ?? '';
     $programName = $_POST['program_name'] ?? '';
     $degreeType = $_POST['degree_type'] ?? '';
-    $deptID = $_POST['deptID'] ?? '';
-    $creditsRequired = $_POST['req_cred_num'] ?? '';
-    $status = $_POST['prog_stat'] ?? '';
+    $deptID = $_POST['deptID'] ?? NULL;
+    $creditsRequired = $_POST['req_cred_num'] ?? 30;
+    $status = $_POST['prog_stat'] ?? 'ACTIVE';
 
     $mysqli->begin_transaction();
 
    
        $sql= "INSERT INTO Program
-            (ProgramID, ProgramCode, ProgramName, DegreeLevel, DeptID, CreditsRequired, Status)
-            VALUES (?, ?, ?, ?, NULL, 30, 'ACTIVE')";
+            (ProgramCode, ProgramName, DegreeLevel, DeptID, CreditsRequired, Status)
+            VALUES (?, ?, ?, ?, ?, ?)";
+
           $stmt = $mysqli->prepare($sql);
           $stmt->bind_param(
-            "isssiis",
-            $programID, $programCode, $programName, $degreeType, $deptID, $creditsRequired, $status
+            "sssiis",
+            $programCode, $programName, $degreeType, $deptID, $creditsRequired, $status
         );
 
-        if (stmt -> execute()) {
-            echo "alert('Program.$programName. created ✅');";
+        if ($stmt -> execute()) {
+            $mysqli->commit();
+            echo "<script>alert('Program $programName created ✅');</script>";
         } else {
-            echo "alert('Could not create Program');";
+            $mysqli->rollback();
+            echo "<script>alert('Could not create Program');</script>";
         }
-        break;
       }
-        /*case 'updateProgram':
-          if ($programID && $programCode && $deptID){
-        $sql= "UPDATE Program SET
-            ProgramCode = ?, ProgramName = ?, DegreeLevel = ?, DeptID = ?, CreditsRequired = ?, Status = ?
-            WHERE ProgramID = ? AND ProgramCode = ? AND DeptID = ?";
-          }
-          $stmt = $mysqli->prepare($sql);
-          $stmt->bind_param(
-            "sssisii",
-            $programCode, $programName, $degreeType, $deptID, $creditsRequired, $status, $programID
-        );
-        break;
         
-        case 'deleteProgram':
-          if ($programID && $programCode && $deptID){
-        $sql= "DELETE FROM Program WHERE ProgramID = ? AND ProgramCode = ? AND DeptID = ?"
-        }
-        $stmt = $mysqli->prepare($sql);
-        $stmt -> bind_param(
-          "isi",
-          $programID, $programCode, $deptID
-        );
-      }
-        break;
-    }
-
-    switch ($programReqAction) {
-      case 'createProgramReq':
-        $sql = "INSERT INTO ProgramRequirement (ProgramID, CourseID, RequirementType, Notes)
-        VALUES (?, ?, ?, ?)";
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param(
-            "isss",
-            $programID, $courseID, $requirementType, $notes
-        );
-    break;
-
-    case 'updateProgramReq':
-      if ($programID && $courseID){
-      $sql = "UPDATE ProgramRequirement SET RequirementType = ?, Notes = ?
-      WHERE ProgramID = ? AND CourseID = ?";
-    }
-    $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param(
-        "sssi",
-        $requirementType, $notes, $programID, $courseID
-    );
-    break;
-
-    case 'deleteProgramReq':
-      if ($programID && $courseID){
-        $sql = "DELETE FROM ProgramRequirement WHERE ProgramID = ? AND CourseID = ?";
-      }
-      $stmt = $mysqli->prepare($sql);
-      $stmt->bind_param(
-          "is",
-          $programID, $courseID
-      );
-      break;
-    }*/
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
@@ -175,11 +118,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           <!-- CREATE Program FORM -->
           <div id = "create-program">
           <form id="CreateProgram" method="POST" action="">
-            <label for="programID">Program ID:</label>
-            <select id="programID" name="programID">
-                <option value="">-- Select Program ID --</option>
-            </select><br>
-
             <label for="program_code">Program Code:</label>
             <input type = "text" select id="program_code" name="program_code" required><br>
 
@@ -195,10 +133,10 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             </select><br>
 
             <label for="deptID">Department ID:</label>
-            <input type="int" id="deptID" name="deptID" required><br>
+            <input type="number" id="deptID" name="deptID" required><br>
 
             <label for="req_cred_num">Required Credits:</label>
-            <input type="int" id="req_cred_num" name="req_cred_num" required><br>
+            <input type="number" id="req_cred_num" name="req_cred_num" required><br>
 
             <label for="status">Program Status:</label>
             <input type="text" id="prog_stat" name="prog_stat" required><br>
@@ -240,14 +178,14 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     fetch('get_programs.php')
     .then(response => response.json())
     .then(data => {
-      const programSelect = document.getElementById('programID');
-      const selectedProgram = new URLSearchParams(window.location.search).get('programID');
+      const programSelect = document.getElementById('programCode');
+      const selectedProgram = new URLSearchParams(window.location.search).get('programCode');
 
       data.forEach(prog =>{
         const opt = document.createElement('option');
-        opt.value = prog.ProgramID;
-        opt.textContent = prog.ProgramName;
-        if (prog.ProgramID === selectedProgram) opt.selected = true;
+        opt.value = prog.code;
+        opt.textContent = prog.name;
+        if (prog.code === selectedProgram) opt.selected = true;
         programSelect.appendChild(opt);
       });
     })

@@ -28,17 +28,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $majorReqAction = $_POST['major_req_action'] ?? '';
     $majorID = $_POST['majorID'] ?? '';
     $majorCourseID = $_POST['major_courseID'] ?? ''; 
-    $majorCreditsRequired = $_POST['major_credits_required'] ?? '';
+    $majorCreditsRequired = $_POST['major_credits_required'] ?? 3;
     $majorRequirementDescription = $_POST['major_req_description'] ?? '';
-    $majorRequirementType = $_POST['major_req_type'] ?? '';
-    $majorSemesterLevel = $_POST['major_semester_level'] ?? '';
+    $majorRequirementType = $_POST['major_req_type'] ?? NULL;
+    $majorSemesterLevel = $_POST['major_semester_level'] ?? NULL;
     $minorReqAction = $_POST['minor_req_action'] ?? '';
     $minorID = $_POST['minorID'] ?? '';
     $minorCourseID = $_POST['minor_courseID'] ?? '';
-    $minorCreditsRequired = $_POST['minor_credits_required'] ?? '';
+    $minorCreditsRequired = $_POST['minor_credits_required'] ?? 3;
     $minorRequirementDescription = $_POST['minor_req_description'] ?? '';
-    $minorRequirementType = $_POST['minor_req_type'] ?? '';
-    $minorSemesterLevel = $_POST['minor_semester_level'] ?? '';
+    $minorRequirementType = $_POST['minor_req_type'] ?? NULL;
+    $minorSemesterLevel = $_POST['minor_semester_level'] ?? NULL;
     $programReqAction = $_POST['program_req_action'] ?? '';
     $programID = $_POST['programID'] ?? '';
     $programcourseID = $_POST['program_courseID'] ?? '';
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($stmt -> num_rows > 0 ){
     $sql = "INSERT INTO MajorRequirement
             (MajorID, CourseID, RequirementDescription, RequirementType, CreditsRequired, SemesterLevel)
-             VALUES (?, ?, ?, NULL, 3, NULL)";
+             VALUES (?, ?, ?, ?, ?, ?)";
        $stmt = $mysqli->prepare($sql);
         $stmt->bind_param(
             "isssii",

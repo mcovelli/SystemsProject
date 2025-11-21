@@ -86,6 +86,7 @@ if (!$user) {
   </header>
 
   <!-- Edit Profile Popup -->
+  <?php if ($userRole === 'faculty'): ?>
   <div id="editProfilePopup" class="popup-overlay">
     <div class="popup-card">
       <span class="close-btn" onclick="closePopup()">&times;</span>
@@ -127,6 +128,7 @@ if (!$user) {
       </form>
     </div>
   </div>
+<?php endif; ?>
 
   <main>
     <div class="wrap grid">

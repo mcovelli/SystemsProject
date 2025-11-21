@@ -109,6 +109,7 @@ switch ($userRole) {
   </header>
 
   <!-- Edit Profile Popup -->
+  <?php if ($userRole === 'statstaff'): ?>
   <div id="editProfilePopup" class="popup-overlay">
     <div class="popup-card">
       <span class="close-btn" onclick="closePopup()">&times;</span>
@@ -150,6 +151,7 @@ switch ($userRole) {
       </form>
     </div>
   </div>
+<?php endif; ?>
 
   <main>
     <div class="wrap grid">

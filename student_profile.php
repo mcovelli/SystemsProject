@@ -34,7 +34,7 @@ if ($role === 'admin') {
 
     // Admin with ?studentID=  → view that student's profile
     if (isset($_GET['studentID'])) {
-        $studentIf = intval($_GET['studentID']);
+        $studentId = intval($_GET['studentID']);
     }
     else {
         redirect($dashboard);
@@ -45,7 +45,7 @@ elseif ($role === 'faculty') {
 
     if (isset($_GET['studentID'])) {
         // Faculty viewing a single student's profile
-        $studentIf = intval($_GET['studentID']);
+        $studentId = intval($_GET['studentID']);
     } else {
         // No studentID → redirect to faculty dashboard
         redirect($dashboard);

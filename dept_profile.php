@@ -4,31 +4,6 @@ require_once __DIR__ . '/config.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-if (!isset($_SESSION['user_id'])){
-    redirect(PROJECT_ROOT . "/login.html");
-}
-
-$userId = $_SESSION['user_id'];
-
-$mysqli = get_db();
-$mysqli->set_charset('utf8mb4');
-
-$usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
-        FROM Users WHERE UserID = ? LIMIT 1";
-$userstmt = $mysqli->prepare($usersql);
-$userstmt->bind_param("i", $userId);
-$userstmt->execute();
-$userres = $userstmt->get_result();
-$user = $userres->fetch_assoc();
-$userstmt->close();
-
-
-$sql = "SELECT d.DeptID, d.DeptName, d.Email, d.Phone, d.RoomID, CONCAT(u.FirstName , ' ' , u.LastName) AS ChairName, d.ChairID FROM Department d JOIN Users u ON d.ChairID = u.UserID";
-$stmt = $mysqli->prepare($sql);
-$stmt->execute();
-$res = $stmt->get_result();
-$depts = $res->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
 
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
@@ -53,6 +28,56 @@ switch ($userRole) {
         $dashboard = 'login.html'; // fallback
 }
 
+$mysqli = get_db();
+$mysqli->set_charset('utf8mb4');
+
+$userId = $_SESSION['user_id'];
+
+$mysqli = get_db();
+$mysqli->set_charset('utf8mb4');
+
+$usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
+        FROM Users WHERE UserID = ? LIMIT 1";
+$userstmt = $mysqli->prepare($usersql);
+$userstmt->bind_param("i", $userId);
+$userstmt->execute();
+$userres = $userstmt->get_result();
+$user = $userres->fetch_assoc();
+$userstmt->close();
+
+$deptId = isset($_GET['deptID']) ? intval($_GET['deptID']) : 0;
+if ($deptId <= 0) {
+    die("Invalid Department ID");
+}
+
+
+$sql = "
+    SELECT 
+        d.DeptID,
+        d.DeptName,
+        d.Email,
+        d.Phone,
+        d.RoomID,
+        d.ChairID,
+        CONCAT(u.FirstName, ' ', u.LastName) AS ChairName
+    FROM Department d
+    JOIN Users u ON d.ChairID = u.UserID
+    WHERE d.DeptID = ?
+    LIMIT 1
+";
+
+$stmt = $mysqli->prepare($sql);
+$stmt->bind_param("i", $deptId);
+$stmt->execute();
+$dept = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!$dept) {
+    die("Department not found.");
+}
+
+$deptName = $dept['DeptName'];
+
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
@@ -65,7 +90,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Department Directory</title>
+<title>Department Profile</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -76,7 +101,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Department Directory</span>
+      <span class="pill">Department Profile</span>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -107,40 +132,28 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <section class="hero card">
       <div class="card-head between">
         <div>
-          <h2 class="card-title">View All Departments</h2>
+          <h2 class="card-title"><?= htmlspecialchars($deptName) ?> Profile</h2>
         </div>
       </div>
     </div>
+  </section>
 
-      <div class="table-wrap">
-      <table id="coursesTable" border ="1" cellpadding="5" cellspacing="0">
-        <thead><tr><th>Department</th><th>Email</th><th>Phone #</th><th>Office Location</th><th>Dept Chair</th></tr></thead>
-          <tbody id="coursesBody">
-            <?php if (!empty($depts)): ?>
-              <?php foreach ($depts as $d): ?>
-                <tr>
-                  <td><a href="dept_profile.php?deptID=<?= urlencode($d['DeptID']) ?>">
-                      <?= htmlspecialchars($d['DeptName']) ?> </a></td>
-                  <td>
-                    <a href="mailto:<?= htmlspecialchars($d['Email']) ?>"><?= htmlspecialchars($d['Email']) ?></a>
-                  </td>
-                  <td><?= htmlspecialchars($d['Phone']) ?></td>
-                  <td><?= htmlspecialchars($d['RoomID']) ?></td>
-                  <?php if ($userRole === 'admin'): ?>
-                  <td><a href="faculty_profile.php?facultyID=<?= urlencode($d['ChairID']) ?>">
-                        <?= htmlspecialchars($d['ChairName']) ?> </a></td>
-                  <?php else: ?> <td><?= htmlspecialchars($d['ChairName']) ?></td>
-                <?php endif; ?>
-                <td>
-                </tr>
-              <?php endforeach; ?>
-            <?php else: ?>
-              <tr><td colspan="6">No courses found.</td></tr>
-            <?php endif; ?>
-              </tbody>
-            </table>
-        </div>
-    </section>
+  <section>
+      <p><strong>Chair: </strong><?php echo htmlspecialchars($dept['ChairName']) ?> </p>
+      <p><strong>Office: </strong><?php echo htmlspecialchars($dept['RoomID']) ?> </p>
+      <p><strong>Email: </strong><a href="mailto:<?php echo htmlspecialchars($dept['Email']) ?> "><?php echo htmlspecialchars($dept['Email']) ?> </a></p>
+      <p><strong>Phone: </strong><?php echo htmlspecialchars($dept['Phone']) ?> </p>
+
+
+
+  
+  </section>
+  <br>
+  </main>
+  <footer>© <span id="year"></span> Northport University</footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
 
     
 

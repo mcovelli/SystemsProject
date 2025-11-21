@@ -29,7 +29,7 @@ SELECT
     f.FacultyID,
     CONCAT(fu.FirstName, ' ', fu.LastName) AS FacultyName,
     GROUP_CONCAT(d.DeptName ORDER BY d.DeptName SEPARATOR ', ') AS DeptNames,
-    fd.DeptID, d.Phone, d.Email, f.OfficeID
+    fd.DeptID, d.Phone, d.Email, f.OfficeID, f.Ranking
 FROM Faculty f
 JOIN Users fu ON f.FacultyID = fu.UserID
 JOIN Faculty_Dept fd ON f.FacultyID = fd.FacultyID

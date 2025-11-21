@@ -70,13 +70,24 @@ if (!$user) {
 }
 
 // Fetch faculty details: ranking and office
-$fac_stmt = $mysqli->prepare("SELECT OfficeID, Ranking FROM Faculty WHERE FacultyID = ? LIMIT 1");
+$fac_stmt = $mysqli->prepare("
+    SELECT 
+        f.FacultyID,
+        CONCAT(fu.FirstName, ' ', fu.LastName) AS FacultyName,
+        GROUP_CONCAT(d.DeptName ORDER BY d.DeptName SEPARATOR ', ') AS DeptNames,
+        fd.DeptID, d.Phone, d.Email, f.OfficeID, f.Ranking
+    FROM Faculty f
+    JOIN Users fu ON f.FacultyID = fu.UserID
+    JOIN Faculty_Dept fd ON f.FacultyID = fd.FacultyID
+    JOIN Department d ON fd.DeptID = d.DeptID
+    WHERE f.FacultyID = ? LIMIT 1");
 $fac_stmt->bind_param('i', $facultyId);
 $fac_stmt->execute();
 $fac = $fac_stmt->get_result()->fetch_assoc();
 $fac_stmt->close();
 
 $office = $fac['OfficeID'] ?? 'N/A';
+$depts = $fac['DeptNames'] ?? 'N/A';
 $ranking = $fac['Ranking'] ?? 'Faculty';
 
 // Fetch courses taught by faculty (current semester or all)
@@ -199,8 +210,8 @@ $adv_stmt->close();
         <div class="name" id="facultyName"><?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?></div>
         <div class="muted" id="facultyTitle"><?php echo htmlspecialchars($ranking); ?></div>
         <div class="chips">
-          <span class="chip" id="research1">N/A</span>
-          <span class="chip" id="research2">N/A</span>
+          <span class="chip" id="research1"><?php echo htmlspecialchars($office) ?></span>
+          <span class="chip" id="research2">Faculty</span>
         </div>
         <div class="btn-row">
           <a class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</a>

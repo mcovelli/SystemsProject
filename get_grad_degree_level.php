@@ -8,7 +8,9 @@ $result = $mysqli->query($sql);
 $degreeLevel = [];
 
 while ($row = $result->fetch_assoc()) {
-    $degreeLevel[] = $row['DegreeLevel'];
+    $degreeLevel[] = [
+        'degreelevel' => $row['DegreeLevel']
+    ]
 }
 
 header('Content-Type: application/json');

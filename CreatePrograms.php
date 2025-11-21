@@ -150,17 +150,17 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
  <footer>© 2025 Northport University • All rights reserved</footer>
 
  <script>
-    fetch('get_programs.php')
+    fetch('get_grad_degree_level.php')
     .then(response => response.json())
     .then(data => {
-      const programSelect = document.getElementById('programCode');
-      const selectedProgram = new URLSearchParams(window.location.search).get('programCode');
+      const programSelect = document.getElementById('degree_type');
+      const selectedProgram = new URLSearchParams(window.location.search).get('degree_type');
 
       data.forEach(prog =>{
         const opt = document.createElement('option');
-        opt.value = prog.code;
-        opt.textContent = prog.name;
-        if (prog.code === selectedProgram) opt.selected = true;
+        opt.value = prog.degreelevel;
+        opt.textContent = prog.degreelevel;
+        if (prog.degreelevel === selectedProgram) opt.selected = true;
         programSelect.appendChild(opt);
       });
     })

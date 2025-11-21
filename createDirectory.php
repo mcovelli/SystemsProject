@@ -55,15 +55,21 @@ $quickLinks = [
     ['label' => 'Create Programs',      'href' => 'CreatePrograms.php',                      'icon' => 'brain'],
     ['label' => 'Create Requirements',      'href' => 'CreateRequirements.php',                      'icon' => 'list']
 ];
+
+$initials = substr($admin['FirstName'], 0, 1) . substr($admin['LastName'], 0, 1);
 ?>
 
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Create Directory • Northport University</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create Directory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css" />
@@ -83,20 +89,17 @@ $quickLinks = [
       <button class="icon-btn" aria-label="Notifications"><i data-lucide="bell"></i></button>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
-      <div class="user">
-        <img class="avatar" src="https://i.pravatar.cc/64?img=20" alt="avatar" />
-        <div class="user-meta">
-          <div class="name"><?php echo htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']); ?></div>
-          <div class="sub"><?php echo htmlspecialchars($admin['SecurityType']); ?></div>
-        </div>
-        <div class="header-left">
-          <div class="dropdown">
-            <button>☰ Menu</button>
-            <div class="dropdown-content">
-              <a href="admin_profile.php">Profile</a>
-              <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
-              <a href="logout.php">Logout</a>
-            </div>
+      <div class="crumb"><a href="<?= htmlspecialchars($dashboard) ?>" aria-label="Back to Dashboard">← Back to Dashboard</a></div>
+    </div>
+
+    <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
+        <div class="user-meta"><div class="name"><?php echo htmlspecialchars($admin['UserType']) ?></div></div>
+        <div class="dropdown">
+          <button>☰ Menu</button>
+          <div class="dropdown-content">
+            <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
+            <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
+            <a href="logout.php">Logout</a>
           </div>
         </div>
       </div>

@@ -23,10 +23,9 @@ $userstmt->execute();
 $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
-$dashboard = "update_admin_dashboard.php";
-$profile = "admin_profile.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $programID = $_POST['programID'] ?? '';
     $programCode = $_POST['program_code'] ?? '';
     $programName = $_POST['program_name'] ?? '';
     $degreeType = $_POST['degree_type'] ?? '';
@@ -108,7 +107,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     <main>
 
-        <h3>Create Program</h3>
+        <h3>Create</h3>
 
         <div class="top-actions">
           <a href="javascript:history.back()" title="Back to Dashboard">← Back to Dashboard</a>
@@ -145,7 +144,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             <button type="submit" id = "submit">Create Program</button>
          </form>
       </div>
-
+</body>
 </main>
 
  <footer>© 2025 Northport University • All rights reserved</footer>
@@ -154,8 +153,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     fetch('get_programs.php')
     .then(response => response.json())
     .then(data => {
-      const programSelect = document.getElementById('program_code');
-      const selectedProgram = new URLSearchParams(window.location.search).get('programName');
+      const programSelect = document.getElementById('programCode');
+      const selectedProgram = new URLSearchParams(window.location.search).get('programCode');
 
       data.forEach(prog =>{
         const opt = document.createElement('option');
@@ -170,5 +169,3 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       console.log("Program form submitted ✅");
     });
 </script>
-  </body>
-  </html>

@@ -23,6 +23,8 @@ $userstmt->execute();
 $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
+$dashboard = "update_admin_dashboard.php";
+$profile = "admin_profile.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $programCode = $_POST['program_code'] ?? '';

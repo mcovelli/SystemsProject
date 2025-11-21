@@ -15,6 +15,7 @@ if (
 }
 
 $userId = $_SESSION['user_id'];
+$facultyId = $userId;
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -90,7 +91,9 @@ if ($selectedSemester) {
         GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
         DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
         DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
-        cs.RoomID
+        cs.RoomID,
+        se.Grade,
+        se.StudentID
       FROM StudentEnrollment se
       JOIN Users u ON se.StudentID = u.UserID
       JOIN CourseSection cs ON se.CRN = cs.CRN
@@ -214,6 +217,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                 <th>Days</th>
                 <th>Time</th>
                 <th>Location</th>
+                <th>Grade</th>
               </tr>
             </thead>
             <tbody>
@@ -230,13 +234,16 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     $timeStr = trim($start . ($start && $end ? ' – ' : '') . $end);
                     if ($timeStr === '') $timeStr = 'TBA';
                     $room = $r['RoomID'] ?? ' — ';
+                    $grade = $r['Grade'] ?? ' TBA ';
                   ?>
                   <tr>
-                    <td><?= htmlspecialchars($name) ?></td>
+                    <td><a href="student_profile.php?studentID=<?= urlencode($r['StudentID']) ?>">
+                      <?= htmlspecialchars($name) ?> </a></td>
                     <td><?= htmlspecialchars($course) ?></td>
                     <td><?= htmlspecialchars($days) ?></td>
                     <td><?= htmlspecialchars($timeStr) ?></td>
                     <td><?= htmlspecialchars($room) ?></td>
+                    <td><?= htmlspecialchars($grade) ?></td>
                   </tr>
                 <?php endforeach; ?>
               <?php endif; ?>

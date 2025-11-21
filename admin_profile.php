@@ -1,17 +1,42 @@
 <?php
-// Admin profile page: shows a Admin member's information.
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 session_start();
 require_once __DIR__ . '/config.php';
 
-// Only allow logged‑in admin members
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
+$mysqli = get_db();
+$mysqli->set_charset('utf8mb4');
+
+$userID = $_SESSION['user_id'];
+
+$role = strtolower($_SESSION['role'] ?? '');
+
+// Determine back dashboard
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'student':  $dashboard = 'student_dashboard.php'; break;
+    case 'faculty':  $dashboard = 'faculty_dashboard.php'; break;
+    case 'admin':
+        $dashboard = ($_SESSION['admin_type'] ?? '') === 'update'
+            ? 'update_admin_dashboard.php'
+            : 'view_admin_dashboard.php';
+        break;
+    default: $dashboard = 'login.php';
+}
+
+// If not logged in
+if (!$role) {
     redirect('login.php');
 }
 
-$adminId = $_SESSION['user_id'];
+if ($role === 'admin') {
+
+    $adminId = $_SESSION['user_id'];
+}
+else {
+    redirect($dashboard);
+}
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -29,20 +54,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 if (!$user) {
     echo "<p>Admin member not found.</p>";
     exit;
-}
-
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-    case 'admin':
-        // if you have update/view admin types:
-        if (($_SESSION['admin_type'] ?? '') === 'update') {
-            $dashboard = 'update_admin_dashboard.php';
-        } else {
-            $dashboard = 'view_admin_dashboard.php';
-        }
-        break;
-    default:
-        $dashboard = 'login.html'; // fallback
 }
 
 ?>
@@ -75,6 +86,7 @@ switch ($userRole) {
   </header>
 
   <!-- Edit Profile Popup -->
+  <?php if ($userRole === 'faculty'): ?>
   <div id="editProfilePopup" class="popup-overlay">
     <div class="popup-card">
       <span class="close-btn" onclick="closePopup()">&times;</span>
@@ -116,6 +128,7 @@ switch ($userRole) {
       </form>
     </div>
   </div>
+<?php endif; ?>
 
   <main>
     <div class="wrap grid">
@@ -129,7 +142,9 @@ switch ($userRole) {
         </div>
         <div class="btn-row">
           <button class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</button>
+          <?php if ($userRole === 'admin'): ?>
           <button class="btn primary" id="editProfileBtn" onclick="openPopup()">Edit Profile</button>
+        <?php endif; ?>
         </div>
         <div class="section" style="width:100%; margin-top:10px">
           <h2>Contact</h2>

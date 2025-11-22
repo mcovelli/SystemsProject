@@ -56,7 +56,7 @@ $quickLinks = [
     ['label' => 'Create Courses',      'href' => 'CreateCourses.php',           'icon' => 'book'],
     ['label' => 'Create Sections',   'href' => 'CreateCourseSections.php',                      'icon' => 'book-open'],
     ['label' => 'Create Departments',     'href' => 'CreateDepartments.php',                      'icon' => 'mail'],
-    ['label' => 'Create Majors/Minors',      'href' => 'CreateMajors&Minors.php',                      'icon' => 'check'],
+    ['label' => 'Create Majors/Minors',      'href' => 'CreateMajorsMinors.php',                      'icon' => 'check'],
     ['label' => 'Create Programs',      'href' => 'CreatePrograms.php',                      'icon' => 'brain'],
     ['label' => 'Create Requirements',      'href' => 'CreateRequirements.php',                      'icon' => 'list']
 ];
@@ -66,7 +66,7 @@ $updateLinks = [
     ['label' => 'Update Courses',      'href' => 'UpdateCourses.php',           'icon' => 'book'],
     ['label' => 'Update Sections',   'href' => 'UpdateCourseSections.php',                      'icon' => 'book-open'],
     ['label' => 'Update Departments',     'href' => 'UpdateDepartments.php',                      'icon' => 'mail'],
-    ['label' => 'Update Majors/Minors',      'href' => 'UpdateMajors&Minors.php',                      'icon' => 'check'],
+    ['label' => 'Update Majors/Minors',      'href' => 'UpdateMajorsMinors.php',                      'icon' => 'check'],
     ['label' => 'Update Programs',      'href' => 'UpdatePrograms.php',                      'icon' => 'brain'],
     ['label' => 'Update Requirements',      'href' => 'UpdateRequirements.php',                      'icon' => 'list']
 
@@ -77,7 +77,7 @@ $deleteLinks = [
     ['label' => 'Delete Courses',      'href' => 'DeleteCourses.php',           'icon' => 'book'],
     ['label' => 'Delete Sections',   'href' => 'DeleteCourseSections.php',                      'icon' => 'book-open'],
     ['label' => 'Delete Departments',     'href' => 'DeleteDepartments.php',                      'icon' => 'mail'],
-    ['label' => 'Delete Majors/Minors',      'href' => 'DeleteMajors&Minors.php',                      'icon' => 'check'],
+    ['label' => 'Delete Majors/Minors',      'href' => 'DeleteMajorsMinors.php',                      'icon' => 'check'],
     ['label' => 'Delete Programs',      'href' => 'DeletePrograms.php',                      'icon' => 'brain'],
     ['label' => 'Delete Requirements',      'href' => 'DeleteRequirements.php',                      'icon' => 'list']
 

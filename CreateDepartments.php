@@ -25,6 +25,7 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $DeptID = $_POST['deptID'] ?? '';
     $DeptName = $_POST['deptName'] ?? '';
     $DeptEmail = $_POST['deptEmail'] ?? '';
     $DeptPhone = $_POST['deptPhone'] ?? '';
@@ -33,12 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $mysqli->begin_transaction();
 
-    $sql = "INSERT INTO Department (DeptName, DeptEmail, DeptPhone, RoomID, ChairID) 
-            VALUES (?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO Department (DeptID, DeptName, DeptEmail, DeptPhone, RoomID, ChairID) 
+            VALUES (?, ?, ?, ?, ?, ?)";
 
     $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param("sssss", $DeptName, $DeptEmail, $DeptPhone, $RoomID, $ChairID);
-
+    $stmt->bind_param("ssssss", $DeptID, $DeptName, $DeptEmail, $DeptPhone, $RoomID, $ChairID);
     if ($stmt->execute()) {
         echo "<script>alert('$DeptName created ✅');</script>";
     } else {
@@ -107,6 +107,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             </div>
                 <div id = "create-section-department">
                     <form id = "CreateDepartment" method = "POST" action = "">
+                      <label for = "deptID">Department ID: </label>
+                            <input type = "text" id = "deptID" name="deptID" required placeholder="ex. MATH"><br>
                         <label for="deptName">Department Name: </label>
                              <input type = "text" id="deptName" name="deptName" required placeholder="ex. Mathematics"><br>
 

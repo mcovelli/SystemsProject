@@ -25,34 +25,32 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $majorReqAction = $_POST['major_req_action'] ?? '';
     $majorID = $_POST['majorID'] ?? '';
     $majorCourseID = $_POST['major_courseID'] ?? ''; 
     $majorCreditsRequired = $_POST['major_credits_required'] ?? 3;
     $majorRequirementDescription = $_POST['major_req_description'] ?? '';
     $majorRequirementType = $_POST['major_req_type'] ?? NULL;
     $majorSemesterLevel = $_POST['major_semester_level'] ?? NULL;
-    $minorReqAction = $_POST['minor_req_action'] ?? '';
     $minorID = $_POST['minorID'] ?? '';
     $minorCourseID = $_POST['minor_courseID'] ?? '';
     $minorCreditsRequired = $_POST['minor_credits_required'] ?? 3;
     $minorRequirementDescription = $_POST['minor_req_description'] ?? '';
     $minorRequirementType = $_POST['minor_req_type'] ?? NULL;
     $minorSemesterLevel = $_POST['minor_semester_level'] ?? NULL;
-    $programReqAction = $_POST['program_req_action'] ?? '';
     $programID = $_POST['programID'] ?? '';
-    $programcourseID = $_POST['program_courseID'] ?? '';
+    $programCourseID = $_POST['program_courseID'] ?? '';
     $requirementType = $_POST['req_type'] ?? '';
     $notes = $_POST['notes'] ?? '';
 
-    mysqli -> begin_transaction();
+    $mysqli -> begin_transaction();
+    $createReqAction = $_POST['create_req_action'] ?? '';
 
-    switch ($majorReqAction){
+    switch ($createReqAction){
     case "CreateMajorRequirement":
     if ($stmt -> num_rows > 0 ){
     $sql = "INSERT INTO MajorRequirement
             (MajorID, CourseID, RequirementDescription, RequirementType, CreditsRequired, SemesterLevel)
-             VALUES (?, ?, ?, ?, ?, ?)";
+             VALUES (?, (SELECT CourseID FROM Courses WHERE CourseID = ?), ?, NULL, 3, NULL)";
        $stmt = $mysqli->prepare($sql);
         $stmt->bind_param(
             "isssii",
@@ -65,49 +63,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     break;
-    case "UpdateMajorRequirement":
-        if ($majorID && $majorCourseID){
-            $sql = "UPDATE MajorRequirement SET RequirementDescription = ?, RequirementType = ?,
-            CreditsRequired = ?, SemesterLevel = ? WHERE MajorID = ? AND CourseID = ?";
-        }
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param(
-            "ssiiis",
-            $majorRequirementDescription, $majorRequirementType, $majorCreditsRequired, $majorSemesterLevel, $majorID, $majorCourseID
-        );
-        if ($stmt->execute()) {
-            echo "alert('Major requirement updated ✅');";
-        } else {
-            echo "alert('Could not update Major Requirement');";
-        }
-        break;
-    case "DeleteMajorRequirement":
-        if ($majorID && $majorCourseID){
-            $sql = "DELETE FROM MajorRequirement WHERE MajorID = ? AND CourseID = ?";
-        }
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param(
-            "is",
-            $majorID, $majorCourseID
-        );
-        if ($stmt->execute()) {
-            echo "alert('Major requirement deleted ✅');";
-        } else {
-            echo "alert('Could not delete Major Requirement');";
-        }
-        break;
-    }
 
-    switch ($minorReqAction){
     case "CreateMinorRequirement":
     if ($stmt -> num_rows > 0 ){
     $sql = "INSERT INTO MinorRequirement
             (MinorID, CourseID, RequirementDescription, RequirementType, CreditsRequired, SemesterLevel)
-             VALUES (?, ?, ?, NULL, 3, NULL)";
+             VALUES (?, (SELECT CourseID FROM Courses WHERE CourseID = ?), ?, NULL, 3, NULL)";
        $stmt = $mysqli->prepare($sql);
         $stmt->bind_param(
             "isssii",
-            $minorID, $courseID, $requirementDescription, $requirementType, $creditsRequired, $semesterLevel
+            $minorID, $minorCourseID, $minorRequirementDescription, $minorRequirementType, $minorCreditsRequired, $minorSemesterLevel
         );
         if ($stmt->execute()) {
             echo "alert('Minor requirement created ✅');";
@@ -116,50 +81,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     break;
-    case "UpdateMinorRequirement":
-        if ($stmt -> num_rows > 0 ){
-        if ($minorID && $courseID){
-            $sql = "UPDATE MinorRequirement SET RequirementDescription = ?, RequirementType = ?,
-            CreditsRequired = ?, SemesterLevel = ? WHERE MinorID = ? AND CourseID = ?";
-        }
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param(
-            "ssiiis",
-            $requirementDescription, $requirementType, $creditsRequired, $semesterLevel, $majorID, $courseID
-        );
-        if ($stmt->execute()) {
-            echo "alert('Minor requirement updated ✅');";
-        } else {
-            echo "alert('Could not update Minor Requirement');";
-        }
-    }
-        break;
-    case "DeleteMinorRequirement":
-        if ($minorID && $courseID){
-            $sql = "DELETE FROM MinorRequirement WHERE MinorID = ? AND CourseID = ?";
-        }
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param(
-            "is",
-            $minorID, $courseID
-        );
-        if ($stmt->execute()) {
-            echo "alert('Minor requirement deleted ✅');";
-        } else {
-            echo "alert('Could not delete Minor Requirement');";
-        }
-        break;
-    }
 
-     switch ($programReqAction) {
-      case 'createProgramReq':
+    case 'createProgramReq':
         if ($stmt -> num_rows > 0 ){
         $sql = "INSERT INTO ProgramRequirement (ProgramID, CourseID, RequirementType, Notes)
-        VALUES (?, ?, ?, ?)";
+        VALUES (?, (SELECT CourseID FROM Courses WHERE CourseID = ?), ?, ?)";
         $stmt = $mysqli->prepare($sql);
         $stmt->bind_param(
             "isss",
-            $programID, $courseID, $requirementType, $notes
+            $programID, $programCourseID, $requirementType, $notes
         );
         if ($stmt->execute()) {
             echo "alert('Program requirement created ✅');";
@@ -168,40 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     break;
-
-    case 'updateProgramReq':
-      if ($programID && $courseID){
-      $sql = "UPDATE ProgramRequirement SET RequirementType = ?, Notes = ?
-      WHERE ProgramID = ? AND CourseID = ?";
     }
-    $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param(
-        "sssi",
-        $requirementType, $notes, $programID, $courseID
-    );
-    if ($stmt->execute()) {
-            echo "alert('Program requirement updated ✅');";
-        } else {
-            echo "alert('Could not update Program Requirement');";
-        }
-    break;
-
-    case 'deleteProgramReq':
-      if ($programID && $courseID){
-        $sql = "DELETE FROM ProgramRequirement WHERE ProgramID = ? AND CourseID = ?";
-      }
-      $stmt = $mysqli->prepare($sql);
-      $stmt->bind_param(
-          "is",
-          $programID, $courseID
-      );
-      if ($stmt->execute()) {
-            echo "alert('Program requirement deleted ✅');";
-        } else {
-            echo "alert('Could not delete Program Requirement');";
-        }
-      break;
-    }
+    $mysqli->commit();
 }
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
@@ -300,8 +198,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             <input type = "number" id = "major_semester_level" name = "major_semester_level" required><br>
 
             <button type="submit" name = "major_req_action" value ="create">Create Major Requirement</button>
-            <button type="submit" name = "major_req_action" value ="update">Update Major Requirement</button>
-            <button type="submit" name = "major_req_action" value ="delete">Delete Major Requirement</button>
             </form>
         </div>
 </section>
@@ -329,8 +225,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             <input type = "number" id = "minor_semester_level" name = "minor_semester_level" required><br>
 
             <button type="submit" name = "minor_req_action" value ="create">Create Minor Requirement</button>
-            <button type="submit" name = "minor_req_action" value ="update">Update Minor Requirement</button>
-            <button type="submit" name = "minor_req_action" value ="delete">Delete Minor Requirement</button>
             </form>
         </div>
 </section>
@@ -360,8 +254,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             <input type = "text" select id="notes" name="notes" required><br>
 
             <button type="submit" name = "program_action" value ="create">Create Program Requirements</button>
-            <button type="submit" name = "program_action" value ="update">Update Program Requirements</button>
-            <button type="submit" name = "program_action" value ="delete">Delete Program Requirements</button>
              </form>
           </div>
 </section>

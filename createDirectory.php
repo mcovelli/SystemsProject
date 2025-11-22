@@ -83,6 +83,14 @@ $deleteLinks = [
 
 ];
 
+$otherLinks = [
+  ['label' => 'Assign Advisor', 'href' => 'assign_advisor.php',       'icon' => 'file-text'],
+    ['label' => 'Declare Major',      'href' => 'DeclareMajor.php',           'icon' => 'book'],
+    ['label' => 'Declare Minor',   'href' => 'DeclareMinor.php',                      'icon' => 'book-open'],
+    ['label' => 'Declare Program',     'href' => 'DeclareProgram.php',                      'icon' => 'mail']
+
+];
+
 $initials = substr($admin['FirstName'], 0, 1) . substr($admin['LastName'], 0, 1);
 ?>
 
@@ -150,6 +158,13 @@ $initials = substr($admin['FirstName'], 0, 1) . substr($admin['LastName'], 0, 1)
       <div class="card">
         <div class="card-title">Delete Actions</div>
         <div class="quick-grid" id="adminDeleteLinks"></div>
+      </div>
+  </main>
+
+   <main class="container">
+      <div class="card">
+        <div class="card-title">Other Actions</div>
+        <div class="quick-grid" id="adminOtherLinks"></div>
       </div>
   </main>
 
@@ -241,6 +256,25 @@ $initials = substr($admin['FirstName'], 0, 1) . substr($admin['LastName'], 0, 1)
       div.appendChild(icon);
       div.appendChild(span);
       dlContainer.appendChild(div);
+    });
+    lucide.createIcons();
+
+    // Insert other links
+    const otherLinks = <?php echo json_encode($otherLinks); ?>;
+    const olContainer = document.getElementById('adminOtherLinks');
+    otherLinks.forEach(link => {
+      const div = document.createElement('div');
+      div.className = 'ol';
+      div.addEventListener('click', () => {
+        if (link.href) window.location.href = link.href;
+      });
+      const icon = document.createElement('i');
+      icon.setAttribute('data-lucide', link.icon);
+      const span = document.createElement('span');
+      span.textContent = link.label;
+      div.appendChild(icon);
+      div.appendChild(span);
+      olContainer.appendChild(div);
     });
     lucide.createIcons();
 

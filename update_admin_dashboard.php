@@ -33,7 +33,6 @@ $quickLinks = [
     ['label' => 'Messages',     'href' => 'messages.php',                      'icon' => 'mail'],
     ['label' => 'View Directory', 'href' => 'viewDirectory.php',       'icon' => 'file-text'],
     ['label' => 'Create Directory',      'href' => 'createDirectory.php',           'icon' => 'book'],
-    ['label' => 'Assign Advisor',      'href' => 'assign_advisor.php',           'icon' => 'pencil']
 ];
 ?>
 

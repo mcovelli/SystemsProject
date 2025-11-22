@@ -90,6 +90,25 @@ $office = $fac['OfficeID'] ?? 'N/A';
 $depts = $fac['DeptNames'] ?? 'N/A';
 $ranking = $fac['Ranking'] ?? 'Faculty';
 
+// Fetch all semesters for the schedule dropdown
+$sem_sql = "SELECT SemesterID, SemesterName, Year FROM Semester ORDER BY Year DESC, SemesterName DESC";
+$sem_stmt = $mysqli->prepare($sem_sql);
+$sem_stmt->execute();
+$sem_result = $sem_stmt->get_result();
+$semesters = $sem_result->fetch_all(MYSQLI_ASSOC);
+$sem_stmt->close();
+
+// Determine which semester to show for the schedule
+$selectedSemester = isset($_GET['semester']) && $_GET['semester'] !== '' ? $_GET['semester'] : null;
+if ($selectedSemester === null) {
+    // Auto‑select current semester if available
+    $auto_sql = "SELECT SemesterID FROM Semester WHERE CURDATE() BETWEEN StartDate AND EndDate LIMIT 1";
+    $auto_res = $mysqli->query($auto_sql);
+    if ($auto_row = $auto_res->fetch_assoc()) {
+        $selectedSemester = $auto_row['SemesterID'];
+    }
+}
+
 // Fetch courses taught by faculty (current semester or all)
 $courses_sql = "
   SELECT cs.CRN, c.CourseName, GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
@@ -102,23 +121,28 @@ $courses_sql = "
   JOIN Day d ON tsd.DayID = d.DayID
   JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
   JOIN Period p ON tsp.PeriodID = p.PeriodID
-  WHERE cs.FacultyID = ?
+  WHERE cs.FacultyID = ? AND cs.SemesterID = ?
+  GROUP BY cs.CRN
   ORDER BY p.StartTime
 ";
 $courses_stmt = $mysqli->prepare($courses_sql);
-$courses_stmt->bind_param('i', $facultyId);
+$courses_stmt->bind_param('is', $facultyId, $selectedSemester);
 $courses_stmt->execute();
 $courses_result = $courses_stmt->get_result();
-$course = $courses_result->fetch_all(MYSQLI_ASSOC);
+$courses = $courses_result->fetch_all(MYSQLI_ASSOC);
 $courses_stmt->close();
 
 // Fetch advisees
 $advisees_sql = "
-  SELECT u.FirstName, u.LastName, m.MajorName
+  SELECT u.FirstName, u.LastName, m.MajorName, mn.MinorName, p.ProgramName AS MajorName
   FROM Advisor a
   JOIN Users u ON a.StudentID = u.UserID
   LEFT JOIN StudentMajor sm ON a.StudentID = sm.StudentID
   LEFT JOIN Major m ON sm.MajorID = m.MajorID
+  LEFT JOIN StudentMinor smn ON a.StudentID = smn.StudentID
+  LEFT JOIN Minor mn ON smn.MinorID = mn.MinorID
+  LEFT JOIN Graduate g ON a.StudentID = g.StudentID
+  LEFT JOIN Program p ON g.ProgramID = p.ProgramID
   WHERE a.FacultyID = ?
 ";
 $adv_stmt = $mysqli->prepare($advisees_sql);
@@ -255,7 +279,7 @@ $adv_stmt->close();
             <div class="label">Roles</div>
             <div id="roles"><?php echo htmlspecialchars($ranking); ?></div>
           </div>
-        </div>
+        </div><br>
 
         <div class="section" id="office-hours">
           <h2>Office Hours</h2>
@@ -265,36 +289,79 @@ $adv_stmt->close();
             <div class="kv"><div class="label">Friday</div><div id="ohFri">By appointment</div></div>
             <div class="kv"><div class="label">Modality</div><div id="ohMode">In‑person/virtual</div></div>
           </div>
-        </div>
+        </div><br>
 
-        <div class="section">
-          <h2>Courses Taught</h2>
-          <table aria-label="Courses taught">
+        <div class="card">
+        <div class="card-head between">
+          <div class="card-title">Semester Schedule</div>
+          <div class="row gap">
+          </div>
+        </div>
+        <div class="table-wrap">
+          <form method="get" class="semester-selector" style="margin-bottom:10px">
+            <?php if (isset($_GET['studentID'])): ?>
+                <input type="hidden" name="facultyID" value="<?= htmlspecialchars($_GET['facultyID']) ?>">
+            <?php endif; ?>
+
+            <label for="semester" style="margin-right:6px">View Semester:</label>
+            <select name="semester" id="semester" onchange="this.form.submit()">
+              <option value="">Current Semester</option>
+              <?php foreach ($semesters as $sem): ?>
+                <option value="<?php echo htmlspecialchars($sem['SemesterID']); ?>" <?php echo ($selectedSemester == $sem['SemesterID']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($sem['SemesterName'] . ' ' . $sem['Year']); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </form>
+          <table>
             <thead>
               <tr>
-                <th>CRN</th><th>Course</th><th>Days</th><th>Time</th><th>Location</th>
+                <th class="w-90">CRN</th>
+                <th>Course</th>
+                <th>Days</th>
+                <th>Time</th>
+                <th>Location</th>
               </tr>
             </thead>
-            <tbody id="courseTable">
+            <tbody id="facultyScheduleBody">
               <?php if (empty($courses)): ?>
-                <tr><td colspan="5">No courses assigned.</td></tr>
+                <tr><td colspan="4">No courses scheduled for this semester.</td></tr>
               <?php else: ?>
-                <?php foreach ($courses as $c): ?>
+                <?php foreach ($courses as $row): ?>
                   <tr>
-                    <td><?php echo htmlspecialchars($c['CRN']); ?></td>
-                    <td><?php echo htmlspecialchars($c['CourseName']); ?></td>
-                    <td><?php echo htmlspecialchars($c['Days']); ?></td>
-                    <td><?php echo htmlspecialchars($c['StartTime'] . ' – ' . $c['EndTime']); ?></td>
-                    <td><?php echo htmlspecialchars($c['RoomID']); ?></td>
+                    <td><?= htmlspecialchars($row['CRN']) ?></td>
+                    <td><?= htmlspecialchars($row['CourseName']) ?></td>
+
+                    <?php
+                      // Handle combined days like "Mon/Wed" or "Tue/Thu"
+                      $dayStr = (string)($row['DayOfWeek'] ?? $row['Days'] ?? '');
+                      $dayStr = $dayStr === '' ? '—' : $dayStr;
+                    ?>
+                    <td><?= htmlspecialchars($dayStr) ?></td>
+
+                    <?php
+                      // Handle time display
+                      $start = $row['StartTime'] ?? '';
+                      $end   = $row['EndTime']   ?? '';
+                      $timeStr = trim($start . ($start && $end ? ' – ' : '') . $end);
+                      $timeStr = $timeStr === '' ? 'TBA' : $timeStr;
+                    ?>
+                    <td><?= htmlspecialchars($timeStr) ?></td>
+
+                    <td><?= htmlspecialchars($row['RoomID'] ?? 'TBA') ?></td>
                   </tr>
                 <?php endforeach; ?>
               <?php endif; ?>
             </tbody>
           </table>
         </div>
+      </div><br>
 
-        <div class="section">
-          <h2>Advising</h2>
+        <div class="card">
+        <div class="card-head between">
+          <div class="card-title">Advisees</div>
+          <div class="row gap">
+          </div>
+        </div>
+        <div class="table-wrap">
           <table aria-label="Advisees">
             <thead><tr><th>Name</th><th>Program</th></tr></thead>
             <tbody id="advisees">
@@ -310,13 +377,6 @@ $adv_stmt->close();
               <?php endif; ?>
             </tbody>
           </table>
-        </div>
-
-        <div class="section">
-          <h2>Links</h2>
-          <div class="links" id="links">
-            <a href="#"></a>
-          </div>
         </div>
       </section>
     </div>

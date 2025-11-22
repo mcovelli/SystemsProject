@@ -498,8 +498,6 @@ $initials = substr($student['FirstName'], 0, 1) . substr($student['LastName'], 0
         <div class="card-head between">
           <div class="card-title">Semester Schedule</div>
           <div class="row gap">
-            <button class="btn outline"><i data-lucide="calendar-days"></i> Open Calendar</button>
-            <button class="btn">Add Event</button>
           </div>
         </div>
         <div class="table-wrap">

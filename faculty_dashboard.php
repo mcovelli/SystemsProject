@@ -156,6 +156,8 @@ $quickLinks = [
     ['label' => 'Logout',     'href' => 'logout.php',       'icon' => 'log-out']
 ];
 
+$initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
+
 ?>
 
 <!doctype html>
@@ -185,7 +187,7 @@ $quickLinks = [
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
       <div class="user">
-        <img class="avatar" src="https://i.pravatar.cc/64?img=20" alt="avatar" />
+        <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
         <div class="user-meta">
           <div class="name"><?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?></div>
           <div class="sub"><?php echo htmlspecialchars($ranking); ?></div>
@@ -305,48 +307,7 @@ $quickLinks = [
           </table>
         </div>
 
-        <div class="card-head between" style="margin-top:24px">
-          <div class="card-title">Student Roster</div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Student Name</th>
-                <th>Course</th>
-                <th>Days</th>
-                <th>Time</th>
-                <th>Location</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if (empty($roster)): ?>
-                <tr><td colspan="5">No students enrolled.</td></tr>
-              <?php else: ?>
-                <?php foreach ($roster as $r): ?>
-                  <?php
-                    $name = trim(($r['FirstName'] ?? '') . ' ' . ($r['LastName'] ?? '')) ?: '—';
-                    $course = $r['CourseName'] ?? ' — ';
-                    $days = $r['Days'] ?? ' — ';
-                    $start = $r['StartTime'] ?? '';
-                    $end   = $r['EndTime'] ?? '';
-                    $timeStr = trim($start . ($start && $end ? ' – ' : '') . $end);
-                    if ($timeStr === '') $timeStr = 'TBA';
-                    $room = $r['RoomID'] ?? ' — ';
-                  ?>
-                  <tr>
-                    <td><?= htmlspecialchars($name) ?></td>
-                    <td><?= htmlspecialchars($course) ?></td>
-                    <td><?= htmlspecialchars($days) ?></td>
-                    <td><?= htmlspecialchars($timeStr) ?></td>
-                    <td><?= htmlspecialchars($room) ?></td>
-                  </tr>
-                <?php endforeach; ?>
-              <?php endif; ?>
-            </tbody>
-          </table>
-        </div>
-      </div>
+  
     </section>
 
     <aside class="right">

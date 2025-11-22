@@ -118,8 +118,9 @@ gap: 10px;
 .dropdown {
     position: relative;
     display: inline-block;
-    }
-    .dropdown button {
+}
+
+.dropdown button {
     background: #e2e8f0;
     color: #1e293b;
     border: none;
@@ -127,29 +128,37 @@ gap: 10px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
-    }
-    .dropdown-content {
-    display: flex;
+}
+
+
+.dropdown-content {
+    display: none;
     position: absolute;
-    left: 0;
+    right: 0;          /* <-- fixes overflow */
+    left: auto;
     background: #fff;
     min-width: 150px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     border-radius: 6px;
     z-index: 200;
-    }
-    .dropdown-content a {
+    flex-direction: column;
+}
+
+
+.dropdown-content a {
     display: block;
     padding: 10px 15px;
     color: #1e293b;
     text-decoration: none;
-    }
-    .dropdown-content a:hover {
+}
+
+.dropdown-content a:hover {
     background: #f1f5f9;
-    }
-    .dropdown:hover .dropdown-content {
+}
+
+.dropdown:hover .dropdown-content {
     display: block;
-    }
+}
 
 /* Progress */
 .progress {
@@ -177,9 +186,15 @@ gap: 10px;
 }
 
 /* Quick Links */
-.quick-grid {display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:8px}
+.quick-grid {
+  display:grid; 
+  grid-template-columns: 
+  repeat(3, 
+  minmax(0,1fr)); 
+  gap:8px}
 .quick-grid .ql,
 .quick-grid .ul,
+.quick-grid .ol,
 .quick-grid .dl {
   display: flex;
   align-items: center;
@@ -190,6 +205,8 @@ gap: 10px;
   background: var(--panel);
   cursor: pointer;
   width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
 }
 
 /* Tabs */

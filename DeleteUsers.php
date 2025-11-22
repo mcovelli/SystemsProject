@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 if (!isset($_SESSION['user_id']) || 
-  ($_SESSION['role'] ?? '') !== 'admin' &&
+  ($_SESSION['role'] ?? '') !== 'admin' ||
 ($_SESSION['admin_type'] ?? '') !== 'update') {
     redirect(PROJECT_ROOT . "/login.html");
 }
@@ -92,21 +92,19 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             <a href="logout.php">Logout</a>
           </div>
         </div>
-      </div>
-    </div>
   </header>
 
     <main class="page">
         <section class="hero card">
             <div class="card-head between">
                 <div>
-                  <h1 class="card-title">Delete Course</h1>
+                  <h1 class="card-title">Delete User</h1>
                 </div>
             </div>
-                <div id = "create-section-course">
-                    <form id = "DeleteCourse" method = "POST" action = "">
-                        <label for="userID">Course ID: </label>
-                        <input type = "text" id="userID" name="userID" required placeholder = "ex. BIOL 100">
+                <div id = "create-section-user">
+                    <form id = "DeleteUser" method = "POST" action = "">
+                        <label for="userID">User ID: </label>
+                        <input type = "text" id="userID" name="userID" required placeholder = "ex. 12345">
                         <button type="submit" id = "userDeleteSubmit" name = "userDeleteSubmit">Submit</button>
                     </form>
                 </div>
@@ -117,7 +115,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 <script>
 
     // Delete departments from get_departments.php
-    document.getElementById("DeleteCourse").addEventListener("submit", (e) => {
+    document.getElementById("DeleteUser").addEventListener("submit", (e) => {
     console.log("Form submitted");
 });
 </script>

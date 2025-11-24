@@ -40,6 +40,7 @@ switch ($userRole) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $userId = $_POST['userID'] ?? '';
     $firstName = $_POST['fname'] ?? '';
     $middleName = $_POST['mname'] ?? '';
     $lastName  = $_POST['lname'] ?? '';
@@ -412,6 +413,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             </div>
 
             <br>
+            <label for ="userID">User ID:</label>
+            <input type = "hidden" id = "userID" name="userID">
+            
             <label for="fname">First Name:</label>
             <input type="text" id="fname" name="fname" required><br>
 

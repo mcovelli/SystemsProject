@@ -25,6 +25,8 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $majorID = $_POST['major_id'] ?? '';
+    $minorID = $_POST['minor_id'] ?? '';
     $DeptId = $_POST['deptID'] ?? '';
     $majorName = $_POST['major_name'] ?? '';
     $majorCreditsNeeded = $_POST['major_credits_needed'] ?? '';
@@ -129,6 +131,10 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                             <option value="minor">Minor</option>
                         </select>
                         <br>
+                         <?php $type = $_POST['majorOrMinor'] ?? ''; ?>
+                        <label id="typeID" for ="major_name"><?php echo htmlspecialchars($type) ?></label>
+                        <?= $type === 'major' ? 'Major ' : ($type === 'minor' ? 'Minor ' : 'ID:') ?>
+                            <input type = "hidden" id = "major_ID" name="major_ID" required placeholder="ex. MATH"><br>
                         <label for="dept">Department: </label>
                              <select name="deptID" id="deptID">
                                 <option value="">-- All Departments --</option>

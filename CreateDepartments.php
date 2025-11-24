@@ -108,7 +108,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                 <div id = "create-section-department">
                     <form id = "CreateDepartment" method = "POST" action = "">
                       <label for = "deptID">Department ID: </label>
-                            <input type = "text" id = "deptID" name="deptID" required placeholder="ex. MATH"><br>
+                            <input type = "hidden" id = "deptID" name="deptID" required placeholder="ex. MATH"><br>
                         <label for="deptName">Department Name: </label>
                              <input type = "text" id="deptName" name="deptName" required placeholder="ex. Mathematics"><br>
 

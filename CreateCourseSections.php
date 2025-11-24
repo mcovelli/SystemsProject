@@ -130,12 +130,12 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             </div>
                 <div id = "create-section-course">
                     <form id = "CreateCourseSection" method = "POST" action = "">
+                      <label for="courseSectionNo">Course Section No.: </label>
+                      <input type = "hidden" id="courseSectionNo" name="courseSectionNo" required placeholder="ex. 1"><br>
+
                         <label for="courseID">Course ID: </label>
                              <select name="courseID" id="courseID">
                                 </select><br>
-
-                        <label for="courseSectionNo">Course Section No.: </label>
-                             <input type = "number" id="courseSectionNo" name="courseSectionNo" required placeholder="ex. 1"><br>
 
                         <label for="facultyID">Faculty: </label>
                              <select name="facultyID" id="facultyID">

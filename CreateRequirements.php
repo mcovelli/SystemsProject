@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $minorRequirementDescription = $_POST['minor_req_description'] ?? '';
     $minorRequirementType = $_POST['minor_req_type'] ?? NULL;
     $minorSemesterLevel = $_POST['minor_semester_level'] ?? NULL;
+    $requirementID = $_POST['requirementID'] ?? '';
     $programID = $_POST['programID'] ?? '';
     $programCourseID = $_POST['program_courseID'] ?? '';
     $requirementType = $_POST['req_type'] ?? '';
@@ -232,13 +233,16 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 <section id = "program-req-menu" class = "hero card hidden">
 <div id = "program-requirement">
             <form id = "programRequirementForm" method = "POST" action = "">
+            <label for = "requirementID">Requirement ID:</label>
+            <input type = "hidden" id = "requirementID" name="requirementID" required><br>
+
             <label for="programID">Program Requirement ID:</label>
-            <select id="programID" name="programID">
+            <select id="programID" name="programID" required>
                 <option value="">-- Select Program ID --</option>
             </select><br>
 
             <label for="program_courseID">Program Course ID:</label>
-            <select id="program_courseID" name="program_courseID">
+            <select id="program_courseID" name="program_courseID" required>
                 <option value="">-- Select Program Course ID --</option>
             </select><br>
 

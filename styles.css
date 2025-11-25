@@ -298,15 +298,29 @@ gap: 10px;
       outline: 2px solid var(--primary, #4f46e5);
     }
 
-.dropdown-row {
-  cursor: pointer;
+.cs {
+    position: absolute;
+    right: 0;
+    left: auto;
+    display: none;
+    background: var(--panel);
 }
 
-.dropdown-content {
-  display: none;
-  background: #f9fafb;
+.cs.open {
+    display: table-row;
 }
 
-.dropdown-content .inner {
-  padding: 10px 14px;
+.roster {
+    cursor: pointer;
+}
+
+/* Table dropdown override */
+.cs {
+    position: static !important;
+    display: none !important;
+    background: var(--panel); 
+}
+
+.dropdown-content.open {
+    display: table-row !important;
 }

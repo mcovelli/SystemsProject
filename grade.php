@@ -207,7 +207,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                 <tr><td colspan="5">No schedule available.</td></tr>
               <?php else: ?>
                 <?php foreach ($schedule as $row): ?>
-                <tr class="dropdown-row" onclick="location.href='?semester=<?= $selectedSemester ?>&crn=<?= $row['CRN'] ?>'">
+                <tr class="dropdown-row" class="cs-<?= $row['CRN'] ?>" data-crn="<?= $row['CRN'] ?>">
                     <td id="crn" name="crn"><?php echo htmlspecialchars($row['CRN'] ?? ' - '); ?></td>
                     <td><?php echo htmlspecialchars($row['CourseName'] ?? ' - '); ?></td>
                     <td><?php echo htmlspecialchars($row['Days'] ?? ' - '); ?></td>
@@ -218,10 +218,10 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <td><?php echo htmlspecialchars($row['RoomID'] ?? ' - '); ?></td>
                   </tr>
 
-                  <tr class="dropdown-content">
+                  <tr class="dropdown-content" class="roster-<?= $row['CRN'] ?>">
                     <td colspan = "5">
                         <?php if (empty($roster)): ?>
-                <div>No students enrolled.</div>
+                            No students enrolled.
                   <?php else: ?>
                     <table class ="inner-roster">
                         <thead>
@@ -266,6 +266,13 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <script>
     // Create icons on load
     lucide.createIcons();
+document.querySelectorAll(".dropdown-row").forEach(row => {
+    row.addEventListener("click", () => {
+        const crn = row.dataset.crn;
+        const dropdown = document.getElementById("csroster-" + crn);
+        dropdown.classList.toggle("open");
+    });
+});
 </script>
 
 </body>

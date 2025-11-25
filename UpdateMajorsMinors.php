@@ -132,7 +132,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                         </select>
                         <br>
                          <?php $type = $_POST['majorOrMinor'] ?? ''; ?>
-                        <label id="typeID" for ="major_name" hidden><?php echo htmlspecialchars($type) ?></label>
+                        <label id="typeID" for ="major_ID" hidden><?php echo htmlspecialchars($type) ?></label>
                         <?= $type === 'major' ? 'Major ' : ($type === 'minor' ? 'Minor ' : 'ID:') ?>
                             <input type = "hidden" id = "major_ID" name="major_ID" placeholder="ex. MATH"><br>
                         <label for="dept">Department: </label>
@@ -145,17 +145,20 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                             <input type = "text" id="major_name" name="major_name"><br>
                         <label for = "major_credits_needed">Credits Needed:</label>
                             <input type = "number" id = "major_credits_needed" name = "major_credits_needed" required><br>
-
+                        <?php $type = $_POST['majorOrMinor'] ?? ''; ?>
+                        <label id="typeCredits" for ="major_credits_needed"><?php echo htmlspecialchars($type) ?></label>
+                        <?= $type === 'major' ? 'Major ' : ($type === 'minor' ? 'Minor ' : 'Credits Needed:') ?>
+                        <input type = "number" id="major_credits_needed" name="major_credits_needed" required><br>
                         <button type="submit" id = "submit">Submit</button>
                     </form>
                 </div>
         </section>
     </main>
-
-<body>
 </body>
 
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<script>
      lucide.createIcons();
 
     document.getElementById('majorOrMinor').addEventListener('change', function() {
@@ -178,6 +181,17 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             IDLabel.textContent = "Minor ";
         } else {
             IDLabel.textContent = "";
+        }
+        
+        
+    const CreditsLabel = document.getElementById('typeCredits');
+
+        if (type === 'major') {
+            CreditsLabel.textContent = "Major ";
+        } else if (type === 'minor') {
+            CreditsLabel.textContent = "Minor ";
+        } else {
+            CreditsLabel.textContent = "";
         }
     });
 

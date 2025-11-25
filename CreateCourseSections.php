@@ -164,7 +164,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 <body>
 </body>
 
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<script>
      lucide.createIcons();
 
     // Fetch faculty from get_faculty.php

@@ -196,7 +196,10 @@ $stmt->close();
         </div>
     </section>
 
-    <script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <script>
+      lucide.createIcons();
       // Fetch departments from get_departments.php
       fetch('get_departments.php')
         .then(response => response.json())

@@ -149,7 +149,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 <body>
 </body>
 
-<script script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<script>
      lucide.createIcons();
 
     document.getElementById('majorOrMinor').addEventListener('change', function() {

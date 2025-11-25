@@ -183,7 +183,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         </div>
     </section>
 
-    <script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <script>
       // Fetch departments from get_departments.php
       fetch('get_departments.php')
         .then(response => response.json())

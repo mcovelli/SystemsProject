@@ -272,7 +272,7 @@ $adv_stmt->close();
         <div class="section">
           <h2>About</h2>
           <div class="kv">
-            <div class="label">Biography</div>
+            <div class="label">Bio</div>
             <div id="bio">Dedicated faculty member at Northport University. Please contact via email for office hours.</div>
           </div>
           <div class="kv">

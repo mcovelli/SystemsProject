@@ -160,14 +160,28 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                 </div>
         </section>
     </main>
-
-<body>
+    <footer class="footer">© <span id="year"></span> Northport University</footer>
 </body>
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
-<script>
+  <script>
+    // Immediately create Lucide icons
     lucide.createIcons();
+
+    // Populate the year in the footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const root = document.documentElement;
+      const current = root.getAttribute('data-theme') || 'light';
+      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+      // Swap the icon
+      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
+      lucide.createIcons();
+    });
+
 
     // Fetch faculty from get_faculty.php
     fetch('get_faculty.php')

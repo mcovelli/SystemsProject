@@ -205,7 +205,26 @@ switch ($userRole) {
       </div>
     </main>
   </div>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script>
+    // Immediately create Lucide icons
+    lucide.createIcons();
+
+    // Populate the year in the footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const root = document.documentElement;
+      const current = root.getAttribute('data-theme') || 'light';
+      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+      // Swap the icon
+      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
+      lucide.createIcons();
+    });
+
+
     const courseList = {
       'Intro to Programming': {
         course_id: 'CS1101',
@@ -335,5 +354,6 @@ switch ($userRole) {
 
     document.getElementById("selectButton").addEventListener("click", selectDateAndCourse);
   </script>
+  <footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
 </body>
 </html>

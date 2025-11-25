@@ -266,7 +266,29 @@ if (!$statstaff) {
       </div>
     </aside>
   </main>
-
   <footer class="footer">
     © <span id="year"></span> Northport University • All rights reserved • <a href="#" class="link">Privacy</a>
   </footer>
+  </body>
+  <script src = "https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script>
+     // Immediately create Lucide icons
+    lucide.createIcons();
+
+    // Populate the year in the footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const root = document.documentElement;
+      const current = root.getAttribute('data-theme') || 'light';
+      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+      // Swap the icon
+      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
+      if (window.lucide) lucide.createIcons();
+    });
+    </script>
+ </html>
+
+  

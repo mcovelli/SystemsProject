@@ -196,4 +196,3 @@ if (isset($_GET['err'])): ?>
         ?>
         <div class="alert error"><?= $msg ?></div>
     <?php endif; ?>
-?>

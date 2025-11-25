@@ -147,9 +147,7 @@ $mysqli->commit();
           </select><br>
       <button type="submit">Assign</button>
     </form>
-
-</body>
-  <footer>© <span id="year"></span> Northport University</footer>
+ <footer class="footer">© <span id="year"></span> Northport University</footer>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
 
@@ -192,4 +190,5 @@ $mysqli->commit();
   });
 
 </script>
+</body>
 </html>

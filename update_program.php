@@ -111,9 +111,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </main>
 </body>
 
- <footer>© 2025 Northport University • All rights reserved</footer>
+ <footer class="footer">© 2025 Northport University • All rights reserved</footer>
 
- <script>
+ <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script>
+    // Immediately create Lucide icons
+    lucide.createIcons();
+
+    // Populate the year in the footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const root = document.documentElement;
+      const current = root.getAttribute('data-theme') || 'light';
+      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+      // Swap the icon
+      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
+      lucide.createIcons();
+    });
+
 
     // Fetch departments from get_grad_degree_level.php
     fetch('get_grad_degree_level.php')

@@ -188,12 +188,20 @@ if (!$user) {
     </div>
   </main>
 
-  <footer>© <span id="year"></span> Northport University</footer>
+  <footer class="footer">© <span id="year"></span> Northport University</footer>
 
   <script>
     // Minimal JS for year and initials fallback
     document.getElementById('year').textContent = new Date().getFullYear();
-
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const root = document.documentElement;
+      const current = root.getAttribute('data-theme') || 'light';
+      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
+      lucide.createIcons();
+    });
   function openPopup() {
     const popup = document.getElementById('editProfilePopup');
     popup.style.display = 'flex';

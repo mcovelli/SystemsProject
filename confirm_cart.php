@@ -159,5 +159,6 @@ switch ($userRole) {
 
     <a href="<?= htmlspecialchars($dashboard) ?>">← Back to Dashboard</a>
   </div>
+  <footer class="footer">© <span id="year"></span> Northport University</footer>
 </body>
 </html>

@@ -237,8 +237,11 @@ switch ($userRole) {
     </div>
 </main>
 </div>
+<footer class="footer">© <span id="year"></span> Northport University</footer>
 
 <script>
+    // Populate the year in the footer
+    document.getElementById('year').textContent = new Date().getFullYear();
 function showCompose() {
     document.getElementById('compose-section').classList.remove('hidden');
     document.getElementById('message-view-section').classList.add('hidden');

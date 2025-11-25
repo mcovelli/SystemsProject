@@ -382,7 +382,7 @@ $adv_stmt->close();
     </div>
   </main>
 
-  <footer>© <span id="year"></span> Northport University</footer>
+  <footer class="footer">© <span id="year"></span> Northport University</footer>
 
   <script>
     // Minimal JS for year and initials fallback

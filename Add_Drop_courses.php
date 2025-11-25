@@ -479,9 +479,9 @@ if ($selectedSemester) {
       </div>
     </div>
   </div>
+  <footer class="footer">© <span id="year"></span> Northport University</footer>
 
   <script>
-
     // Fetch departments from get_departments.php
       fetch('get_departments.php')
         .then(response => response.json())
@@ -539,5 +539,6 @@ if ($selectedSemester) {
   </script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script> if(window.lucide) lucide.createIcons(); </script>
+  
 </body>
 </html>

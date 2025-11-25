@@ -247,27 +247,23 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                                                 </a>
                                             </td>
                                             <td>
-                                                <form method="POST">
-                                                <input type="hidden" name="studentID" value="<?= $r['StudentID'] ?>">
-                                                <input type="hidden" name="crn" value="<?= $crn ?>">
-                                                <input type="hidden" name="courseID" value="<?= $row['CourseID']?>">
-                                                <input type="hidden" name="semesterID" value="<?= $selectedSemester ?>">
-                                                <select name="grade" onchange="this.form.submit()">
-                                                        <option value=""><?php $grade ?></option>
-                                                        <option value="A">A</option>
-                                                        <option value="A-">A-</option>
-                                                        <option value="B+">B+</option>
-                                                        <option value="B">B</option>
-                                                        <option value="B-">B-</option>
-                                                        <option value="C+">C+</option>
-                                                        <option value="C">C</option>
-                                                        <option value="C-">C-</option>
-                                                        <option value="D+">D+</option>
-                                                        <option value="D">D</option>
-                                                        <option value="D-">D-</option>
-                                                        <option value="F">F</option>
+                                                <form class="grade-form"
+                                                  data-student="<?= $r['StudentID'] ?>"
+                                                  data-crn="<?= $crn ?>"
+                                                  data-course="<?= $row['CourseID'] ?>"
+                                                  data-semester="<?= $selectedSemester ?>">
+                                                    <select name="grade" class="grade-select">
+                                                        <option value=""><?= $r['Grade'] !== null ? $r['Grade'] : '---' ?></option>
+
+                                                        <?php 
+                                                        $grades = ["A","A-","B+","B","B-","C+","C","C-","D+","D","D-","F"];
+                                                        foreach ($grades as $g):
+                                                        ?>
+                                                            <option value="<?= $g ?>" <?= ($r['Grade'] === $g) ? "selected" : "" ?>>
+                                                                <?= $g ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
                                                     </select>
-                                                    <button type="submit">Submit</button>
                                                 </form>
                                             </td>
                                         </tr>
@@ -323,6 +319,35 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             console.log("Found row?", rosterRow);
             
             rosterRow?.classList.toggle("open");
+            row.classList.toggle("selected");
+        });
+    });
+
+    document.querySelectorAll(".grade-form").forEach(form => {
+        const select = form.querySelector(".grade-select");
+
+        select.addEventListener("change", async () => {
+
+            const data = new FormData();
+            data.append("studentID", form.dataset.student);
+            data.append("crn", form.dataset.crn);
+            data.append("courseID", form.dataset.course);
+            data.append("semesterID", form.dataset.semester);
+            data.append("grade", select.value);
+
+            const response = await fetch("grade_update.php", {
+                method: "POST",
+                body: data
+            });
+
+            const result = await response.json();
+
+            if (result.ok) {
+                console.log("Grade saved!");
+                alert("Grade Saved ✔");
+            } else {
+                alert("Error saving grade ❌");
+            }
         });
     });
 

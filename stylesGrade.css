@@ -298,9 +298,14 @@ gap: 10px;
       outline: 2px solid var(--primary, #4f46e5);
     }
 
-/* Clickable Schedule Row */
-.cs {
+.cs td {
+    background-color: var(--panel);
     cursor: pointer;
+    transition: background-color .25s ease;
+}
+
+.cs:hover td {
+    background-color: #eef5ff !important;
 }
 
 table tr.roster {

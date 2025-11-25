@@ -25,27 +25,27 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $CourseId = $_POST['courseID'] ?? '';
-    $CourseName = $_POST['courseName'] ?? '';
-    $DeptId = $_POST['dept'] ?? '';
-    $CourseDesc = $_POST['courseDesc'] ?? '';
-    $Credits = $_POST['credits'] ?? '';
-    $CourseType = $_POST['courseType'] ?? '';
+    $DeptID = $_POST['deptID'] ?? '';
+    $DeptName = $_POST['deptName'] ?? '';
+    $DeptEmail = $_POST['deptEmail'] ?? '';
+    $DeptPhone = $_POST['deptPhone'] ?? '';
+    $RoomID = $_POST['roomID'] ?? '';
+    $ChairID = $_POST['chairID'] ?? '';
 
-$mysqli->begin_transaction();
+    $mysqli->begin_transaction();
 
-  $sql = "INSERT INTO Course (CourseID, CourseName, DeptID, Course_Desc, Credits, CourseType) VALUES (?, ?, (SELECT DeptID FROM Department WHERE DeptName = ?), ?, ?, ?)";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("ssssis", $CourseId, $CourseName, $DeptId, $CourseDesc, $Credits, $CourseType);
-        
-  if ($stmt->execute()) {
-    echo "alert('$CourseName. created ✅');";
-  } else {
-    echo "alert('Could not create course');";
-        }
-  
-$mysqli->commit();
-}
+    $sql = "UPDATE Department SET DeptName = ?, DeptEmail = ?, DeptPhone = ?, RoomID = ?, ChairID = ? WHERE DeptID = ?";
+
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param("ssssss", $DeptName, $DeptEmail, $DeptPhone, $RoomID, $ChairID, $DeptID);
+    if ($stmt->execute()) {
+        echo "<script>alert('$DeptName created ✅');</script>";
+    } else {
+        echo "<script>alert('Could not create department');</script>";
+    }
+
+    $mysqli->commit();
+} 
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
@@ -59,7 +59,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Create Courses</title>
+<title>Create Departments</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -70,7 +70,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Create Courses</span>
+      <span class="pill">Create Departments</span>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -101,75 +101,77 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <section class="hero card">
             <div class="card-head between">
                 <div>
-                  <h1 class="card-title">Create Course</h1>
+                  <h1 class="card-title">Update Department</h1>
                 </div>
             </div>
-                <div id = "create-section-course">
-                    <form id = "CreateCourse" method = "POST" action = "">
-                        <label for="courseID">Course ID: </label>
-                        <input type = "text" id="courseID" name="courseID" required placeholder = "ex. BIOL 100">
-                        <br>
+                <div id = "update-section-department">
+                    <form id = "UpdateDepartment" method = "POST" action = "">
+                      <label for = "deptID">Department ID: </label>
+                            <input type = "hidden" id = "deptID" name="deptID" placeholder="ex. MATH"><br>
+                        <label for="deptName">Department Name: </label>
+                             <input type = "text" id="deptName" name="deptName" placeholder="ex. Mathematics"><br>
 
-                        <label for="courseName">Course Name: </label>
-                             <input type = "text" id="courseName" name="courseName" required placeholder="ex. Biology Foundations">
+                        <label for="deptEmail">Department Email: </label>
+                             <input type = "email" id="deptEmail" name="deptEmail" placeholder="ex. math@university.edu"><br>
 
-                        <label for="dept">Department: </label>
-                             <select name="dept" id="dept">
-                                </select><br>
+                        <label for="deptPhone">Department Phone: </label>
+                             <input type = "tel" id="deptPhone" name="deptPhone" placeholder="ex. (555) 123-4567"><br>
 
-                        <label for ="courseDesc">Course Description: </label>
-                            <input type = "text" id="courseDesc" name="courseDesc" required placeholder="Introductory course with essential concepts and skills."><br>
+                        <label for ="roomID">Room ID: </label>
+                            <select name="roomID" id="roomID">
+                                <option value="">-- Select Office --</option>
+                            </select><br>
 
-                        <label for = "credits">Credits Needed:</label>
-                            <input type = "number" id = "credits" name = "credits" required placeholder="ex. 3"><br>
-
-                        <label for="courseType">Course Type: </label>
-                             <select name="courseType" id="courseType" required>
-                                </select><br>
+                        <label for = "chairID">Chair:</label>
+                            <select name="chairID" id="chairID">
+                                <option value="">-- Select Chair --</option>
+                            </select><br>
 
                         <button type="submit" id = "submit">Submit</button>
                     </form>
                 </div>
         </section>
     </main>
+
 </body>
+
 
 <script>
 
-    // Fetch departments from get_departments.php
-    fetch('get_departments.php')
+    // Fetch offices from get_offices.php
+    fetch('get_offices.php')
     .then(response => response.json())
     .then(data => {
-        const deptSelect = document.getElementById('dept');
-        const selected = new URLSearchParams(window.location.search).get('dept');
+        const officeSelect = document.getElementById('roomID');
+        const selectedOffice = new URLSearchParams(window.location.search).get('roomID');
 
-    data.forEach(name => {
+    data.forEach(office => {
         const opt = document.createElement('option');
-        opt.value = name.name;
-        opt.textContent = name.name;
-        deptSelect.appendChild(opt);
+        opt.value = office.id;
+        opt.textContent = office.id;
+        officeSelect.appendChild(opt);
         });
     })
-    .catch(err => console.error('Error loading departments:', err));
+    .catch(err => console.error('Error loading offices:', err));
 
-    // Fetch course type from get_coursetype.php
-    fetch('get_coursetype.php')
+    // Fetch faculty from get_faculty.php
+    fetch('get_faculty.php')
     .then(response => response.json())
     .then(data => {
-        const courseTypeSelect = document.getElementById('courseType');
-        const selectedCourseType = new URLSearchParams(window.location.search).get('courseType');
+        const officeSelect = document.getElementById('chairID');
+        const selectedOffice = new URLSearchParams(window.location.search).get('chairID');
 
-    data.forEach(type => {
+    data.forEach(faculty => {
         const opt = document.createElement('option');
-        opt.value = type;
-        opt.textContent = type;
-        courseTypeSelect.appendChild(opt);
+        opt.value = faculty.FacultyID;
+        opt.textContent = faculty.FacultyName + ' - ' + faculty.DeptNames;
+        officeSelect.appendChild(opt);
         });
     })
-    .catch(err => console.error('Error loading Course Types:', err));
+    .catch(err => console.error('Error loading faculty:', err));
 
-    document.getElementById("CreateCourse").addEventListener("submit", (e) => {
+
+    document.getElementById("UpdateDepartment").addEventListener("submit", (e) => {
     console.log("Form submitted");
 });
 </script>
-</html>

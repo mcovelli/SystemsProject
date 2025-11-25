@@ -34,9 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $mysqli->begin_transaction();
 
-  $sql = "INSERT INTO Course (CourseID, CourseName, DeptID, Course_Desc, Credits, CourseType) VALUES (?, ?, (SELECT DeptID FROM Department WHERE DeptName = ?), ?, ?, ?)";
+  $sql = "UPDATE Course SET CourseName = ?, DeptID = (SELECT DeptID FROM Department WHERE DeptName = ?), Course_Desc = ?, Credits = ?, CourseType = ? WHERE CourseID = ?";
   $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("ssssis", $CourseId, $CourseName, $DeptId, $CourseDesc, $Credits, $CourseType);
+  $stmt->bind_param("sssiis", $CourseName, $DeptId, $CourseDesc, $Credits, $CourseType, $CourseId);
         
   if ($stmt->execute()) {
     echo "alert('$CourseName. created ✅');";
@@ -59,7 +59,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Create Courses</title>
+<title>Update Courses</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -70,7 +70,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Create Courses</span>
+      <span class="pill">Update Courses</span>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -101,30 +101,30 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <section class="hero card">
             <div class="card-head between">
                 <div>
-                  <h1 class="card-title">Create Course</h1>
+                  <h1 class="card-title">Update Course</h1>
                 </div>
             </div>
-                <div id = "create-section-course">
-                    <form id = "CreateCourse" method = "POST" action = "">
+                <div id = "update-section-course">
+                    <form id = "UpdateCourse" method = "POST" action = "">
                         <label for="courseID">Course ID: </label>
-                        <input type = "text" id="courseID" name="courseID" required placeholder = "ex. BIOL 100">
+                        <input type = "text" id="courseID" name="courseID" placeholder = "ex. BIOL 100">
                         <br>
 
                         <label for="courseName">Course Name: </label>
-                             <input type = "text" id="courseName" name="courseName" required placeholder="ex. Biology Foundations">
+                             <input type = "text" id="courseName" name="courseName" placeholder="ex. Biology Foundations">
 
                         <label for="dept">Department: </label>
                              <select name="dept" id="dept">
                                 </select><br>
 
                         <label for ="courseDesc">Course Description: </label>
-                            <input type = "text" id="courseDesc" name="courseDesc" required placeholder="Introductory course with essential concepts and skills."><br>
+                            <input type = "text" id="courseDesc" name="courseDesc" placeholder="Introductory course with essential concepts and skills."><br>
 
                         <label for = "credits">Credits Needed:</label>
-                            <input type = "number" id = "credits" name = "credits" required placeholder="ex. 3"><br>
+                            <input type = "number" id = "credits" name = "credits" placeholder="ex. 3"><br>
 
                         <label for="courseType">Course Type: </label>
-                             <select name="courseType" id="courseType" required>
+                             <select name="courseType" id="courseType">
                                 </select><br>
 
                         <button type="submit" id = "submit">Submit</button>
@@ -168,7 +168,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     })
     .catch(err => console.error('Error loading Course Types:', err));
 
-    document.getElementById("CreateCourse").addEventListener("submit", (e) => {
+    document.getElementById("UpdateCourse").addEventListener("submit", (e) => {
     console.log("Form submitted");
 });
 </script>

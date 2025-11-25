@@ -236,45 +236,6 @@ $quickLinks = [
     });
     lucide.createIcons();
 
-    // Insert tasks
-   /* const tasks = <?php echo json_encode($tasks); ?>;
-    const taskList = document.getElementById('adminTasksList');
-    tasks.forEach(task => {
-      const item = document.createElement('div');
-      item.className = 'row between small';
-      item.innerHTML = '<span>' + task.title + '</span><span class="muted">' + task.due + '</span>';
-      taskList.appendChild(item);
-    });
-
-    // Announcements
-    const announcements = <?php echo json_encode($announcements); ?>;
-    const annList = document.getElementById('adminAnnList');
-    announcements.forEach(ann => {
-      const item = document.createElement('div');
-      item.className = 'vstack';
-      const title = document.createElement('strong');
-      title.textContent = ann.title;
-      const body = document.createElement('span');
-      body.className = 'muted';
-      body.textContent = ann.body;
-      const date = document.createElement('span');
-      date.className = 'muted small';
-      date.textContent = ann.date;
-      item.appendChild(title);
-      item.appendChild(body);
-      item.appendChild(date);
-      annList.appendChild(item);
-    });
-
-    // Messages
-    const messages = <?php echo json_encode($messages); ?>;
-    const msgList = document.getElementById('adminMsgList');
-    messages.forEach(msg => {
-      const item = document.createElement('div');
-      item.className = 'row between small';
-      item.innerHTML = '<span><strong>' + msg.from + ':</strong> ' + msg.subject + '</span><span class="muted">' + msg.time + '</span>';
-      msgList.appendChild(item);
-    });*/
   </script>
 </body>
 </html>

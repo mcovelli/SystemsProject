@@ -297,3 +297,16 @@ gap: 10px;
     .popup-card .form-grid textarea:focus {
       outline: 2px solid var(--primary, #4f46e5);
     }
+
+.dropdown-row {
+  cursor: pointer;
+}
+
+.dropdown-content {
+  display: none;
+  background: #f9fafb;
+}
+
+.dropdown-content .inner {
+  padding: 10px 14px;
+}

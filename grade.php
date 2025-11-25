@@ -51,6 +51,8 @@ if ($selectedSemester === null) {
     }
 }
 
+$selectedCourse = isset($_GET['crn']) && $_GET['crn'] !== '' ? $_GET['crn'] : null;
+
 // Fetch schedule for courses taught
 $schedule = [];
 if ($selectedSemester) {
@@ -107,11 +109,12 @@ if ($selectedSemester) {
       JOIN Period p ON tsp.PeriodID = p.PeriodID
       WHERE cs.FacultyID = ?
         AND cs.SemesterID = ?
+        AND cs.CRN = ?
       GROUP BY se.StudentID, cs.CRN, c.CourseName, cs.RoomID
       ORDER BY c.CourseName, u.LastName, u.FirstName;
     ";
     $roster_stmt = $mysqli->prepare($roster_sql);
-    $roster_stmt->bind_param('is', $facultyId, $selectedSemester);
+    $roster_stmt->bind_param('isi', $userId, $selectedSemester, $selectedCourse);
     $roster_stmt->execute();
     $roster_result = $roster_stmt->get_result();
     $roster = $roster_result->fetch_all(MYSQLI_ASSOC);
@@ -119,7 +122,7 @@ if ($selectedSemester) {
 }
 
 $fac_stmt = $mysqli->prepare("SELECT OfficeID, Ranking FROM Faculty WHERE FacultyID = ? LIMIT 1");
-$fac_stmt->bind_param('i', $facultyId);
+$fac_stmt->bind_param('i', $userId);
 $fac_stmt->execute();
 $fac = $fac_stmt->get_result()->fetch_assoc();
 $fac_stmt->close();
@@ -204,16 +207,48 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                 <tr><td colspan="5">No schedule available.</td></tr>
               <?php else: ?>
                 <?php foreach ($schedule as $row): ?>
-                  <tr class ="dropdown-row">
-                    <td><?php echo htmlspecialchars($row['CRN'] ?? ' - '); ?></td>
+                <tr class="dropdown-row" onclick="location.href='?semester=<?= $selectedSemester ?>&crn=<?= $row['CRN'] ?>'">
+                    <td id="crn" name="crn"><?php echo htmlspecialchars($row['CRN'] ?? ' - '); ?></td>
                     <td><?php echo htmlspecialchars($row['CourseName'] ?? ' - '); ?></td>
                     <td><?php echo htmlspecialchars($row['Days'] ?? ' - '); ?></td>
-                    <td><?php echo htmlspecialchars($row['StartTime'] . ' – ' . $row['EndTime'] ?? ' - '); ?></td>
+                    <td><?php 
+                        $time = ($row['StartTime'] ?? '') . ' – ' . ($row['EndTime'] ?? '');
+                        echo htmlspecialchars(trim($time) ?: ' - ');
+                        ?></td>
                     <td><?php echo htmlspecialchars($row['RoomID'] ?? ' - '); ?></td>
                   </tr>
+
                   <tr class="dropdown-content">
-                    <td>
+                    <td colspan = "5">
+                        <?php if (empty($roster)): ?>
+                <div>No students enrolled.</div>
+                  <?php else: ?>
+                    <table class ="inner-roster">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <?php foreach ($roster as $r): ?>
+                              <?php
+                                $name = trim(($r['FirstName'] ?? '') . ' ' . ($r['LastName'] ?? '')) ?: '—';
+                                $grade = $r['Grade'] ?? ' TBA ';
+                              ?>
+                              <tr>
+                                <td><a href="student_profile.php?studentID=<?= urlencode($r['StudentID']) ?>">
+                                  <?= htmlspecialchars($name) ?> </a></td>
+                                <td><?= htmlspecialchars($grade) ?></td>
+                              </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                        </table>
+                        <?php endif; ?>
+                    </td>
                 </tr>
+                    
                 <?php endforeach; ?>
               <?php endif; ?>
             </tbody>

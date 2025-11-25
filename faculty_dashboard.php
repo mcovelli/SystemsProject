@@ -152,7 +152,7 @@ $quickLinks = [
     ['label' => 'Gradebook',  'href' => '#',                'icon' => 'check-circle'],
     ['label' => 'Messages',     'href' => 'messages.php',                      'icon' => 'mail'],
     ['label' => 'Announcements',      'href' => 'send_announcement.php',                'icon' => 'megaphone'],
-    ['label' => 'Attendance',      'href' => 'track_attendance.php',                'icon' => 'megaphone'],
+    ['label' => 'Grading',      'href' => 'grade.php',                'icon' => 'pencil'],
     ['label' => 'Logout',     'href' => 'logout.php',       'icon' => 'log-out']
 ];
 

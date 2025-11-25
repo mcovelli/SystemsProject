@@ -273,7 +273,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     requirementSelection.addEventListener("change", function() => {
         const value = this.value;
 
-        if (value === "major-req-menu"){
+        if (value === "majorRequirement"){
             major-req-menu.style.display = "block";
             minor-req-menu.style.display = "none";
             program-req-menu.style.display = "none";
@@ -296,7 +296,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                 console.log("Form submitted");
             })
            }
-        } else if (value === "minor-req-menu"){
+        } else if (value === "minorRequirement"){
         major-req-menu.style.display = "none";
            minor-req-menu.style.display = "block";
            program-req-menu.style.display = "none";
@@ -319,7 +319,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                 console.log("Form submitted");
             })
            }
-        } else if (value === "program-req-menu"){
+        } else if (value === "programRequirement"){
            major-req-menu.style.display = "none";
            minor-req-menu.style.display = "none";
            program-req-menu.style.display = "block";

@@ -130,7 +130,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             </div>
                 <div id = "create-section-course">
                     <form id = "CreateCourseSection" method = "POST" action = "">
-                      <label for="courseSectionNo">Course Section No.: </label>
+                      <label for="courseSectionNo" hidden>Course Section No.: </label>
                       <input type = "hidden" id="courseSectionNo" name="courseSectionNo" required placeholder="ex. 1"><br>
 
                         <label for="courseID">Course ID: </label>

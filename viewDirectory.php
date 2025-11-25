@@ -125,7 +125,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       </div>
   </main>
 
-<footer>© <span id="year"></span> Northport University • All rights reserved</footer>
+<footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 

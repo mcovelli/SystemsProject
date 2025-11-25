@@ -33,30 +33,24 @@ $insertEnroll = $mysqli->prepare("
     VALUES (?, ?, ?, ?, ?, CURRENT_DATE())
 ");
 
-$insertHistory = $mysqli->prepare("
-    INSERT INTO StudentHistory (StudentID, CRN, SemesterID, CourseID)
-    VALUES (?, ?, ?, ?)
-");
-
 $updateSeats = $mysqli->prepare("UPDATE CourseSection SET AvailableSeats = AvailableSeats - 1 WHERE CRN = ?");
 
 $enrolled = [];
 $waitlisted = [];
 
 foreach ($cart as $item) {
-    // Each $item should be an array with keys ['crn', 'courseID']
     $crn = is_array($item) ? ($item['crn'] ?? null) : $item;
     $courseId = is_array($item) ? ($item['courseID'] ?? null) : '';
 
     if (empty($crn) || !is_numeric($crn)) continue;
 
-    // 1️⃣ Prevent duplicates
+    // Prevent duplicates
     $check->bind_param('ii', $userId, $crn);
     $check->execute();
     $check->store_result();
     if ($check->num_rows > 0) continue; // already enrolled
 
-    // 2️⃣ Lookup SemesterID, CourseID, and AvailableSeats
+    // Lookup SemesterID, CourseID, and AvailableSeats
     $getCourse->bind_param('i', $crn);
     $getCourse->execute();
     $res = $getCourse->get_result();
@@ -64,10 +58,10 @@ foreach ($cart as $item) {
     if (!$course) continue;
 
     $semesterId = $course['SemesterID'];
-    $courseId   = $courseId ?: $course['CourseID']; // fallback
+    $courseId   = $courseId ?: $course['CourseID'];
     $available  = (int)$course['AvailableSeats'];
 
-    // 3️⃣ Decide enrollment status
+    // Decide enrollment status
     if ($available > 0) {
         $status = 'ENROLLED';
         $insertEnroll->bind_param('isiss', $userId, $semesterId, $crn, $courseId, $status);
@@ -81,17 +75,12 @@ foreach ($cart as $item) {
         $insertEnroll->execute();
         $waitlisted[] = $crn;
     }
-
-    // Always add to StudentHistory
-    $insertHistory->bind_param('iiss', $userId, $crn, $semesterId, $courseId);
-    $insertHistory->execute();
-    }
+}
 
 // Close all
 $check->close();
 $getCourse->close();
 $insertEnroll->close();
-$insertHistory->close();
 $updateSeats->close();
 unset($_SESSION['cart']);
 

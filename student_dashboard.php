@@ -129,7 +129,7 @@ $credits_sql = "
     FROM StudentEnrollment se
     JOIN CourseSection cs ON se.CRN = cs.CRN
     JOIN Course c ON cs.CourseID = c.CourseID
-    WHERE se.StudentID = ? AND se.Status = 'IN-PROGRESS'
+    WHERE se.StudentID = ? AND se.Status IN('ENROLLED', 'IN-PROGRESS')
 ";
 $credits_stmt = $mysqli->prepare($credits_sql);
 $credits_stmt->bind_param('i', $userId);

@@ -52,10 +52,11 @@ try {
 
     // Delete enrollment record
     $drop = $mysqli->prepare("
-        DELETE FROM StudentEnrollment
+        UPDATE StudentEnrollment SET Status = 'DROPPED'
         WHERE StudentID = ? AND CRN = ? AND SemesterID = ?
     ");
     $drop->bind_param('iis', $userId, $crn, $semester);
+
     $drop->execute();
     $drop->close();
 

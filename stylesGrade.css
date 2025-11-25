@@ -115,12 +115,12 @@ display: flex;
 align-items: center;
 gap: 10px;
 }
-.dropdown {
+.menu {
     position: relative;
     display: inline-block;
 }
 
-.dropdown button {
+.menu button {
     background: #e2e8f0;
     color: #1e293b;
     border: none;
@@ -131,7 +131,7 @@ gap: 10px;
 }
 
 
-.dropdown-content {
+.menu-content {
     display: none;
     position: absolute;
     right: 0;          /* <-- fixes overflow */
@@ -145,18 +145,18 @@ gap: 10px;
 }
 
 
-.dropdown-content a {
+.menu-content a {
     display: block;
     padding: 10px 15px;
     color: #1e293b;
     text-decoration: none;
 }
 
-.dropdown-content a:hover {
+.menu-content a:hover {
     background: #f1f5f9;
 }
 
-.dropdown:hover .dropdown-content {
+.menu:hover .menu-content {
     display: block;
 }
 
@@ -297,3 +297,21 @@ gap: 10px;
     .popup-card .form-grid textarea:focus {
       outline: 2px solid var(--primary, #4f46e5);
     }
+
+/* Clickable Schedule Row */
+.cs {
+    cursor: pointer;
+}
+
+table tr.roster {
+    display: none !important;
+}
+
+table tr.roster.open {
+    display: table-row !important;
+}
+
+.inner-roster {
+    display: block;
+    width: 100%;
+}

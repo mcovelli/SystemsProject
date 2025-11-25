@@ -76,7 +76,7 @@ $courses_sql = "
       ORDER BY cs.CRN, MIN(p.StartTime);
     ";
     $courses_stmt = $mysqli->prepare($courses_sql);
-    $courses_stmt->bind_param('is', $facultyId, $selectedSemester);
+    $courses_stmt->bind_param('is', $userId, $selectedSemester);
     $courses_stmt->execute();
     $courses_result = $courses_stmt->get_result();
     $schedule = $courses_result->fetch_all(MYSQLI_ASSOC);
@@ -118,12 +118,23 @@ if ($selectedSemester) {
     $roster_stmt->close();
 }
 
+$fac_stmt = $mysqli->prepare("SELECT OfficeID, Ranking FROM Faculty WHERE FacultyID = ? LIMIT 1");
+$fac_stmt->bind_param('i', $facultyId);
+$fac_stmt->execute();
+$fac = $fac_stmt->get_result()->fetch_assoc();
+$fac_stmt->close();
+$office    = $fac['OfficeID'] ?? 'N/A';
+$ranking   = $fac['Ranking'] ?? 'Faculty';
+
+$initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
+?>
+
 <!doctype html>
 <html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Faculty Dashboard • Northport University</title>
+  <title>Grading • Northport University</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -134,7 +145,7 @@ if ($selectedSemester) {
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Faculty Portal</span>
+      <span class="pill">Grading Portal</span>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -166,7 +177,61 @@ if ($selectedSemester) {
     </div>
   </header>
 
+  <section>
+    <div class="card">
+          <form method="get" class="semester-selector" style="margin-bottom:10px">
+            <label for="semester" style="margin-right:6px">View Semester:</label>
+            <select name="semester" id="semester" onchange="this.form.submit()">
+              <option value="">Current Semester</option>
+              <?php foreach ($semesters as $sem): ?>
+                <option value="<?php echo htmlspecialchars($sem['SemesterID']); ?>" <?php echo ($selectedSemester == $sem['SemesterID']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($sem['SemesterName'] . ' ' . $sem['Year']); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </form>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="w-90">CRN</th>
+                <th>Course</th>
+                <th>Days</th>
+                <th>Time</th>
+                <th>Location</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if (empty($schedule)): ?>
+                <tr><td colspan="5">No schedule available.</td></tr>
+              <?php else: ?>
+                <?php foreach ($schedule as $row): ?>
+                  <tr class ="dropdown-row">
+                    <td><?php echo htmlspecialchars($row['CRN'] ?? ' - '); ?></td>
+                    <td><?php echo htmlspecialchars($row['CourseName'] ?? ' - '); ?></td>
+                    <td><?php echo htmlspecialchars($row['Days'] ?? ' - '); ?></td>
+                    <td><?php echo htmlspecialchars($row['StartTime'] . ' – ' . $row['EndTime'] ?? ' - '); ?></td>
+                    <td><?php echo htmlspecialchars($row['RoomID'] ?? ' - '); ?></td>
+                  </tr>
+                  <tr class="dropdown-content">
+                    <td>
+                </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
 
+  
+    </section>
 
+      <footer class="footer">
+    © <span id="year"></span> Northport University • All rights reserved • <a href="#" class="link">Privacy</a>
+  </footer>
 
-?>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script>
+    // Create icons on load
+    lucide.createIcons();
+</script>
+
+</body>
+</html>

@@ -149,10 +149,9 @@ $quickLinks = [
     ['label' => 'Profile',    'href' => 'faculty_profile.php', 'icon' => 'user'],
     ['label' => 'Advisees',   'href' => 'ViewAdvisees.php',                'icon' => 'users'],
     ['label' => 'Attendance', 'href' => 'track_attendance.php',                'icon' => 'apple'],
-    ['label' => 'Gradebook',  'href' => '#',                'icon' => 'check-circle'],
+    ['label' => 'Gradebook',  'href' => 'grade.php',                'icon' => 'check-circle'],
     ['label' => 'Messages',     'href' => 'messages.php',                      'icon' => 'mail'],
     ['label' => 'Announcements',      'href' => 'send_announcement.php',                'icon' => 'megaphone'],
-    ['label' => 'Grading',      'href' => 'grade.php',                'icon' => 'pencil'],
     ['label' => 'Logout',     'href' => 'logout.php',       'icon' => 'log-out']
 ];
 

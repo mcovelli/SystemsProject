@@ -298,29 +298,17 @@ gap: 10px;
       outline: 2px solid var(--primary, #4f46e5);
     }
 
+/* Clickable Schedule Row */
 .cs {
-    position: absolute;
-    right: 0;
-    left: auto;
-    display: none;
-    background: var(--panel);
-}
-
-.cs.open {
-    display: table-row;
-}
-
-.roster {
     cursor: pointer;
 }
 
-/* Table dropdown override */
-.cs {
-    position: static !important;
-    display: none !important;
-    background: var(--panel); 
+/* Hidden roster rows */
+.roster {
+    display: none;
 }
 
-.dropdown-content.open {
-    display: table-row !important;
+/* Show when JS toggles .open */
+.roster.open {
+    display: table-row;
 }

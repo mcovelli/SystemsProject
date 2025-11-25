@@ -85,42 +85,6 @@ $courses_sql = "
     $courses_stmt->close();
 }
 
-// Fetch roster (students enrolled in faculty's sections)
-$roster = [];
-if ($selectedSemester) {
-    $roster_sql = "
-      SELECT 
-        u.FirstName, 
-        u.LastName, 
-        c.CourseName, 
-        GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
-        DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
-        DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
-        cs.RoomID
-      FROM StudentEnrollment se
-      JOIN Users u ON se.StudentID = u.UserID
-      JOIN CourseSection cs ON se.CRN = cs.CRN
-      JOIN Course c ON cs.CourseID = c.CourseID
-      JOIN Semester s ON cs.SemesterID = s.SemesterID
-      JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
-      JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
-      JOIN Day d ON tsd.DayID = d.DayID
-      JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
-      JOIN Period p ON tsp.PeriodID = p.PeriodID
-      WHERE cs.FacultyID = ?
-        AND cs.SemesterID = ?
-        AND cs.CRN = ?
-      GROUP BY se.StudentID, cs.CRN, c.CourseName, cs.RoomID
-      ORDER BY c.CourseName, u.LastName, u.FirstName;
-    ";
-    $roster_stmt = $mysqli->prepare($roster_sql);
-    $roster_stmt->bind_param('isi', $userId, $selectedSemester, $selectedCourse);
-    $roster_stmt->execute();
-    $roster_result = $roster_stmt->get_result();
-    $roster = $roster_result->fetch_all(MYSQLI_ASSOC);
-    $roster_stmt->close();
-}
-
 $fac_stmt = $mysqli->prepare("SELECT OfficeID, Ranking FROM Faculty WHERE FacultyID = ? LIMIT 1");
 $fac_stmt->bind_param('i', $userId);
 $fac_stmt->execute();
@@ -203,55 +167,94 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
               </tr>
             </thead>
             <tbody>
-              <?php if (empty($schedule)): ?>
-                <tr><td colspan="5">No schedule available.</td></tr>
-              <?php else: ?>
                 <?php foreach ($schedule as $row): ?>
-                <tr class="dropdown-row" class="cs-<?= $row['CRN'] ?>" data-crn="<?= $row['CRN'] ?>">
-                    <td id="crn" name="crn"><?php echo htmlspecialchars($row['CRN'] ?? ' - '); ?></td>
-                    <td><?php echo htmlspecialchars($row['CourseName'] ?? ' - '); ?></td>
-                    <td><?php echo htmlspecialchars($row['Days'] ?? ' - '); ?></td>
-                    <td><?php 
-                        $time = ($row['StartTime'] ?? '') . ' – ' . ($row['EndTime'] ?? '');
-                        echo htmlspecialchars(trim($time) ?: ' - ');
-                        ?></td>
-                    <td><?php echo htmlspecialchars($row['RoomID'] ?? ' - '); ?></td>
-                  </tr>
 
-                  <tr class="dropdown-content" class="roster-<?= $row['CRN'] ?>">
-                    <td colspan = "5">
-                        <?php if (empty($roster)): ?>
-                            No students enrolled.
-                  <?php else: ?>
-                    <table class ="inner-roster">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Grade</th>
-                            </tr>
-                        </thead>
+                    <?php
+                        // Load correct roster for THIS CRN
+                        $crn = $row['CRN'];
 
-                        <tbody>
-                            <?php foreach ($roster as $r): ?>
-                              <?php
-                                $name = trim(($r['FirstName'] ?? '') . ' ' . ($r['LastName'] ?? '')) ?: '—';
-                                $grade = $r['Grade'] ?? ' TBA ';
-                              ?>
-                              <tr>
-                                <td><a href="student_profile.php?studentID=<?= urlencode($r['StudentID']) ?>">
-                                  <?= htmlspecialchars($name) ?> </a></td>
-                                <td><?= htmlspecialchars($grade) ?></td>
-                              </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                        </table>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                    
+                        $roster_sql = "
+                            SELECT 
+                                u.FirstName, 
+                                u.LastName,
+                                se.StudentID,
+                                se.Grade
+                            FROM StudentEnrollment se
+                            JOIN Users u ON se.StudentID = u.UserID
+                            JOIN CourseSection cs ON se.CRN = cs.CRN
+                            WHERE cs.FacultyID = ?
+                              AND cs.SemesterID = ?
+                              AND cs.CRN = ?
+                            ORDER BY u.LastName, u.FirstName
+                        ";
+                        $stmt = $mysqli->prepare($roster_sql);
+                        $stmt->bind_param("isi", $userId, $selectedSemester, $crn);
+                        $stmt->execute();
+                        $roster = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                        $stmt->close();
+                    ?>
+
+                    <tr class="cs" data-crn="<?= $row['CRN'] ?>">
+                        <td><?= htmlspecialchars($row['CRN']) ?></td>
+                        <td><?= htmlspecialchars($row['CourseName']) ?></td>
+                        <td><?= htmlspecialchars($row['Days']) ?></td>
+                        <td>
+                            <?php 
+                                $time = trim(($row['StartTime'] ?? '') . ' – ' . ($row['EndTime'] ?? ''));
+                                echo htmlspecialchars($time ?: 'TBA');
+                            ?>
+                        </td>
+                        <td><?= htmlspecialchars($row['RoomID']) ?></td>
+                    </tr>
+
+                    <tr id="roster-<?= $row['CRN'] ?>" class="roster">
+                        <td colspan="5">
+                            <?php if (empty($roster)): ?>
+                                No students enrolled.
+                            <?php else: ?>
+                                <table class="inner-roster">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Grade</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($roster as $r): ?>
+                                            <?php
+                                                $name = trim(($r['FirstName'] ?? '') . ' ' . ($r['LastName'] ?? '')) ?: '—';
+                                            ?>
+                                            <tr>
+                                                <td>
+                                                    <a href="student_profile.php?studentID=<?= urlencode($r['StudentID']) ?>">
+                                                        <?= htmlspecialchars($name) ?>
+                                                    </a>
+                                                </td>
+                                                <td><form method="POST"><select>
+                                                    <option value="">----</option>
+                                                    <option value="A">A</option>
+                                                    <option value="A-">A-</option>
+                                                    <option value="B+">B+</option>
+                                                    <option value="B">B</option>
+                                                    <option value="B-">B-</option>
+                                                    <option value="C+">C+</option>
+                                                    <option value="C">C</option>
+                                                    <option value="C-">C-</option>
+                                                    <option value="D+">D+</option>
+                                                    <option value="D">D</option>
+                                                    <option value="D-">D-</option>
+                                                    <option value="F">F</option>
+                                                </select></form></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+
                 <?php endforeach; ?>
-              <?php endif; ?>
-            </tbody>
+                </tbody>
           </table>
         </div>
 
@@ -266,25 +269,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <script>
     // Create icons on load
     lucide.createIcons();
-     document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      // Swap the icon
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      lucide.createIcons();
     });
-document.querySelectorAll(".dropdown-row").forEach(row => {
-    row.addEventListener("click", () => {
-        const crn = row.dataset.crn;
-        const dropdown = document.getElementById("csroster-" + crn);
-        dropdown.classList.toggle("open");
-    });
-});
 </script>
 
 </body>

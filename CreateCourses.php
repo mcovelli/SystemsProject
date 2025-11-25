@@ -111,7 +111,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                         <br>
 
                         <label for="courseName">Course Name: </label>
-                             <input type = "text" id="courseName" name="courseName" required placeholder="ex. Biology Foundations">
+                             <input type = "text" id="courseName" name="courseName" required placeholder="ex. Biology Foundations"><br>
 
                         <label for="dept">Department: </label>
                              <select name="dept" id="dept">

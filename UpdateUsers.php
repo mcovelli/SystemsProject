@@ -401,7 +401,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
             <br>
             <label for ="userID" hidden>User ID:</label>
-            <input type = "hidden" id = "userID" name="userID">
+            <input type = "hidden" id = "userID" name="userID"></br>
             
             <label for="fname">First Name:</label>
             <input type="text" id="fname" name="fname"><br>

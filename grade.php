@@ -269,6 +269,34 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <script>
     // Create icons on load
     lucide.createIcons();
+     document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const root = document.documentElement;
+      const current = root.getAttribute('data-theme') || 'light';
+      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+      // Swap the icon
+      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
+      lucide.createIcons();
+    });
+document.querySelectorAll(".dropdown-row").forEach(row => {
+    row.addEventListener("click", () => {
+        const crn = row.dataset.crn;
+        const dropdown = document.getElementById("csroster-" + crn);
+        dropdown.classList.toggle("open");
+
+
+    document.querySelectorAll(".cs").forEach(row => {
+        row.addEventListener("click", () => {
+            const crn = row.dataset.crn;
+            const rosterRow = document.getElementById("roster-" + crn);
+            
+            if (rosterRow) {
+                rosterRow.classList.toggle("open");
+            }
+        });
     });
 </script>
 

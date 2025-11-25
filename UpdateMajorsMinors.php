@@ -155,18 +155,29 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 <body>
 </body>
 
-<script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
+     lucide.createIcons();
 
     document.getElementById('majorOrMinor').addEventListener('change', function() {
     const type = this.value; // 'major' or 'minor'
-    const label = document.getElementById('typeLabel');
+    const typeLabel = document.getElementById('typeLabel');
 
         if (type === 'major') {
-            label.textContent = "Major ";
+            typeLabel.textContent = "Major ";
         } else if (type === 'minor') {
-            label.textContent = "Minor ";
+            typeLabel.textContent = "Minor ";
         } else {
-            label.textContent = "";
+            typeLabel.textContent = "";
+        }
+
+         const IDLabel = document.getElementById('typeID');
+
+        if (type === 'major') {
+            IDLabel.textContent = "Major ";
+        } else if (type === 'minor') {
+            IDLabel.textContent = "Minor ";
+        } else {
+            IDLabel.textContent = "";
         }
     });
 

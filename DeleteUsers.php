@@ -112,7 +112,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     </main>
 </body>
 
-<script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
+     lucide.createIcons();
+
 
     // Delete departments from get_departments.php
     document.getElementById("DeleteUser").addEventListener("submit", (e) => {

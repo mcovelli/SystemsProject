@@ -489,7 +489,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     <footer>© 2025 Northport University • All rights reserved</footer>
 
-   <script>
+   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
+     lucide.createIcons();
     document.addEventListener("DOMContentLoaded", () => {
       const form = document.getElementById("CreateUser");
       subTypeMenu2.style.display = "none";

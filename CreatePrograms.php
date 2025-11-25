@@ -152,7 +152,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
  <footer>© 2025 Northport University • All rights reserved</footer>
 
- <script>
+ <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
+     lucide.createIcons();
     fetch('get_grad_degree_level.php')
     .then(response => response.json())
     .then(data => {

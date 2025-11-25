@@ -132,7 +132,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                         </select>
                         <br>
                          <?php $type = $_POST['majorOrMinor'] ?? ''; ?>
-                        <label id="typeID" for ="major_name"><?php echo htmlspecialchars($type) ?></label>
+                        <label id="typeID" for ="major_name" hidden><?php echo htmlspecialchars($type) ?></label>
                         <?= $type === 'major' ? 'Major ' : ($type === 'minor' ? 'Minor ' : 'ID:') ?>
                             <input type = "hidden" id = "major_ID" name="major_ID" placeholder="ex. MATH"><br>
                         <label for="dept">Department: </label>

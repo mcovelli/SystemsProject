@@ -106,7 +106,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             </div>
                 <div id = "update-section-department">
                     <form id = "UpdateDepartment" method = "POST" action = "">
-                      <label for = "deptID">Department ID: </label>
+                      <label for = "deptID" hidden>Department ID: </label>
                             <input type = "hidden" id = "deptID" name="deptID" placeholder="ex. MATH"><br>
                         <label for="deptName">Department Name: </label>
                              <input type = "text" id="deptName" name="deptName" placeholder="ex. Mathematics"><br>

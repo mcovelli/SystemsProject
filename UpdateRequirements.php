@@ -233,7 +233,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 <section id = "program-req-menu" class = "hero card hidden">
 <div id = "program-requirement">
             <form id = "programRequirementForm" method = "POST" action = "">
-            <label for = "requirementID">Requirement ID:</label>
+            <label for = "requirementID" hidden>Requirement ID:</label>
             <input type = "hidden" id = "requirementID" name="requirementID"><br>
 
             <label for="programID">Program Requirement ID:</label>

@@ -118,7 +118,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           <!-- CREATE Program FORM -->
           <div id = "update-program">
           <form id="UpdateProgram" method="POST" action="">
-            <label for="program_id">Program ID:</label>
+            <label for="program_id" hidden>Program ID:</label>
             <input type = "hidden" select id="program_id" name="program_id"><br>
 
             <label for="program_code">Program Code:</label>

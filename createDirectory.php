@@ -190,20 +190,6 @@ $initials = substr($admin['FirstName'], 0, 1) . substr($admin['LastName'], 0, 1)
       if (window.lucide) lucide.createIcons();
     });
 
-    // Populate the year in the footer
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      // Swap the icon
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      if (window.lucide) lucide.createIcons();
-    });
-
     // Tab switching
     document.querySelectorAll('.tabs .tab').forEach(tab => {
       tab.addEventListener('click', () => {

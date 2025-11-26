@@ -172,6 +172,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <section>
     <div class="card">
         <h1>Current Semester Grades</h1>
+        <h4>Click course section row to view roster and submit grades</h4>
         <div class="table-wrap">
           <table>
             <thead>
@@ -248,7 +249,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                                             </td>
                                             <td>
                                                 <form class="grade-form"
-                                                  data-student="<?= $r['StudentID'] ?>"
+                                                  data-student="<?= $r['StudentID']     ?>"
                                                   data-crn="<?= $crn ?>"
                                                   data-course="<?= $row['CourseID'] ?>"
                                                   data-semester="<?= $selectedSemester ?>">

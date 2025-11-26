@@ -1,157 +1,173 @@
 <?php
-
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 session_start();
 require_once __DIR__ . '/config.php';
 
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'faculty'){
-    redirect(PROJECT_ROOT . "/login.html");
+// Allow faculty or update-admin
+if (
+    !isset($_SESSION['user_id']) ||
+    (
+        ($_SESSION['role'] ?? '') !== 'faculty' &&
+        !(($_SESSION['role'] ?? '') === 'admin' && ($_SESSION['admin_type'] ?? '') === 'update')
+    )
+) {
+    header('Location: login.php');
+    exit;
 }
 
 $userId = $_SESSION['user_id'];
 
+
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$sql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
-        FROM Users WHERE UserID = ? LIMIT 1";
-$stmt = $mysqli->prepare($sql);
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$res = $stmt->get_result();
-$student = $res->fetch_assoc();
-$stmt->close();
+// Fetch user and faculty info
+$user_stmt = $mysqli->prepare("SELECT FirstName, LastName, Email, DOB FROM Users WHERE UserID = ? LIMIT 1");
+$user_stmt->bind_param('i', $userId);
+$user_stmt->execute();
+$user = $user_stmt->get_result()->fetch_assoc();
+$user_stmt->close();
 
-$courses_sql = "
-  SELECT 
-      s.SemesterID,
-      cs.CourseID,
-      c.CourseName,
-      c.Credits,
-      se.Grade,
-      se.Status
-  FROM StudentEnrollment se
-  JOIN CourseSection cs ON se.CRN = cs.CRN 
-  AND se.SemesterID = cs.SemesterID
-  JOIN Course c ON cs.CourseID = c.CourseID
-  JOIN Semester s ON se.SemesterID = s.SemesterID
-  WHERE se.StudentID = ? 
-  ORDER BY s.Year DESC, s.SemesterName DESC
-";
-$courses_stmt = $mysqli->prepare($courses_sql);
-$courses_stmt->bind_param('i', $userId);
-$courses_stmt->execute();
-$courses_result = $courses_stmt->get_result();
-$courses = $courses_result->fetch_all(MYSQLI_ASSOC);
-$courses_stmt->close();
-
-$student_sql = "
-SELECT
-  csa.StudentID,
-  csa.CRN,
-  csa.CourseID,
-  csa.AttendanceDate,
-  c.CourseName,
-  cs.SemesterID,
-  cs.CourseSectionNo,
-  cs.TimeSlotID,
-  s.StudentType,
-  se.Status,
-  se.Grade,
-  u.UGStudentType,
-  g.GradStudentType
-FROM CourseSectionAttendance csa
-JOIN Course c 
-    ON c.CourseID = csa.CourseID
-JOIN CourseSection cs 
-    ON cs.CourseID = csa.CourseID
-   AND cs.CRN = csa.CRN
-JOIN Student s 
-    ON s.StudentID = csa.StudentID
-JOIN StudentEnrollment se 
-    ON se.StudentID = csa.StudentID
-   AND se.CRN = csa.CRN
-   AND se.CourseID = csa.CourseID
-JOIN TimeSlot ts 
-    ON cs.TimeSlotID = ts.TS_ID
-JOIN TimeSlotPeriod tsp 
-    ON ts.TS_ID = tsp.TS_ID
-JOIN TimeSlotDay tsd 
-    ON ts.TS_ID = tsd.TS_ID
-JOIN Period p 
-    ON tsp.PeriodID = p.PeriodID
-JOIN Day d 
-    ON tsd.DayID = d.DayID
-LEFT JOIN Undergraduate u 
-    ON u.StudentID = csa.StudentID
-LEFT JOIN Graduate g 
-    ON g.StudentID = csa.StudentID
-WHERE csa.StudentID = ?
-ORDER BY csa.StudentID
-";
-
-$student_stmt = $mysqli->prepare($student_sql);
-$student_stmt->bind_param('i', $userId);
-$student_stmt->execute();
-$student_result = $student_stmt->get_result();
-$student = $student_result->fetch_all(MYSQLI_ASSOC);
-$student_stmt->close();
-
-$location_sql = "
-SELECT 
-r.RoomID,
-r.RoomNo,
-r.BuildingID
-FROM Room r
-JOIN Building b on b.BuildingID = r.BuildingID
-JOIN CourseSection cs on cs.RoomID = r.RoomID
-";
-
-$location_stmt = $mysqli->prepare($location_sql);
-$location_stmt->execute();
-$location_result = $location_stmt->get_result();
-$location = $location_result->fetch_all(MYSQLI_ASSOC);
-$location_stmt->close();
-
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-    case 'student':  $dashboard = 'student_dashboard.php'; break;
-    case 'faculty':  $dashboard = 'faculty_dashboard.php'; break;
-    case 'admin':
-        $dashboard = ($_SESSION['admin_type'] ?? '') === 'update'
-            ? 'update_admin_dashboard.php'
-            : 'view_admin_dashboard.php';
-        break;
-    default: $dashboard = 'login.php';
+if (!$user) {
+    echo "<p>Faculty member not found.</p>";
+    exit;
 }
 
+// Fetch current semester
+$sem_sql = "
+    SELECT SemesterID, SemesterName, Year 
+    FROM Semester 
+    WHERE CURDATE() BETWEEN StartDate AND EndDate 
+    LIMIT 1
+";
+$sem_stmt = $mysqli->prepare($sem_sql);
+$sem_stmt->execute();
+$sem_result = $sem_stmt->get_result();
+$current = $sem_result->fetch_assoc();
+$sem_stmt->close();
+
+$selectedSemester = $current['SemesterID'] ?? null;
+
+// Fetch schedule for courses taught
+$schedule = [];
+
+if ($selectedSemester !== null) {
+
+    $courses_sql = "
+        SELECT 
+            cs.CRN,
+            c.CourseName,
+            GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
+            DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
+            DATE_FORMAT(MAX(p.EndTime), '%l:%i %p') AS EndTime,
+            cs.RoomID,
+            cs.CourseID
+        FROM CourseSection cs
+        JOIN Course c ON cs.CourseID = c.CourseID
+        JOIN Semester s ON cs.SemesterID = s.SemesterID
+        JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
+        JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
+        JOIN Day d ON tsd.DayID = d.DayID
+        JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
+        JOIN Period p ON tsp.PeriodID = p.PeriodID
+        WHERE cs.FacultyID = ?
+          AND cs.SemesterID = ?
+        GROUP BY cs.CRN, c.CourseName, cs.RoomID
+        ORDER BY cs.CRN, MIN(p.StartTime);
+    ";
+
+    $courses_stmt = $mysqli->prepare($courses_sql);
+    $courses_stmt->bind_param("is", $userId, $selectedSemester);
+    $courses_stmt->execute();
+    $courses_result = $courses_stmt->get_result();
+    $schedule = $courses_result->fetch_all(MYSQLI_ASSOC);
+    $courses_stmt->close();
+}
+
+$fac_stmt = $mysqli->prepare("SELECT OfficeID, Ranking FROM Faculty WHERE FacultyID = ? LIMIT 1");
+$fac_stmt->bind_param('i', $userId);
+$fac_stmt->execute();
+$fac = $fac_stmt->get_result()->fetch_assoc();
+$fac_stmt->close();
+$office    = $fac['OfficeID'] ?? 'N/A';
+$ranking   = $fac['Ranking'] ?? 'Faculty';
+
+$studentId = $_GET['studentID'] ?? '';
+    $crn = $_GET['crn'] ?? '';
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $grade = $_POST['grade'] ?? '';
+    $studentId = $_POST['studentID'] ?? '';
+    $crn = $_POST['crn'] ?? '';
+    $courseId = $_POST['courseID'] ?? '';
+    $semester = $_POST['semesterID'] ?? '';
+
+$mysqli->begin_transaction();
+
+  $sql = "UPDATE StudentEnrollment SET Grade = ?, Status = 'COMPLETED' WHERE StudentID=? AND CRN =?";
+  $stmt = $mysqli->prepare($sql);
+  $stmt->bind_param("sii", $grade, $studentId, $crn );
+  $stmt->execute();
+    
+$sqlSH = "INSERT INTO StudentHistory (StudentID, CRN, SemesterID, Grade, CourseID) VALUES (?, ?, ?, ?, ?)";
+  $stmtSH = $mysqli->prepare($sqlSH);
+  $stmtSH->bind_param("iisss", $studentId, $crn, $semester, $grade, $courseId);
+  $stmtSH->execute();
+
+$mysqli->commit();
+echo "<script>alert('Grade Submitted ✅');</script>";
+}
+
+$initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
-
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="light">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Track Attendance | Northport University</title>
-<link rel="stylesheet" href="track_attendance.css"/>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grading • Northport University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./stylesGrade.css" />
 </head>
 <body>
-  <div class = "page">
-   <header class="topbar">
-    <button class="btn" id="exportBtn"><p><a href="<?= htmlspecialchars($dashboard) ?>">← Back to Dashboard</a></p>
-    </button>
+  <header class="topbar">
     <div class="brand">
-    <div class="logo"><i data-lucide="graduation-cap"></i></div>
-    <h1>Northport University</h1>
+      <div class="logo"><i data-lucide="graduation-cap"></i></div>
+      <h1>Northport University</h1>
+      <span class="pill">Grading Portal</span>
     </div>
-    </header>
+    <div class="top-actions">
+      <div class="search">
+        <i class="search-icon" data-lucide="search"></i>
+        <input type="text" placeholder="Search courses, people, anything…" />
+      </div>
+      <button class="icon-btn" aria-label="Notifications"><i data-lucide="bell"></i></button>
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
+      <div class="divider"></div>
+      <div class="user">
+        <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
+        <div class="user-meta">
+          <div class="name"><?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?></div>
+          <div class="sub"><?php echo htmlspecialchars($ranking); ?></div>
+        </div>
+        <div class="header-left">
+          <div class="menu">
+            <button>☰ Menu</button>
+            <div class="menu-content">
+              <a href="faculty_profile.php">Profile</a>
+              <a href="ViewAdvisees.php">Advisees</a>
+              <a href="ViewRoster.php">Rosters</a>
+              <a href="viewDirectory.php">View Directory</a>
+              <a href="logout.php">Logout</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
 
     
        <div class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
@@ -167,10 +183,12 @@ switch ($userRole) {
             <div class = "label">
             <label for ="teacher-courses">
               <div>Select Course:</div>
-              <select id = "teacher-courses">
-                <option value = "Intro to Programming">Intro to Programming</option>
-                <option value = "C++">C++</option>
-                <option value = "Web Development">Web Development</option>
+              <select name= "courseID">
+                <option value = "">---</option>
+                  <?php foreach ($schedule as $row): ?>
+                  <option value="<?= $row['CourseID'] ?>"> <?= htmlspecialchars($row['CourseID'] . ' - ' . $row['CRN'])?>
+                  </option>
+                <?php endforeach; ?>
             </select>
               </label>
             </div>
@@ -189,10 +207,12 @@ switch ($userRole) {
         <table id = "daily-schedule">
             <thead>
                 <tr>
-                    <th>Attendance Number</th>
                     <th>Student Name</th>
-                    <th>Status</th>
-                    <th>Comments</th>
+                    <?php 
+                      $days = ["Mon", "Tues", "Wed", "Thurs"];
+                    foreach ($days as $d): ?>
+                    <th> <?php echo $d; ?></th>
+                  <?php endforeach; ?>
                 </tr>
             </thead>
             <tbody id = "attendance"></tbody>
@@ -205,6 +225,9 @@ switch ($userRole) {
       </div>
     </main>
   </div>
+
+    <footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
+
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script>
     // Immediately create Lucide icons
@@ -223,137 +246,6 @@ switch ($userRole) {
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       lucide.createIcons();
     });
-
-
-    const courseList = {
-      'Intro to Programming': {
-        course_id: 'CS1101',
-        daysOfWeek: ['Monday', 'Wednesday'],
-        section: 1,
-        attendanceRecords: [
-        {
-          date: "2025-10-20",
-          roster: [
-          {attn_number: 1, studentname: 'Javier Alejandro', status: 'Present', comments: 'Attendance is perfect'},
-          {attn_number: 2, studentname: 'Rajan Bhowmick', status: 'Absent', comments: 'Called in sick'},
-          {attn_number: 3, studentname: 'William Chen', status: 'Late', comments: 'Had to speak with another professor'},
-          {attn_number: 4, studentname: 'Puneet Khan', status: 'Present', comments: 'First day back after grandma died'}
-        ]
-        },
-        {
-        date: "2025-10-22",
-        roster: [
-          {attn_number: 1, studentname: 'Javier Alejandro', status: 'Present', comments: ''},
-          {attn_number: 2, studentname: 'Rajan Bhowmick', status: 'Late', comments: 'Got caught up in something that wasn&#39;t his fault'},
-          {attn_number: 3, studentname: 'William Chen', status: 'Absent', comments: 'Got sick so he will take test next class'},
-          {attn_number: 4, studentname: 'Puneet Khan', status: 'Present', comments: 'Feeling much better'}
-        ]
-      }
-    ]
-    },
-      'C++': {
-        course_id: 'CS2300',
-        section: 2,
-        daysOfWeek: ['Tuesday, Thursday'],
-        attendanceRecords: [
-        {
-        date: "2025-10-21",
-        roster: [
-          {attn_number: 1, studentname: 'Terrell Webster', status: 'Absent', comments: 'Terry had to leave school early for something personal.'},
-          {attn_number: 2, studentname: 'Saif Hassan', status: 'Present', comments: ''},
-          {attn_number: 3, studentname: 'Garrett Kim', status: 'Late', comments: 'Got into a traffic jam on the way to school'},
-          {attn_number: 4, studentname: 'Mersal George', status: 'Present', comments: ''}
-        ]
-        },
-        {
-        date:'2025-10-23',
-        roster: [
-          {attn_number: 1, studentname: 'Terrell Webster', status: 'Present', comments: 'Even though it was review day last class, Terry still managed to finish the quiz first!'},
-          {attn_number: 2, studentname: 'Saif Hassan', status: 'Absent', comments: 'Called in sick.'},
-          {attn_number: 3, studentname: 'Garrett Kim', status: 'Present', comments: 'Still doing very well in this course.'},
-          {attn_number: 4, studentname: 'Mersal George', status: 'Present', comments: 'Quiz was somewhat challenging for her.'}
-        ]
-        }
-      ]
-    },
-    'Web Development': {
-      course_id: 'CS2300',
-        section: 1,
-        daysOfWeek: ['Tuesday, Thursday'],
-        attendanceRecords: [
-        {
-        date: '2025-10-21',
-        roster: [
-          {attn_number: 1, studentname: 'Kyle Guarino', status: 'Late', comments: 'Was on his way from an event held earlier on campus.'},
-          {attn_number: 2, studentname: 'Zehra Singh', status: 'Absent', comments: 'First day she has missed this semester.'},
-          {attn_number: 3, studentname: 'Owen Li', status: 'Present', comments: ''},
-          {attn_number: 4, studentname: 'Raul Velez', status: 'Present', comments: ''}
-        ]
-        },
-        {
-        date: '2025-10-23',
-        roster:[
-          {attn_number: 1, studentname: 'Kyle Guarino', status: 'Present', comments: 'Had to leave class early for something personal.'},
-          {attn_number: 2, studentname: 'Zehra Singh', status: 'Present', comments: ''},
-          {attn_number: 3, studentname: 'Owen Li', status: 'Late', comments: 'Had to speak with his previous professor briefly'},
-          {attn_number: 4, studentname: 'Raul Velez', status: 'Present', comments: ''}
-        ]
-      }
-    ]
-    }
-  }
-
-  function studentRow (s){
-    const student = document.createElement('tr');
-      student.style.display='grid';
-      student.style.gridTemplateColumns='1fr auto auto auto auto';
-      student.style.gap='12px';
-      student.style.padding='10px 0';
-      student.innerHTML = `
-        <td><strong>${s.attn_number}</strong></td>
-        <td>${s.studentname}</td>
-        <td>${s.status}</td>
-        <td>${s.comments}</td>`;
-      return student;
-    }
-
-    function showAttendanceByCourse (courseName, dateOfCourse){
-      const attendanceChart = document.getElementById("attendance");
-      attendanceChart.innerHTML = " ";
-
-      const course = courseList[courseName];
-      if(!course){
-        attendanceChart.innerHTML = `<tr><td colspan = "4">Course not found</td></tr>`;
-        return;
-      } 
-
-      const record = course.attendanceRecords.find(r => r.date === dateValue);
-      if(!record){
-        attendanceChart.innerHTML = `<tr><td colspan = "4">Record not found.</td></tr>`;
-        return;
-      }
-
-    let presentStudentNumber = 0;
-    let lateStudentNumber = 0;
-    let absentStudentNumber = 0;
-    record.roster.forEach(s => {
-    attendanceChart.appendChild(studentRow(s));
-    if (s.status === 'Present') presentStudentNumber++;
-    if (s.status === 'Late') lateStudentNumber++;
-    if (s.status === 'Absent') absentStudentNumber++;
-    })
-    document.getElementById("student-count").innerHTML = 
-           ` <tr><td colspan = "12">Present: ${presentStudentNumber} | Late : ${lateStudentNumber} | Absent: ${absentStudentNumber}</td></tr> `;
-    }
-
-    function selectDateAndCourse(){
-      const courseName = document.getElementById('teacher-courses').value;
-      const dateOfCourse = document.getElementById('attendanceDate').value;
-      showAttendanceByCourse(courseName, dateOfCourse);
-    }
-
-    document.getElementById("selectButton").addEventListener("click", selectDateAndCourse);
   </script>
-  <footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
 </body>
 </html>

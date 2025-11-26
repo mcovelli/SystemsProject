@@ -136,7 +136,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $sql = "INSERT INTO CourseSectionAttendance
             (StudentID, CRN, CourseID, AttendanceDate, PresentAbsent)
-            VALUES (?, ?, ?, ?, ?)";
+            VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+        PresentAbsent = VALUES(PresentAbsent),
+        AttendanceDate = VALUES(AttendanceDate)";
 
     $stmt = $mysqli->prepare($sql);
 
@@ -248,21 +250,22 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
               <?php
                 $startOfWeek = strtotime('monday this week');
 
-                $days = [];
-                for ($i = 0; $i < 5; $i++) {
-                    $timestamp = strtotime("+$i day", $startOfWeek);
-                    $days[] = [
-                        'label' => date('D', $timestamp),
-                        'date'  => date('M j', $timestamp)
-                    ];
-                }
+                  $days = [];
+                  for ($i = 0; $i < 5; $i++) {
+                      $timestamp = strtotime("+$i day", $startOfWeek);
+                      $days[] = [
+                          'label'        => date('D', $timestamp),       // Mon
+                          'display'      => date('M j', $timestamp),     // Jan 27
+                          'mysql'        => date('Y-m-d', $timestamp)    // 2025-01-27
+                      ];
+                  }
                 ?>
 
                 <thead>
                     <tr>
                         <th>Student Name</th>
                         <?php foreach ($days as $d): ?>
-                            <th><?= $d['label'] ?> (<?= $d['date'] ?>)</th>
+                            <th><?= $d['label'] ?> (<?= $d['display'] ?>)</th>
                         <?php endforeach; ?>
                     </tr>
                 </thead>
@@ -285,7 +288,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                                       <option value="Absent">Absent</option>
                                   </select>
 
-                                  <input type="hidden" name="attendanceDate[]" value="<?= $d['date'] ?>">
+                                  <input type="hidden" name="attendanceDate[]" value="<?= $d['mysql'] ?>">
                               </td>
                           <?php endforeach; ?>
 

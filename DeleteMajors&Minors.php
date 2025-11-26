@@ -93,7 +93,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <i class="search-icon" data-lucide="search"></i>
         <input type="text" placeholder="Search courses, people, anything…" />
       </div>
-      <button class="icon-btn" aria-label="Notifications"><i data-lucide="bell"></i></button>
+      <button class="icon-btn" aria-label="Notifications" a href="announcements.php"><i data-lucide="bell"></i></button>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
       <div class="crumb"><a href="createDirectory.php" aria-label="Back to Directory">← Back to Directory</a></div>

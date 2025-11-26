@@ -83,6 +83,39 @@ if ($selectedSemester !== null) {
     $courses_stmt->close();
 }
 
+// Fetch roster (students enrolled in faculty's sections)
+$roster = [];
+if ($selectedSemester) {
+      $roster_sql = "
+          SELECT 
+        se.StudentID,
+        se.CRN,
+        CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
+        c.CourseName,
+        cs.CourseID
+      FROM StudentEnrollment se
+      JOIN Users u ON se.StudentID = u.UserID
+      JOIN CourseSection cs ON se.CRN = cs.CRN
+      JOIN Course c ON cs.CourseID = c.CourseID
+      JOIN Semester s ON cs.SemesterID = s.SemesterID
+      JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
+      JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
+      JOIN Day d ON tsd.DayID = d.DayID
+      JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
+      JOIN Period p ON tsp.PeriodID = p.PeriodID
+      WHERE cs.FacultyID = ?
+        AND cs.SemesterID = ?
+      GROUP BY se.StudentID, cs.CRN, c.CourseName, cs.RoomID
+      ORDER BY c.CourseName, u.LastName, u.FirstName;
+    ";
+    $roster_stmt = $mysqli->prepare($roster_sql);
+    $roster_stmt->bind_param('is', $userId, $selectedSemester);
+    $roster_stmt->execute();
+    $roster_result = $roster_stmt->get_result();
+    $roster = $roster_result->fetch_all(MYSQLI_ASSOC);
+    $roster_stmt->close();
+}
+
 $fac_stmt = $mysqli->prepare("SELECT OfficeID, Ranking FROM Faculty WHERE FacultyID = ? LIMIT 1");
 $fac_stmt->bind_param('i', $userId);
 $fac_stmt->execute();
@@ -91,32 +124,42 @@ $fac_stmt->close();
 $office    = $fac['OfficeID'] ?? 'N/A';
 $ranking   = $fac['Ranking'] ?? 'Faculty';
 
-$studentId = $_GET['studentID'] ?? '';
-    $crn = $_GET['crn'] ?? '';
-
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $grade = $_POST['grade'] ?? '';
-    $studentId = $_POST['studentID'] ?? '';
-    $crn = $_POST['crn'] ?? '';
-    $courseId = $_POST['courseID'] ?? '';
-    $semester = $_POST['semesterID'] ?? '';
 
-$mysqli->begin_transaction();
+    $studentIDs = $_POST['studentID'];
+    $crns = $_POST['crn'];
+    $courseIDs = $_POST['courseID'];
+    $dates = $_POST['attendanceDate'];
+    $statuses = $_POST['status'];
 
-  $sql = "UPDATE StudentEnrollment SET Grade = ?, Status = 'COMPLETED' WHERE StudentID=? AND CRN =?";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("sii", $grade, $studentId, $crn );
-  $stmt->execute();
-    
-$sqlSH = "INSERT INTO StudentHistory (StudentID, CRN, SemesterID, Grade, CourseID) VALUES (?, ?, ?, ?, ?)";
-  $stmtSH = $mysqli->prepare($sqlSH);
-  $stmtSH->bind_param("iisss", $studentId, $crn, $semester, $grade, $courseId);
-  $stmtSH->execute();
+    $mysqli->begin_transaction();
 
-$mysqli->commit();
-echo "<script>alert('Grade Submitted ✅');</script>";
+    $sql = "INSERT INTO CourseSectionAttendance
+            (StudentID, CRN, CourseID, AttendanceDate, PresentAbsent)
+            VALUES (?, ?, ?, ?, ?)";
+
+    $stmt = $mysqli->prepare($sql);
+
+    for ($i = 0; $i < count($studentIDs); $i++) {
+        if ($statuses[$i] === "") continue;
+
+        $stmt->bind_param(
+            "iisss",
+            $studentIDs[$i],
+            $crns[$i],
+            $courseIDs[$i],
+            $dates[$i],
+            $statuses[$i]
+        );
+
+        $stmt->execute();
+    }
+
+    $mysqli->commit();
+
+    echo "<script>alert('Attendance Submitted ✅');</script>";
 }
+
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
@@ -126,7 +169,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grading • Northport University</title>
+  <title>Attendance • Northport University</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -137,7 +180,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Grading Portal</span>
+      <span class="pill">Attendance Portal</span>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -175,13 +218,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <div class = "card-body">
           <div class="controls" style="margin-bottom:16px; margin-left:10px; margin-right:10px">
             <div class = "label">
-            <label for="attendanceDate">
-              <div>Choose Date:</div>
-              <input type = "date" id = "attendanceDate" name = "attendanceDate">
-            </label>
-            </div>
-            <div class = "label">
             <label for ="teacher-courses">
+              <form method="GET">
               <div>Select Course:</div>
               <select name= "courseID">
                 <option value = "">---</option>
@@ -193,7 +231,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
               </label>
             </div>
               <div class = "label" style="margin-top:16px">
-            <button id = "selectButton">Choose Date & Course</button>
+            <button id = "selectButton">Choose Course</button>
+        </form>
             </div>
            </div>
           </div>
@@ -204,21 +243,60 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       <div class="card-head"><div>Attendance Chart</div></div>
         <div class="card-body">
         <div class = "table-wrap">
-        <table id = "daily-schedule">
-            <thead>
-                <tr>
-                    <th>Student Name</th>
-                    <?php 
-                      $days = ["Mon", "Tues", "Wed", "Thurs"];
-                    foreach ($days as $d): ?>
-                    <th> <?php echo $d; ?></th>
+          <form method="POST">
+          <table id = "daily-schedule">
+              <?php
+                $startOfWeek = strtotime('monday this week');
+
+                $days = [];
+                for ($i = 0; $i < 5; $i++) {
+                    $timestamp = strtotime("+$i day", $startOfWeek);
+                    $days[] = [
+                        'label' => date('D', $timestamp),
+                        'date'  => date('M j', $timestamp)
+                    ];
+                }
+                ?>
+
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <?php foreach ($days as $d): ?>
+                            <th><?= $d['label'] ?> (<?= $d['date'] ?>)</th>
+                        <?php endforeach; ?>
+                    </tr>
+                </thead>
+
+                <tbody>
+                  <?php foreach ($roster as $r): ?>
+                      <tr>
+                          <td>
+                              <?= htmlspecialchars($r['StudentName']) ?>
+                              <input type="hidden" name="studentID[]" value="<?= $r['StudentID'] ?>">
+                              <input type="hidden" name="crn[]" value="<?= $r['CRN'] ?>">
+                              <input type="hidden" name="courseID[]" value="<?= $r['CourseID'] ?>">
+                          </td>
+
+                          <?php foreach ($days as $d): ?>
+                              <td>
+                                  <select name="status[]">
+                                      <option value="">---</option>
+                                      <option value="Present">Present</option>
+                                      <option value="Absent">Absent</option>
+                                  </select>
+
+                                  <input type="hidden" name="attendanceDate[]" value="<?= $d['date'] ?>">
+                              </td>
+                          <?php endforeach; ?>
+
+                      </tr>
                   <?php endforeach; ?>
-                </tr>
-            </thead>
-            <tbody id = "attendance"></tbody>
-            <tfoot id = "student-count">
-            </tfoot>
-            </table>
+                  </tbody>
+              </table>
+                <button type="submit" class="btn" style="margin-top:16px;">
+                  Submit Attendance
+                </button>
+            </form>
           </div>
         </div>
       </div>  

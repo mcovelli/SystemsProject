@@ -373,7 +373,6 @@ if ($selectedSemester) {
               <tbody id="cartBody">
                 <?php foreach ($_SESSION['cart'] as $item): ?>
                     <?php
-                      // backward-compatibility fix: handle plain ints
                       if (!is_array($item)) {
                         $crn = $item;
                         $courseID = '';

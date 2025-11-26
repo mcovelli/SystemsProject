@@ -32,93 +32,55 @@ if (!$user) {
     exit;
 }
 
-// Fetch all semesters for the schedule dropdown
-$sem_sql = "SELECT SemesterID, SemesterName, Year FROM Semester ORDER BY Year DESC, SemesterName DESC";
+// Fetch current semester
+$sem_sql = "
+    SELECT SemesterID, SemesterName, Year 
+    FROM Semester 
+    WHERE CURDATE() BETWEEN StartDate AND EndDate 
+    LIMIT 1
+";
 $sem_stmt = $mysqli->prepare($sem_sql);
 $sem_stmt->execute();
 $sem_result = $sem_stmt->get_result();
-$semesters = $sem_result->fetch_all(MYSQLI_ASSOC);
+$current = $sem_result->fetch_assoc();
 $sem_stmt->close();
 
-// Determine which semester to show for the schedule
-$selectedSemester = isset($_GET['semester']) && $_GET['semester'] !== '' ? $_GET['semester'] : null;
-if ($selectedSemester === null) {
-    // Auto‑select current semester if available
-    $auto_sql = "SELECT SemesterID FROM Semester WHERE CURDATE() BETWEEN StartDate AND EndDate LIMIT 1";
-    $auto_res = $mysqli->query($auto_sql);
-    if ($auto_row = $auto_res->fetch_assoc()) {
-        $selectedSemester = $auto_row['SemesterID'];
-    }
-}
-
-$selectedCourse = isset($_GET['crn']) && $_GET['crn'] !== '' ? $_GET['crn'] : null;
+$selectedSemester = $current['SemesterID'] ?? null;
 
 // Fetch schedule for courses taught
 $schedule = [];
-if ($selectedSemester) {
-$courses_sql = "
-      SELECT 
-        cs.CRN,
-        c.CourseName,
-        GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
-        DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
-        DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
-        cs.RoomID
-      FROM CourseSection cs
-      JOIN Course c ON cs.CourseID = c.CourseID
-      JOIN Semester s ON cs.SemesterID = s.SemesterID
-      JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
-      JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
-      JOIN Day d ON tsd.DayID = d.DayID
-      JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
-      JOIN Period p ON tsp.PeriodID = p.PeriodID
-      WHERE cs.FacultyID = ?
-        AND cs.SemesterID = ?
-      GROUP BY cs.CRN, c.CourseName, cs.RoomID
-      ORDER BY cs.CRN, MIN(p.StartTime);
+
+if ($selectedSemester !== null) {
+
+    $courses_sql = "
+        SELECT 
+            cs.CRN,
+            c.CourseName,
+            GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
+            DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
+            DATE_FORMAT(MAX(p.EndTime), '%l:%i %p') AS EndTime,
+            cs.RoomID,
+            cs.CourseID
+        FROM CourseSection cs
+        JOIN Course c ON cs.CourseID = c.CourseID
+        JOIN Semester s ON cs.SemesterID = s.SemesterID
+        JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
+        JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
+        JOIN Day d ON tsd.DayID = d.DayID
+        JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
+        JOIN Period p ON tsp.PeriodID = p.PeriodID
+        WHERE cs.FacultyID = ?
+          AND cs.SemesterID = ?
+        GROUP BY cs.CRN, c.CourseName, cs.RoomID
+        ORDER BY cs.CRN, MIN(p.StartTime);
     ";
+
     $courses_stmt = $mysqli->prepare($courses_sql);
-    $courses_stmt->bind_param('is', $userId, $selectedSemester);
+    $courses_stmt->bind_param("is", $userId, $selectedSemester);
     $courses_stmt->execute();
     $courses_result = $courses_stmt->get_result();
     $schedule = $courses_result->fetch_all(MYSQLI_ASSOC);
     $courses_stmt->close();
-}
-
-// Fetch roster (students enrolled in faculty's sections)
-$roster = [];
-if ($selectedSemester) {
-    $roster_sql = "
-      SELECT 
-        u.FirstName, 
-        u.LastName, 
-        c.CourseName, 
-        GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
-        DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
-        DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
-        cs.RoomID
-      FROM StudentEnrollment se
-      JOIN Users u ON se.StudentID = u.UserID
-      JOIN CourseSection cs ON se.CRN = cs.CRN
-      JOIN Course c ON cs.CourseID = c.CourseID
-      JOIN Semester s ON cs.SemesterID = s.SemesterID
-      JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
-      JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
-      JOIN Day d ON tsd.DayID = d.DayID
-      JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
-      JOIN Period p ON tsp.PeriodID = p.PeriodID
-      WHERE cs.FacultyID = ?
-        AND cs.SemesterID = ?
-        AND cs.CRN = ?
-      GROUP BY se.StudentID, cs.CRN, c.CourseName, cs.RoomID
-      ORDER BY c.CourseName, u.LastName, u.FirstName;
-    ";
-    $roster_stmt = $mysqli->prepare($roster_sql);
-    $roster_stmt->bind_param('isi', $userId, $selectedSemester, $selectedCourse);
-    $roster_stmt->execute();
-    $roster_result = $roster_stmt->get_result();
-    $roster = $roster_result->fetch_all(MYSQLI_ASSOC);
-    $roster_stmt->close();
 }
 
 $fac_stmt = $mysqli->prepare("SELECT OfficeID, Ranking FROM Faculty WHERE FacultyID = ? LIMIT 1");
@@ -128,6 +90,33 @@ $fac = $fac_stmt->get_result()->fetch_assoc();
 $fac_stmt->close();
 $office    = $fac['OfficeID'] ?? 'N/A';
 $ranking   = $fac['Ranking'] ?? 'Faculty';
+
+$studentId = $_GET['studentID'] ?? '';
+    $crn = $_GET['crn'] ?? '';
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $grade = $_POST['grade'] ?? '';
+    $studentId = $_POST['studentID'] ?? '';
+    $crn = $_POST['crn'] ?? '';
+    $courseId = $_POST['courseID'] ?? '';
+    $semester = $_POST['semesterID'] ?? '';
+
+$mysqli->begin_transaction();
+
+  $sql = "UPDATE StudentEnrollment SET Grade = ?, Status = 'COMPLETED' WHERE StudentID=? AND CRN =?";
+  $stmt = $mysqli->prepare($sql);
+  $stmt->bind_param("sii", $grade, $studentId, $crn );
+  $stmt->execute();
+    
+$sqlSH = "INSERT INTO StudentHistory (StudentID, CRN, SemesterID, Grade, CourseID) VALUES (?, ?, ?, ?, ?)";
+  $stmtSH = $mysqli->prepare($sqlSH);
+  $stmtSH->bind_param("iisss", $studentId, $crn, $semester, $grade, $courseId);
+  $stmtSH->execute();
+
+$mysqli->commit();
+echo "<script>alert('Grade Submitted ✅');</script>";
+}
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
@@ -141,7 +130,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./stylesGrade.css" />
 </head>
 <body>
   <header class="topbar">
@@ -165,9 +154,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           <div class="sub"><?php echo htmlspecialchars($ranking); ?></div>
         </div>
         <div class="header-left">
-          <div class="dropdown">
+          <div class="menu">
             <button>☰ Menu</button>
-            <div class="dropdown-content">
+            <div class="menu-content">
               <a href="faculty_profile.php">Profile</a>
               <a href="ViewAdvisees.php">Advisees</a>
               <a href="ViewRoster.php">Rosters</a>
@@ -182,15 +171,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
   <section>
     <div class="card">
-          <form method="get" class="semester-selector" style="margin-bottom:10px">
-            <label for="semester" style="margin-right:6px">View Semester:</label>
-            <select name="semester" id="semester" onchange="this.form.submit()">
-              <option value="">Current Semester</option>
-              <?php foreach ($semesters as $sem): ?>
-                <option value="<?php echo htmlspecialchars($sem['SemesterID']); ?>" <?php echo ($selectedSemester == $sem['SemesterID']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($sem['SemesterName'] . ' ' . $sem['Year']); ?></option>
-              <?php endforeach; ?>
-            </select>
-          </form>
+        <h1>Current Semester Grades</h1>
+        <h4>Click course section row to view roster and submit grades>
         <div class="table-wrap">
           <table>
             <thead>
@@ -203,55 +185,102 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
               </tr>
             </thead>
             <tbody>
-              <?php if (empty($schedule)): ?>
-                <tr><td colspan="5">No schedule available.</td></tr>
-              <?php else: ?>
                 <?php foreach ($schedule as $row): ?>
-                <tr class="dropdown-row" class="cs-<?= $row['CRN'] ?>" data-crn="<?= $row['CRN'] ?>">
-                    <td id="crn" name="crn"><?php echo htmlspecialchars($row['CRN'] ?? ' - '); ?></td>
-                    <td><?php echo htmlspecialchars($row['CourseName'] ?? ' - '); ?></td>
-                    <td><?php echo htmlspecialchars($row['Days'] ?? ' - '); ?></td>
-                    <td><?php 
-                        $time = ($row['StartTime'] ?? '') . ' – ' . ($row['EndTime'] ?? '');
-                        echo htmlspecialchars(trim($time) ?: ' - ');
-                        ?></td>
-                    <td><?php echo htmlspecialchars($row['RoomID'] ?? ' - '); ?></td>
-                  </tr>
 
-                  <tr class="dropdown-content" class="roster-<?= $row['CRN'] ?>">
-                    <td colspan = "5">
-                        <?php if (empty($roster)): ?>
-                            No students enrolled.
-                  <?php else: ?>
-                    <table class ="inner-roster">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Grade</th>
-                            </tr>
-                        </thead>
+                <?php
+                    $crn = $row['CRN'];
 
-                        <tbody>
-                            <?php foreach ($roster as $r): ?>
-                              <?php
-                                $name = trim(($r['FirstName'] ?? '') . ' ' . ($r['LastName'] ?? '')) ?: '—';
-                                $grade = $r['Grade'] ?? ' TBA ';
-                              ?>
-                              <tr>
-                                <td><a href="student_profile.php?studentID=<?= urlencode($r['StudentID']) ?>">
-                                  <?= htmlspecialchars($name) ?> </a></td>
-                                <td><?= htmlspecialchars($grade) ?></td>
-                              </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                        </table>
-                        <?php endif; ?>
+                    $roster_sql = "
+                        SELECT 
+                            u.FirstName, 
+                            u.LastName,
+                            se.StudentID,
+                            se.Grade
+                        FROM StudentEnrollment se
+                        JOIN Users u ON se.StudentID = u.UserID
+                        JOIN CourseSection cs ON se.CRN = cs.CRN
+                        WHERE cs.FacultyID = ?
+                          AND cs.SemesterID = ?
+                          AND cs.CRN = ?
+                        ORDER BY u.LastName, u.FirstName
+                    ";
+                    $stmt = $mysqli->prepare($roster_sql);
+                    $stmt->bind_param("isi", $userId, $selectedSemester, $crn);
+                    $stmt->execute();
+                    $roster = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                    $stmt->close();
+                ?>
+
+                <tr class="cs" data-crn="<?= $crn ?>">
+                    <td><?= htmlspecialchars($row['CRN']) ?></td>
+                    <td><?= htmlspecialchars($row['CourseName']) ?></td>
+                    <td><?= htmlspecialchars($row['Days']) ?></td>
+                    <td>
+                        <?php 
+                            $time = trim(($row['StartTime'] ?? '') . ' – ' . ($row['EndTime'] ?? ''));
+                            echo htmlspecialchars($time ?: 'TBA');
+                        ?>
+                    </td>
+                    <td><?= htmlspecialchars($row['RoomID']) ?></td>
+                </tr>
+
+                <tr id="roster-<?= $crn ?>" class="roster">
+                    <td colspan="5">
+
+                            <?php if (empty($roster)): ?>
+                                No students enrolled.
+                            <?php else: ?>
+
+                            <table class="inner-roster">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($roster as $r): ?>
+                                        <?php $name = trim(($r['FirstName'] ?? '') . ' ' . ($r['LastName'] ?? '')) ?: '—'; ?>
+                                        <tr>
+                                            <td>
+                                                <a href="student_profile.php?studentID=<?= urlencode($r['StudentID']) ?>">
+                                                    <?= htmlspecialchars($name) ?>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <form class="grade-form"
+                                                  data-student="<?= $r['StudentID']     ?>"
+                                                  data-crn="<?= $crn ?>"
+                                                  data-course="<?= $row['CourseID'] ?>"
+                                                  data-semester="<?= $selectedSemester ?>">
+                                                    <select name="grade" class="grade-select">
+                                                        <option value=""><?= $r['Grade'] !== null ? $r['Grade'] : '---' ?></option>
+
+                                                        <?php 
+                                                        $grades = ["A","A-","B+","B","B-","C+","C","C-","D+","D","D-","F"];
+                                                        foreach ($grades as $g):
+                                                        ?>
+                                                            <option value="<?= $g ?>" <?= ($r['Grade'] === $g) ? "selected" : "" ?>>
+                                                                <?= $g ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+
+                            <?php endif; ?>
+
+                        </div>
+
                     </td>
                 </tr>
-                    
-                <?php endforeach; ?>
-              <?php endif; ?>
-            </tbody>
+
+            <?php endforeach; ?>
+                </tbody>
           </table>
         </div>
 
@@ -278,13 +307,51 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       lucide.createIcons();
     });
-document.querySelectorAll(".dropdown-row").forEach(row => {
-    row.addEventListener("click", () => {
-        const crn = row.dataset.crn;
-        const dropdown = document.getElementById("csroster-" + crn);
-        dropdown.classList.toggle("open");
+
+    // Toggle roster rows
+       document.querySelectorAll(".cs").forEach(row => {
+        row.addEventListener("click", () => {
+            const crn = row.dataset.crn;
+            const id = "roster-" + crn;
+            const rosterRow = document.getElementById(id);
+
+            console.log("CRN:", JSON.stringify(crn));
+            console.log("Looking for ID:", id);
+            console.log("Found row?", rosterRow);
+            
+            rosterRow?.classList.toggle("open");
+            row.classList.toggle("selected");
+        });
     });
-});
+
+    document.querySelectorAll(".grade-form").forEach(form => {
+        const select = form.querySelector(".grade-select");
+
+        select.addEventListener("change", async () => {
+
+            const data = new FormData();
+            data.append("studentID", form.dataset.student);
+            data.append("crn", form.dataset.crn);
+            data.append("courseID", form.dataset.course);
+            data.append("semesterID", form.dataset.semester);
+            data.append("grade", select.value);
+
+            const response = await fetch("grade_update.php", {
+                method: "POST",
+                body: data
+            });
+
+            const result = await response.json();
+
+            if (result.ok) {
+                console.log("Grade saved!");
+                alert("Grade Saved ✔");
+            } else {
+                alert("Error saving grade ❌");
+            }
+        });
+    });
+
 </script>
 
 </body>

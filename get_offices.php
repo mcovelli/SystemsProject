@@ -5,15 +5,19 @@ header('Content-Type: application/json');
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-// Adjust this query to match your Office table schema
-$result = $mysqli->query("SELECT OfficeID FROM Office ORDER BY OfficeID ASC");
+$result = $mysqli->query("
+    SELECT RoomID 
+    FROM Room 
+    WHERE RoomType = 'OFFICE'
+    ORDER BY RoomID ASC
+");
 
-$offices = [];
+$rooms = [];
 while ($row = $result->fetch_assoc()) {
-    $offices[] = [
-        'id' => (int)$row['OfficeID'],
+    $rooms[] = [
+        'id' => $row['RoomID'],
     ];
 }
 
-echo json_encode($offices);
+echo json_encode($rooms);
 ?>

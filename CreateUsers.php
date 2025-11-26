@@ -366,10 +366,10 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           <div class="menu">
             <button>☰ Menu</button>
             <div class="menu-content">
-              <a href="faculty_profile.php">Profile</a>
-              <a href="ViewAdvisees.php">Advisees</a>
-              <a href="ViewRoster.php">Rosters</a>
+              <a href="admin_profile.php">Profile</a>
+              <a href="update_admin_dashboard.php">Dashboard</a>
               <a href="viewDirectory.php">View Directory</a>
+              <a href="createDirectory.php">Create Directory</a>
               <a href="logout.php">Logout</a>
             </div>
           </div>
@@ -513,7 +513,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       lucide.createIcons();
     });
-    
+
     document.addEventListener("DOMContentLoaded", () => {
       const form = document.getElementById("CreateUser");
       subTypeMenu2.style.display = "none";

@@ -192,25 +192,26 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <option value="major">Major Requirement</option>
                     <option value="minor">Minor Requirement</option>
                     <option value="program">Program Requirement</option>
-                </select><br>
+                </select>
 
-            <div class="form-row">
-                <label for="programID">Program Name:</label>
-                    <select id="programID" name="programID"></select>
-                        <option value="">-- Select --</option>
-            </div><br>
+                    <div class="form-row">
+                        <label for="programID">Program Name:</label>
+                        <select id="programID" name="programID">
+                            <option value="">-- Select --</option>
+                        </select>
+                    </div>
 
                     <label for="req_type">Requirement Type: </label>
                     <select id="req_type" name="req_type" required>
                       <option value="">-- Select Requirement Type --</option>
                       <option value="Core">Core</option>
                       <option value="Elective">Elective</option>
-                    </select><br>
+                    </select>
 
-                    <div id="semesterLevelContainer">
+                    <div class="form-row" id="semesterLevelContainer">
                         <label for="semester_level">Semester Level:</label>
                         <input type="number" id="semester_level" name="semester_level">
-                    </div><br>
+                    </div>
 
                     <!-- Department Filter -->
                     <div id="departmentFilterContainer" style="margin-top: 20px;">

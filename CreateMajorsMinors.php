@@ -48,7 +48,7 @@ switch ($majorOrMinor){
         }
     break;
 
-    case("minor"):
+    case 'minor':
         $sql = "INSERT INTO Minor (DeptID, MinorName, CreditsNeeded) VALUES (?, ?, ?)";
             $stmt = $mysqli->prepare($sql);
             $stmt->bind_param("isi", $deptId, $name, $creditsNeeded);

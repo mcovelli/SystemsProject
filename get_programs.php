@@ -1,10 +1,11 @@
 <?php
 require_once 'config.php';
 $mysqli = get_db();
-$res = $mysqli->query("SELECT ProgramID, ProgramName FROM Program WHERE Status='ACTIVE'");
+$res = $mysqli->query("SELECT ProgramID, ProgramName FROM Program");
 $programs = [];
 while ($row = $res->fetch_assoc()) {
-    $programs[] = ['code' => $row['ProgramCode'], 
+    $programs[] = 
+    ['id' => $row['ProgramID'], 
     'name' => $row['ProgramName']];
 }
 header('Content-Type: application/json');

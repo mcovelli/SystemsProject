@@ -25,13 +25,9 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $majorID = $_POST['major_id'] ?? '';
-    $minorID = $_POST['minor_id'] ?? '';
-    $DeptId = $_POST['deptID'] ?? '';
-    $majorName = $_POST['major_name'] ?? '';
-    $majorCreditsNeeded = $_POST['credits_needed'] ?? '';
-    $minorName = $_POST['minor_name'] ?? '';
-    $minorCreditsNeeded = $_POST['credits_needed'] ?? '';
+    $deptId = $_POST['deptID'] ?? '';
+    $creditsNeeded = $_POST['credits_needed'] ?? '';
+    $name = $_POST['name'] ?? '';
 }
 
 $mysqli->begin_transaction();
@@ -42,10 +38,11 @@ switch ($majorOrMinor){
     case 'major':
         $sql = "INSERT INTO Major (DeptID, MajorName, CreditsNeeded) VALUES (?, ?, ?)";
         $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param("isi", $DeptId, $majorName, $majorCreditsNeeded);
+        $stmt->bind_param("isi", $deptId, $name, $creditsNeeded);
         
         if ($stmt->execute()) {
-            echo "alert('$majorName. created ✅');";
+            $mysqli->commit();
+            echo "alert('$name. major created ✅');";
         } else {
             echo "alert('Could not create Major');";
         }
@@ -54,17 +51,18 @@ switch ($majorOrMinor){
     case("minor"):
         $sql = "INSERT INTO Minor (DeptID, MinorName, CreditsNeeded) VALUES (?, ?, ?)";
             $stmt = $mysqli->prepare($sql);
-            $stmt->bind_param("isi", $DeptId, $minorName, $minorCreditsNeeded);
+            $stmt->bind_param("isi", $deptId, $name, $creditsNeeded);
 
             if ($stmt->execute()) {
                 $mysqli->commit();
-                echo "alert('Minor.$minorName. created ✅');";
+                echo "alert('$name. minor created ✅');";
             } else {
                 $mysqli->rollback();
                 echo "alert('Could not create Minor');";
             }
         break;
 }
+
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
@@ -136,7 +134,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                                 <option value="">-- All Departments --</option>
                                 </select><br>
                         <label id="typeLabel" for ="major_name">Name: </label>
-                        <input type = "text" id="major_name" name="major_name" required><br>
+                        <input type = "text" id="name" name="name" required><br>
                         <label id="Credits" for ="credits_needed">Credits Needed: </label>
                         <input type = "number" id="credits_needed" name="credits_needed" required><br>
                         

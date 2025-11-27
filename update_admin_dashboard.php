@@ -69,9 +69,9 @@ $quickLinks = [
           <div class="sub"><?php echo htmlspecialchars($admin['SecurityType']); ?></div>
         </div>
         <div class="header-left">
-          <div class="dropdown">
+          <div class="menu">
             <button>☰ Menu</button>
-            <div class="dropdown-content">
+            <div class="menu-content">
               <a href="admin_profile.php">Profile</a>
               <a href="createDirectory.php">Create Directory</a>
               <a href="viewDirectory.php">View Directory</a>

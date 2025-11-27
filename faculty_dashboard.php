@@ -192,9 +192,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           <div class="sub"><?php echo htmlspecialchars($ranking); ?></div>
         </div>
         <div class="header-left">
-          <div class="dropdown">
+          <div class="menu">
             <button>☰ Menu</button>
-            <div class="dropdown-content">
+            <div class="menu-content">
               <a href="faculty_profile.php">Profile</a>
               <a href="ViewAdvisees.php">Advisees</a>
               <a href="ViewRoster.php">Rosters</a>

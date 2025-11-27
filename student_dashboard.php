@@ -263,9 +263,9 @@ $messages = [
           <div class="sub"><?php echo htmlspecialchars($majorName); ?></div>
         </div>
         <div class="header-left">
-          <div class="dropdown">
+          <div class="menu">
             <button>☰ Menu</button>
-            <div class="dropdown-content">
+            <div class="menu-content">
               <a href="student_profile.php">Profile</a>
               <a href="degree_audit.php">Degree Audit</a>
               <a href="viewDirectory.php">View Directory</a>

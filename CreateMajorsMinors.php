@@ -29,9 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $minorID = $_POST['minor_id'] ?? '';
     $DeptId = $_POST['deptID'] ?? '';
     $majorName = $_POST['major_name'] ?? '';
-    $majorCreditsNeeded = $_POST['major_credits_needed'] ?? '';
+    $majorCreditsNeeded = $_POST['credits_needed'] ?? '';
     $minorName = $_POST['minor_name'] ?? '';
-    $minorCreditsNeeded = $_POST['minor_credits_needed'] ?? '';
+    $minorCreditsNeeded = $_POST['credits_needed'] ?? '';
 }
 
 $mysqli->begin_transaction();
@@ -40,9 +40,9 @@ $majorOrMinor = $_POST['majorOrMinor'] ?? '';
 
 switch ($majorOrMinor){
     case 'major':
-        $sql = "INSERT INTO Major (DeptID, MajorName, CreditsNeeded) VALUES ((SELECT DeptID FROM Department WHERE DeptName = ?), ?, ?)";
+        $sql = "INSERT INTO Major (DeptID, MajorName, CreditsNeeded) VALUES (?, ?, ?)";
         $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param("ssi", $DeptId, $majorName, $majorCreditsNeeded);
+        $stmt->bind_param("isi", $DeptId, $majorName, $majorCreditsNeeded);
         
         if ($stmt->execute()) {
             echo "alert('$majorName. created ✅');";
@@ -52,9 +52,9 @@ switch ($majorOrMinor){
     break;
 
     case("minor"):
-        $sql = "INSERT INTO Minor (DeptID, MinorName, CreditsNeeded) VALUES ((SELECT DeptID FROM Department WHERE DeptName = ?), ?, ?)";
+        $sql = "INSERT INTO Minor (DeptID, MinorName, CreditsNeeded) VALUES (?, ?, ?)";
             $stmt = $mysqli->prepare($sql);
-            $stmt->bind_param("ssi", $DeptId, $minorName, $minorCreditsNeeded);
+            $stmt->bind_param("isi", $DeptId, $minorName, $minorCreditsNeeded);
 
             if ($stmt->execute()) {
                 $mysqli->commit();
@@ -131,22 +131,14 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                             <option value="minor">Minor</option>
                         </select>
                         <br>
-                         <?php $type = $_POST['majorOrMinor'] ?? ''; ?>
-                        <label id="typeID" for ="major_ID" hidden><?php echo htmlspecialchars($type) ?></label>
-                        <?= $type === 'major' ? 'Major ' : ($type === 'minor' ? 'Minor ' : 'ID:') ?>
-                            <input type = "hidden" id = "major_ID" name="major_ID" required placeholder="ex. MATH"><br>
                         <label for="dept">Department: </label>
                              <select name="deptID" id="deptID">
                                 <option value="">-- All Departments --</option>
                                 </select><br>
-                        <?php $type = $_POST['majorOrMinor'] ?? ''; ?>
-                        <label id="typeLabel" for ="major_name"><?php echo htmlspecialchars($type) ?></label>
-                        <?= $type === 'major' ? 'Major ' : ($type === 'minor' ? 'Minor ' : 'Name:') ?>
+                        <label id="typeLabel" for ="major_name">Name: </label>
                         <input type = "text" id="major_name" name="major_name" required><br>
-                        <?php $type = $_POST['majorOrMinor'] ?? ''; ?>
-                        <label id="typeCredits" for ="major_credits_needed"><?php echo htmlspecialchars($type) ?></label>
-                        <?= $type === 'major' ? 'Major ' : ($type === 'minor' ? 'Minor ' : 'Credits Needed:') ?>
-                        <input type = "number" id="major_credits_needed" name="major_credits_needed" required><br>
+                        <label id="Credits" for ="credits_needed">Credits Needed: </label>
+                        <input type = "number" id="credits_needed" name="credits_needed" required><br>
                         
 
                         <button type="submit" id = "submit">Submit</button>
@@ -175,37 +167,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       if (window.lucide) lucide.createIcons();
     });
 
-    document.getElementById('majorOrMinor').addEventListener('change', function() {
-    const type = this.value; // 'major' or 'minor'
-    const typeLabel = document.getElementById('typeLabel');
-
-        if (type === 'major') {
-            typeLabel.textContent = "Major ";
-        } else if (type === 'minor') {
-            typeLabel.textContent = "Minor ";
-        } else {
-            typeLabel.textContent = "";
-        }
-     const IDLabel = document.getElementById('typeID');
-
-        if (type === 'major') {
-            IDLabel.textContent = "Major ";
-        } else if (type === 'minor') {
-            IDLabel.textContent = "Minor ";
-        } else {
-            IDLabel.textContent = "";
-        }
-    const CreditsLabel = document.getElementById('typeCredits');
-
-        if (type === 'major') {
-            CreditsLabel.textContent = "Major ";
-        } else if (type === 'minor') {
-            CreditsLabel.textContent = "Minor ";
-        } else {
-            CreditsLabel.textContent = "";
-        }
-    });
-
     // Fetch departments from get_departments.php
     fetch('get_departments.php')
     .then(response => response.json())
@@ -215,7 +176,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     data.forEach(name => {
         const opt = document.createElement('option');
-        opt.value = name.name;
+        opt.value = name.id;
         opt.textContent = name.name;
         if (name === selectedDept) opt.selected = true;
         deptSelect.appendChild(opt);

@@ -27,68 +27,70 @@ $userstmt->close();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $requirementSelection = $_POST['requirementSelection'] ?? '';
     $programID = $_POST['programID'] ?? '';
-    $courseID = $_POST['courseID'] ?? ''; 
+    $courses = $_POST['courseID'] ?? [];  // <-- ARRAY
     $requirementType = $_POST['req_type'] ?? NULL;
     $semesterLevel = $_POST['semester_level'] ?? 1;
 
-    $mysqli -> begin_transaction();
+    $mysqli->begin_transaction();
 
-    switch ($requirementSelection){
-        case ("major"):
-        $sql = "INSERT INTO MajorRequirement
-                (MajorID, CourseID, RequirementType, SemesterLevel)
-                 VALUES (?, ?, ?, ?)";
-           $stmt = $mysqli->prepare($sql);
-            $stmt->bind_param(
-                "issi",
-                $programID, $courseID, $requirementType, $semesterLevel
-            );
-            if ($stmt->execute()) {
-                $mysqli->commit();
-                echo "alert('Major requirement created ✅');";
-            } else {
-                $mysqli->rollback();
-                echo "alert('Could not create Major Requirement');";
-            }
-            $stmt->close();
-        break;
+    try {
 
-        case ("minor"):
-        $sql = "INSERT INTO MinorRequirement
-                (MinorID, CourseID, RequirementType, SemesterLevel)
-                 VALUES (?, ?, ?, ?)";
-           $stmt = $mysqli->prepare($sql);
-            $stmt->bind_param(
-                "issi",
-                $programID, $courseID, $requirementType, $semesterLevel
-            );
-            if ($stmt->execute()) {
-                $mysqli->commit();
-                echo "alert('Minor requirement created ✅');";
-            } else {
-                $mysqli->rollback();
-                echo "alert('Could not create Minor Requirement');";
-            }
-            $stmt->close();
-        break;
+        switch ($requirementSelection) {
 
-        case ("program"):
-            $sql = "INSERT INTO ProgramRequirement (ProgramID, CourseID, RequirementType)
-            VALUES (?, ?, ?)";
-           $stmt = $mysqli->prepare($sql);
-            $stmt->bind_param(
-                "iss",
-                $programID, $courseID, $requirementType
-            );
-            if ($stmt->execute()) {
-                $mysqli->commit();
-                echo "alert('Program requirement created ✅');";
-            } else {
-                $mysqli->rollback();
-                echo "alert('Could not create Program Requirement');";
-            }
-            $stmt->close();
-        break;
+            case "major":
+                $sql = "INSERT INTO MajorRequirement
+                        (MajorID, CourseID, RequirementType, SemesterLevel)
+                        VALUES (?, ?, ?, ?)";
+
+                $stmt = $mysqli->prepare($sql);
+
+                foreach ($courses as $cid) {
+                    $stmt->bind_param("issi", $programID, $cid, $requirementType, $semesterLevel);
+                    $stmt->execute();
+                }
+
+                $stmt->close();
+                break;
+
+
+            case "minor":
+                $sql = "INSERT INTO MinorRequirement
+                        (MinorID, CourseID, RequirementType, SemesterLevel)
+                        VALUES (?, ?, ?, ?)";
+
+                $stmt = $mysqli->prepare($sql);
+
+                foreach ($courses as $cid) {
+                    $stmt->bind_param("issi", $programID, $cid, $requirementType, $semesterLevel);
+                    $stmt->execute();
+                }
+
+                $stmt->close();
+                break;
+
+
+            case "program":
+                $sql = "INSERT INTO ProgramRequirement
+                        (ProgramID, CourseID, RequirementType)
+                        VALUES (?, ?, ?)";
+
+                $stmt = $mysqli->prepare($sql);
+
+                foreach ($courses as $cid) {
+                    $stmt->bind_param("iss", $programID, $cid, $requirementType);
+                    $stmt->execute();
+                }
+
+                $stmt->close();
+                break;
+        }
+
+        $mysqli->commit();
+        echo "<script>alert('Requirements created for all selected courses!');</script>";
+
+    } catch (Exception $e) {
+        $mysqli->rollback();
+        echo "<script>alert('Error creating requirements.');</script>";
     }
 }
 
@@ -177,13 +179,14 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           <div class="card-head between">
             <div>
               <h2 class="card-title">Create Requirements</h2>
+              <h4 class = "card-title">Create by semester level</h4>
             </div>
           </div>
        </section>
 
     <div id = "create-section-requirement">
         <form id = "reqForm" method = "POST">
-            <label for="requirementSelection">Select Type of Requirement to Create:</label>
+            <label for="requirementSelection">Select Type of Requirement:</label>
                 <select id="requirementSelection" name="requirementSelection" required>
                     <option value="">-- Select --</option>
                     <option value="major">Major Requirement</option>
@@ -191,10 +194,11 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <option value="program">Program Requirement</option>
                 </select><br>
 
-                    <label for ="programID">Program Name:</label>
-                     <select id="programID" name="programID">
+            <div class="form-row">
+                <label for="programID">Program Name:</label>
+                    <select id="programID" name="programID"></select>
                         <option value="">-- Select --</option>
-                    </select><br>
+            </div><br>
 
                     <label for="req_type">Requirement Type: </label>
                     <select id="req_type" name="req_type" required>
@@ -203,8 +207,10 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                       <option value="Elective">Elective</option>
                     </select><br>
 
-                    <label for = "semester_level">Semester Level:</label>
-                    <input type = "number" id = "semester_level" name = "semester_level"><br>
+                    <div id="semesterLevelContainer">
+                        <label for="semester_level">Semester Level:</label>
+                        <input type="number" id="semester_level" name="semester_level">
+                    </div><br>
 
                     <!-- Department Filter -->
                     <div id="departmentFilterContainer" style="margin-top: 20px;">
@@ -263,6 +269,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("reqForm");
     const RequirementSelection = document.getElementById("requirementSelection");
+    const semesterLevelContainer = document.getElementById("semesterLevelContainer");
     const SemesterLevel = document.getElementById("semester_level");
     const ProgramID = document.getElementById("programID");
     const deptFilter = document.getElementById("deptFilter");
@@ -270,15 +277,17 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     let ALL_COURSES = [];
 
-    SemesterLevel.style.display = "none";
+    semesterLevelContainer.style.display = "none";
+    SemesterLevel.required = false;
     ProgramID.style.display = "block";
 
     RequirementSelection.addEventListener("change", function () {
         const value = this.value;
 
         // Reset
-        SemesterLevel.style.display = "none";
+        semesterLevelContainer.style.display = "none";
         SemesterLevel.required = false;
+        SemesterLevel.value = "";
         ProgramID.style.display = "block";
         ProgramID.required = true;
         ProgramID.innerHTML = '<option value="">-- Select --</option>';
@@ -293,7 +302,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     ProgramID.style.display = "block";
                     ProgramID.required = true;
                     ProgramID.innerHTML = '<option value="">-- Select --</option>';
-                    SemesterLevel.style.display = "none";
+                    semesterLevelContainer.style.display = "none";
                     SemesterLevel.required = false;
                     SemesterLevel.value = "";
 
@@ -315,7 +324,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     ProgramID.style.display = "block";
                     ProgramID.required = true;
                     ProgramID.innerHTML = '<option value="">-- Select --</option>';
-                    SemesterLevel.style.display = "block";
+                    semesterLevelContainer.style.display = "block";
                     SemesterLevel.required = true;
                     SemesterLevel.value = "";
 
@@ -337,7 +346,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     ProgramID.style.display = "block";
                     ProgramID.required = true;
                     ProgramID.innerHTML = '<option value="">-- Select --</option>';
-                    SemesterLevel.style.display = "block";
+                    semesterLevelContainer.style.display = "block";
                     SemesterLevel.required = true;
                     SemesterLevel.value = "";
 
@@ -364,6 +373,11 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
             // Populate department list
             const departments = [...new Set(data.map(c => c.deptName))];
+
+            deptFilter.insertAdjacentHTML("beforeend", `
+                <option value="__ALL__">-- All Departments --</option>
+            `);
+
             departments.forEach(d => {
                 deptFilter.insertAdjacentHTML("beforeend", `
                     <option value="${d}">${d}</option>
@@ -388,7 +402,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         });
 
         // Filter by selected departments
-        if (selectedDepartments.length > 0) {
+        if (selectedDepartments.includes("__ALL__")) {
+            filtered = filtered; // no filtering
+        } else if (selectedDepartments.length > 0) {
             filtered = filtered.filter(c => selectedDepartments.includes(c.deptName));
         }
 

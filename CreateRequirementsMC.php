@@ -196,21 +196,43 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                         <option value="">-- Select --</option>
                     </select><br>
 
-                    <label for = "courseID">Course ID:</label>
-                    <input type = "text" id="courseID" name="courseID" required><br>
-
-                    <label for="req_type">Requirement Type:</label>
+                    <label for="req_type">Requirement Type: </label>
                     <select id="req_type" name="req_type" required>
                       <option value="">-- Select Requirement Type --</option>
                       <option value="Core">Core</option>
                       <option value="Elective">Elective</option>
                     </select><br>
 
-                    <label for = "credits_required">Credits Required:</label>
-                    <input type = "number" id = "credits_required" name = "credits_required" required><br>
-
                     <label for = "semester_level">Semester Level:</label>
                     <input type = "number" id = "semester_level" name = "semester_level"><br>
+
+                    <!-- Department Filter -->
+                    <div id="departmentFilterContainer" style="margin-top: 20px;">
+                        <label for="deptFilter">Filter by Department:</label>
+                        <select id="deptFilter" multiple size="5" style="width: 200px;">
+                        </select>
+                    </div>
+
+                    <!-- Course Table -->
+                    <div id="courseTableContainer" style="margin-top: 20px;">
+                        <label>Select Courses:</label>
+
+                        <div class="course-table-container">
+                          <table class="course-table" id="courseTable">
+                            <thead>
+                              <tr>
+                                <th>Select</th>
+                                <th>Course ID</th>
+                                <th>Course Name</th>
+                                <th>Dept</th>
+                                <th>Credits</th>
+                                <th>Level</th>
+                              </tr>
+                            </thead>
+                            <tbody></tbody>
+                          </table>
+                        </div>
+                    </div><br>
 
                     <button type="submit" id = "submit">Submit</button>
         </form>
@@ -243,6 +265,10 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     const RequirementSelection = document.getElementById("requirementSelection");
     const SemesterLevel = document.getElementById("semester_level");
     const ProgramID = document.getElementById("programID");
+    const deptFilter = document.getElementById("deptFilter");
+    const courseTableBody = document.querySelector("#courseTable tbody");
+
+    let ALL_COURSES = [];
 
     SemesterLevel.style.display = "none";
     ProgramID.style.display = "block";
@@ -329,6 +355,64 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     form.addEventListener("submit", (e) => {
         console.log("Form submitted ✅");
     });
+
+    // Load all courses
+    fetch("get_courses.php")
+        .then(r => r.json())
+        .then(data => {
+            ALL_COURSES = data;
+
+            // Populate department list
+            const departments = [...new Set(data.map(c => c.deptName))];
+            departments.forEach(d => {
+                deptFilter.insertAdjacentHTML("beforeend", `
+                    <option value="${d}">${d}</option>
+                `);
+            });
+        });
+
+    // Filter function
+    function updateCourseTable() {
+        const selectedRequirement = RequirementSelection.value;
+        const selectedDepartments = Array.from(deptFilter.selectedOptions).map(o => o.value);
+
+        // Filter by course type
+        let filtered = ALL_COURSES.filter(c => {
+            if (selectedRequirement === "major" || selectedRequirement === "minor") {
+                return c.level === "UNDERGRAD";
+            }
+            if (selectedRequirement === "program") {
+                return c.level === "GRAD";
+            }
+            return true;
+        });
+
+        // Filter by selected departments
+        if (selectedDepartments.length > 0) {
+            filtered = filtered.filter(c => selectedDepartments.includes(c.deptName));
+        }
+
+        // Render table
+        courseTableBody.innerHTML = "";
+        filtered.forEach(c => {
+            courseTableBody.insertAdjacentHTML("beforeend", `
+                <tr>
+                    <td><input type="checkbox" name="courseID[]" value="${c.id}"></td>
+                    <td>${c.courseID}</td>
+                    <td>${c.courseName}</td>
+                    <td>${c.deptName}</td>
+                    <td>${c.credits}</td>
+                    <td>${c.level}</td>
+                </tr>
+            `);
+        });
+    }
+
+    // React when requirement type changes
+    RequirementSelection.addEventListener("change", updateCourseTable);
+
+    // React when department filter changes
+    deptFilter.addEventListener("change", updateCourseTable);
 });
 
 

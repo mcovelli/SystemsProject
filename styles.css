@@ -297,3 +297,20 @@ gap: 10px;
     .popup-card .form-grid textarea:focus {
       outline: 2px solid var(--primary, #4f46e5);
     }
+
+    .course-table-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+    }
+
+    .course-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .course-table th, .course-table td {
+        padding: 6px 10px;
+        border-bottom: 1px solid #e5e5e5;
+    }

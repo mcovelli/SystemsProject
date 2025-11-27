@@ -75,6 +75,7 @@ $quickLinks = [
               <a href="admin_profile.php">Profile</a>
               <a href="createDirectory.php">Create Directory</a>
               <a href="viewDirectory.php">View Directory</a>
+              <a href="CreateRequirementsMC.php">Test</a>
               <a href="logout.php">Logout</a>
             </div>
           </div>

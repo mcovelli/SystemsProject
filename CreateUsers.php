@@ -516,6 +516,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     document.addEventListener("DOMContentLoaded", () => {
       const form = document.getElementById("CreateUser");
+      subTypeMenu.style.display = "none";
       subTypeMenu2.style.display = "none";
       MajorMenu.style.display = "none";
       MinorMenu.style.display = "none";
@@ -567,7 +568,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       }
 
       // Reset/hide all optional menus
-      [subTypeMenu2, MajorMenu, MinorMenu, DepartmentMenu, OfficeMenu, RankingMenu, SpecialtyMenu].forEach(div => {
+      [subTypeMenu, subTypeMenu2, MajorMenu, MinorMenu, DepartmentMenu, OfficeMenu, RankingMenu, SpecialtyMenu].forEach(div => {
         div.style.display = "none";
         div.querySelectorAll("select, input").forEach(el => el.required = false);
       });
@@ -607,8 +608,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           deptSelect.innerHTML = "";
           departments.forEach(d => {
             const opt = document.createElement("option");
-            opt.textContent = d;
-            opt.value = d;
+            opt.textContent = d.name;
+            opt.value = d.id;
             deptSelect.appendChild(opt);
           });
 
@@ -616,8 +617,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           officeSelect.innerHTML = "";
           offices.forEach(o => {
             const opt = document.createElement("option");
-            opt.textContent = o;
-            opt.value = o;
+            opt.textContent = o.id;
+            opt.value = o.id;
             officeSelect.appendChild(opt);
           });
         });

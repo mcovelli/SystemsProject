@@ -282,14 +282,18 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       if (window.lucide) lucide.createIcons();
     });
+
+    const majorReq = document.getElementById("major-req-menu");
+    const minorReq = document.getElementById("minor-req-menu");
+    const programReq = document.getElementById("program-req-menu");
     const requirementSelection = document.getElementById("requirementSelection");
     requirementSelection.addEventListener("change", function() => {
         const value = this.value;
 
         if (value === "majorRequirement"){
-            major-req-menu.style.display = "block";
-            minor-req-menu.style.display = "none";
-            program-req-menu.style.display = "none";
+            majorReq.style.display = "block";
+            minorReq.style.display = "none";
+            programReq.style.display = "none";
             fetch('get_majorrequirements.php')
             .then(response => response.json())
             .then(data =>){
@@ -310,9 +314,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             })
            }
         } else if (value === "minorRequirement"){
-        major-req-menu.style.display = "none";
-           minor-req-menu.style.display = "block";
-           program-req-menu.style.display = "none";
+           majorReq.style.display = "none";
+           minorReq.style.display = "block";
+           programReq.style.display = "none";
            fetch('get_minorrequirements.php')
             .then(response => response.json())
             .then(data =>){
@@ -333,9 +337,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             })
            }
         } else if (value === "programRequirement"){
-           major-req-menu.style.display = "none";
-           minor-req-menu.style.display = "none";
-           program-req-menu.style.display = "block";
+           majorReq.style.display = "none";
+           minorReq.style.display = "none";
+           programReq.style.display = "block";
             fetch('get_programrequirements.php')
             .then(response => response.json())
             .then(data =>){
@@ -356,9 +360,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             })
            }
         } else{
-            major-req-menu.style.display = "none";
-            minor-req-menu.style.display = "none";
-            program-req-menu.style.display = "none";
+            majorReq.style.display = "none";
+            minorReq.style.display = "none";
+            programReq.style.display = "none";
         }
     }
     );

@@ -128,9 +128,9 @@ $initials = substr($admin['FirstName'], 0, 1) . substr($admin['LastName'], 0, 1)
 
     <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
         <div class="user-meta"><div class="name"><?php echo htmlspecialchars($admin['UserType']) ?></div></div>
-        <div class="dropdown">
+        <div class="menu">
           <button>☰ Menu</button>
-          <div class="dropdown-content">
+          <div class="menu-content">
             <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
             <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
             <a href="logout.php">Logout</a>

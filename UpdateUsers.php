@@ -24,20 +24,7 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
 
-    case 'admin':
-        // if you have update/view admin types:
-        if (($_SESSION['admin_type'] ?? '') === 'update') {
-            $dashboard = 'update_admin_dashboard.php';
-        } else {
-            $dashboard = 'login.html';
-        }
-        break;
-    default:
-        $dashboard = 'login.html'; // fallback
-}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userId = $_POST['userID'] ?? '';

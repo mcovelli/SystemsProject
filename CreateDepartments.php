@@ -34,11 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $mysqli->begin_transaction();
 
-    $sql = "INSERT INTO Department (DeptID, DeptName, DeptEmail, DeptPhone, RoomID, ChairID) 
-            VALUES (?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO Department (DeptName, Email, Phone, RoomID, ChairID) 
+            VALUES (?, ?, ?, ?, ?)";
 
     $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param("ssssss", $DeptID, $DeptName, $DeptEmail, $DeptPhone, $RoomID, $ChairID);
+    $stmt->bind_param("sssss", $DeptName, $DeptEmail, $DeptPhone, $RoomID, $ChairID);
     if ($stmt->execute()) {
         echo "<script>alert('$DeptName created ✅');</script>";
     } else {
@@ -86,9 +86,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
         <div class="user-meta"><div class="name"><?php echo htmlspecialchars($user['UserType']) ?></div></div>
-        <div class="dropdown">
+        <div class="menu">
           <button>☰ Menu</button>
-          <div class="dropdown-content">
+          <div class="menu-content">
             <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
             <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
             <a href="logout.php">Logout</a>
@@ -107,8 +107,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             </div>
                 <div id = "create-section-department">
                     <form id = "CreateDepartment" method = "POST" action = "">
-                      <label for = "deptID" hidden>Department ID: </label>
-                            <input type = "hidden" id = "deptID" name="deptID" required placeholder="ex. MATH"><br>
                         <label for="deptName">Department Name: </label>
                              <input type = "text" id="deptName" name="deptName" required placeholder="ex. Mathematics"><br>
 

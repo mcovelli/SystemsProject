@@ -10,21 +10,19 @@ if (!isset($_SESSION['user_id']) ||
     redirect(PROJECT_ROOT . "/login.html");
 }
 
-$userId = $_SESSION['user_id'];
-
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
-        FROM Users WHERE UserID = ? LIMIT 1";
-$userstmt = $mysqli->prepare($usersql);
-$userstmt->bind_param("i", $userId);
-$userstmt->execute();
-$userres = $userstmt->get_result();
-$user = $userres->fetch_assoc();
-$userstmt->close();
-
 $userRole = strtolower($_SESSION['role'] ?? '');
+$userId = $_SESSION['user_id'];
+
+// Fetch user info
+$user_stmt = $mysqli->prepare("SELECT FirstName, LastName, Email, DOB FROM Users WHERE UserID = ? LIMIT 1");
+$user_stmt->bind_param('i', $userId);
+$user_stmt->execute();
+$user = $user_stmt->get_result()->fetch_assoc();
+$user_stmt->close();
+
 switch ($userRole) {
 
     case 'admin':
@@ -40,7 +38,6 @@ switch ($userRole) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $userId = $_POST['userID'] ?? '';
     $firstName = $_POST['fname'] ?? '';
     $middleName = $_POST['mname'] ?? '';
     $lastName  = $_POST['lname'] ?? '';
@@ -329,49 +326,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
+
 ?>
 
 
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en" data-theme="light">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grading • Northport University</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Create Users</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./stylesGrade.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Create Users</span>
+      <span class="pill">Grading Portal</span>
     </div>
     <div class="top-actions">
       <div class="search">
         <i class="search-icon" data-lucide="search"></i>
         <input type="text" placeholder="Search courses, people, anything…" />
       </div>
-      <button class="icon-btn" aria-label="Notifications" a href="announcements.php"><i data-lucide="bell"></i></button>
+      <button class="icon-btn" aria-label="Notifications"><i data-lucide="bell"></i></button>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
-      <div class="crumb"><a href="createDirectory.php" aria-label="Back to Directory">← Back to Directory</a></div>
-    </div>
-
-    <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
-        <div class="user-meta"><div class="name"><?php echo htmlspecialchars($user['UserType']) ?></div></div>
-        <div class="dropdown">
-          <button>☰ Menu</button>
-          <div class="dropdown-content">
-            <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
-            <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
-            <a href="logout.php">Logout</a>
+      <div class="user">
+        <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
+        <div class="user-meta">
+          <div class="name"><?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?></div>
+        </div>
+        <div class="header-left">
+          <div class="menu">
+            <button>☰ Menu</button>
+            <div class="menu-content">
+              <a href="admin_profile.php">Profile</a>
+              <a href="update_admin_dashboard.php">Dashboard</a>
+              <a href="viewDirectory.php">View Directory</a>
+              <a href="createDirectory.php">Create Directory</a>
+              <a href="logout.php">Logout</a>
+            </div>
           </div>
         </div>
       </div>
@@ -413,9 +413,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             </div>
 
             <br>
-            <label for ="userID" hidden>User ID:</label>
-            <input type = "hidden" id = "userID" name="userID"><br>
-            
             <label for="fname">First Name:</label>
             <input type="text" id="fname" name="fname" required><br>
 
@@ -456,16 +453,12 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
             <div id="MajorMenu">
               <label for="Major">Major:</label>
-              <select id="Major" name="Major">
-                <option value="" selected>Undeclared</option>
-              </select>
+              <select id="Major" name="Major"></select>
             </div>
 
             <div id="MinorMenu">
               <label for="Minor">Minor:</label>
-              <select id="Minor" name="Minor">
-                <option value="" selected>Undeclared</option>
-              </select>
+              <select id="Minor" name="Minor"></select>
             </div>
 
             <div id="DepartmentMenu">
@@ -500,16 +493,15 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       </section>
     </main>
 
-    <footer class="footer">© 2025 Northport University • All rights reserved</footer>
+      <footer class="footer">
+    © <span id="year"></span> Northport University • All rights reserved • <a href="#" class="link">Privacy</a>
+  </footer>
 
-   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
-<script>
-      // Immediately create Lucide icons
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script>
+    // Create icons on load
     lucide.createIcons();
-
-    // Populate the year in the footer
-    document.getElementById('year').textContent = new Date().getFullYear();
+     document.getElementById('year').textContent = new Date().getFullYear();
 
     // Theme toggle
     const themeToggle = document.getElementById('themeToggle');
@@ -519,11 +511,12 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
       // Swap the icon
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      if (window.lucide) lucide.createIcons();
+      lucide.createIcons();
     });
 
     document.addEventListener("DOMContentLoaded", () => {
       const form = document.getElementById("CreateUser");
+      subTypeMenu.style.display = "none";
       subTypeMenu2.style.display = "none";
       MajorMenu.style.display = "none";
       MinorMenu.style.display = "none";
@@ -575,7 +568,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       }
 
       // Reset/hide all optional menus
-      [subTypeMenu2, MajorMenu, MinorMenu, DepartmentMenu, OfficeMenu, RankingMenu, SpecialtyMenu].forEach(div => {
+      [subTypeMenu, subTypeMenu2, MajorMenu, MinorMenu, DepartmentMenu, OfficeMenu, RankingMenu, SpecialtyMenu].forEach(div => {
         div.style.display = "none";
         div.querySelectorAll("select, input").forEach(el => el.required = false);
       });
@@ -615,8 +608,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           deptSelect.innerHTML = "";
           departments.forEach(d => {
             const opt = document.createElement("option");
-            opt.textContent = d;
-            opt.value = d;
+            opt.textContent = d.name;
+            opt.value = d.id;
             deptSelect.appendChild(opt);
           });
 
@@ -624,8 +617,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           officeSelect.innerHTML = "";
           offices.forEach(o => {
             const opt = document.createElement("option");
-            opt.textContent = o;
-            opt.value = o;
+            opt.textContent = o.id;
+            opt.value = o.id;
             officeSelect.appendChild(opt);
           });
         });
@@ -665,10 +658,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       .then(res => res.json())
       .then(data => {
         majorSelect.innerHTML = "";
-        const undeclared = document.createElement("option");
-        undeclared.value = "";
-        undeclared.textContent = "Undeclared";
-        majorSelect.appendChild(undeclared);
         data.forEach(m => {
           const opt = document.createElement("option");
           opt.textContent = m.name;
@@ -683,10 +672,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       .then(res => res.json())
       .then(data => {
         minorSelect.innerHTML = "";
-        const undeclaredMinor = document.createElement("option");
-        undeclaredMinor.value = "";
-        undeclaredMinor.textContent = "Undeclared";
-        minorSelect.appendChild(undeclaredMinor);
         data.forEach(m => {
           const opt = document.createElement("option");
           opt.textContent = m.name;
@@ -702,10 +687,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       .then(res => res.json())
       .then(data => {
         majorSelect.innerHTML = "";
-        const undeclared = document.createElement("option");
-        undeclared.value = "";
-        undeclared.textContent = "Undeclared";
-        majorSelect.appendChild(undeclared);
         data.forEach(p => {
           const opt = document.createElement("option");
           opt.textContent = p.name;

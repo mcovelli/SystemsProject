@@ -25,13 +25,15 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $programID = $_POST['programID'] ?? '';
-    $programCode = $_POST['program_code'] ?? '';
     $programName = $_POST['program_name'] ?? '';
     $degreeType = $_POST['degree_type'] ?? '';
     $deptID = $_POST['deptID'] ?? NULL;
     $creditsRequired = $_POST['req_cred_num'] ?? 30;
     $status = $_POST['prog_stat'] ?? 'ACTIVE';
+
+    $prefix = strtoupper(substr($programName, 0, 3));
+
+    $programCode = strtoupper($degreeType . $prefix);
 
     $mysqli->begin_transaction();
 
@@ -93,9 +95,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
         <div class="user-meta"><div class="name"><?php echo htmlspecialchars($user['UserType']) ?></div></div>
-        <div class="dropdown">
+        <div class="menu">
           <button>☰ Menu</button>
-          <div class="dropdown-content">
+          <div class="menu-content">
             <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
             <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
             <a href="logout.php">Logout</a>
@@ -107,36 +109,26 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     <main>
 
-        <h3>Create</h3>
-
-        <div class="top-actions">
-          <a href="javascript:history.back()" title="Back to Dashboard">← Back to Dashboard</a>
-        </div>
+        <h3>Create Program</h3>
         
         <section>
           
           <!-- CREATE Program FORM -->
           <div id = "create-program">
           <form id="CreateProgram" method="POST" action="">
-            <label for="program_id" hidden>Program ID:</label>
-            <input type = "hidden" select id="program_id" name="program_id" required><br>
-
-            <label for="program_code">Program Code:</label>
-            <input type = "text" select id="program_code" name="program_code" required><br>
 
             <label for="program_name">Program Name:</label>
-            <input type = "text" select id="program_name" name="program_name" required><br>
+            <input type = "text" id="program_name" name="program_name" required><br>
 
             <label for="degree_type">Degree Level:</label>
             <select id="degree_type" name="degree_type" required>
               <option value="">-- Select Degree Level --</option>
-              <option value="phd">Ph.D.</option>
-              <option value="ma">Master of Arts</option>
-              <option value="ms">Master of Sciences</option>
             </select><br>
 
-            <label for="deptID">Department ID:</label>
-            <input type="number" id="deptID" name="deptID" required><br>
+            <label for="dept">Department: </label>
+              <select name="deptID" id="deptID">
+                <option value="">-- All Departments --</option>
+              </select><br>
 
             <label for="req_cred_num">Required Credits:</label>
             <input type="number" id="req_cred_num" name="req_cred_num" required><br>
@@ -150,7 +142,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 </body>
 </main>
 
- <footer class="footer">© 2025 Northport University • All rights reserved</footer>
+<footer class="footer">© <span id="year"></span> Northport University</footer>
 
  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
@@ -171,6 +163,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       if (window.lucide) lucide.createIcons();
     });
+
+    // get grade program type
     fetch('get_grad_degree_level.php')
     .then(response => response.json())
     .then(data => {
@@ -186,6 +180,24 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       });
     })
     .catch(err => console.error('Error loading programs:', err));
+
+    // Fetch departments from get_departments.php
+    fetch('get_departments.php')
+    .then(response => response.json())
+    .then(data => {
+        const deptSelect = document.getElementById('deptID');
+        const selectedDept = new URLSearchParams(window.location.search).get('deptID');
+
+    data.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name.id;
+        opt.textContent = name.name;
+        if (name === selectedDept) opt.selected = true;
+        deptSelect.appendChild(opt);
+        });
+    })
+    .catch(err => console.error('Error loading departments:', err));
+
     document.getElementById("CreateProgram").addEventListener("submit", (e) => {
       console.log("Program form submitted ✅");
     });

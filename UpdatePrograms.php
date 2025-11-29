@@ -54,6 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<script>alert('Could not create Program');</script>";
         }
       }
+
+
         
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
@@ -107,7 +109,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     <main>
 
-        <h3>Create</h3>
+        <h3>Update Programs</h3>
 
         <div class="top-actions">
           <a href="javascript:history.back()" title="Back to Dashboard">← Back to Dashboard</a>

@@ -62,9 +62,9 @@ if (!$statstaff) {
           <div class="sub"></div>
         </div>
         <div class="header-left">
-        <div class="dropdown">
+        <div class="menu">
       <button>☰ Menu</button>
-        <div class="dropdown-content">
+        <div class="menu-content">
         <a href="statstaff_profile.php">Profile</a>
         <a href="messages.php">Messages</a>
         <a href="viewDirectory.php">View Directory</a>

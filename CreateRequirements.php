@@ -25,83 +25,113 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $majorID = $_POST['majorID'] ?? '';
-    $majorCourseID = $_POST['major_courseID'] ?? ''; 
-    $majorCreditsRequired = $_POST['major_credits_required'] ?? 3;
-    $majorRequirementDescription = $_POST['major_req_description'] ?? '';
-    $majorRequirementType = $_POST['major_req_type'] ?? NULL;
-    $majorSemesterLevel = $_POST['major_semester_level'] ?? NULL;
-    $minorID = $_POST['minorID'] ?? '';
-    $minorCourseID = $_POST['minor_courseID'] ?? '';
-    $minorCreditsRequired = $_POST['minor_credits_required'] ?? 3;
-    $minorRequirementDescription = $_POST['minor_req_description'] ?? '';
-    $minorRequirementType = $_POST['minor_req_type'] ?? NULL;
-    $minorSemesterLevel = $_POST['minor_semester_level'] ?? NULL;
-    $requirementID = $_POST['requirementID'] ?? '';
+    $requirementSelection = $_POST['requirementSelection'] ?? '';
     $programID = $_POST['programID'] ?? '';
-    $programCourseID = $_POST['program_courseID'] ?? '';
-    $requirementType = $_POST['req_type'] ?? '';
-    $notes = $_POST['notes'] ?? '';
+    $courses = $_POST['courseID'] ?? [];
+    $requirementType = $_POST['req_type'] ?? NULL;
+    $semesterLevel = $_POST['semester_level'] ?? 1;
 
-    $mysqli -> begin_transaction();
-    $createReqAction = $_POST['create_req_action'] ?? '';
+    if (empty($courses)) {
+        throw new Exception("No courses selected.");
+    }
 
-    switch ($createReqAction){
-    case "CreateMajorRequirement":
-    if ($stmt -> num_rows > 0 ){
-    $sql = "INSERT INTO MajorRequirement
-            (MajorID, CourseID, RequirementDescription, RequirementType, CreditsRequired, SemesterLevel)
-             VALUES (?, (SELECT CourseID FROM Courses WHERE CourseID = ?), ?, NULL, 3, NULL)";
-       $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param(
-            "isssii",
-            $majorID, $majorCourseID, $majorRequirementDescription, $majorRequirementType, $majorCreditsRequired, $majorSemesterLevel
-        );
-        if ($stmt->execute()) {
-            echo "alert('Major requirement created ✅');";
-        } else {
-            echo "alert('Could not create Major Requirement');";
+    $mysqli->begin_transaction();
+
+    try {
+
+        switch ($requirementSelection) {
+
+            case "major":
+                $sql = "INSERT INTO MajorRequirement
+                    (MajorID, CourseID, RequirementType, SemesterLevel)
+                    VALUES (?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType),
+                                            SemesterLevel = VALUES(SemesterLevel)";
+
+                $stmt = $mysqli->prepare($sql);
+
+                foreach ($courses as $cid) {
+                    $stmt->bind_param("issi", $programID, $cid, $requirementType, $semesterLevel);
+                    $stmt->execute();
+                }
+
+                $stmt->close();
+                break;
+
+
+            case "minor":
+                $sql = "INSERT INTO MinorRequirement
+                        (MinorID, CourseID, RequirementType, SemesterLevel)
+                        VALUES (?, ?, ?, ?)
+                        ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType),
+                                            SemesterLevel = VALUES(SemesterLevel)";
+
+                $stmt = $mysqli->prepare($sql);
+
+                foreach ($courses as $cid) {
+                    $stmt->bind_param("issi", $programID, $cid, $requirementType, $semesterLevel);
+                    $stmt->execute();
+                }
+
+                $stmt->close();
+                break;
+
+
+            case "program":
+                $sql = "INSERT INTO ProgramRequirement
+                        (ProgramID, CourseID, RequirementType)
+                        VALUES (?, ?, ?)
+                        ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType)";
+
+                $stmt = $mysqli->prepare($sql);
+
+                foreach ($courses as $cid) {
+                    $stmt->bind_param("iss", $programID, $cid, $requirementType);
+                    $stmt->execute();
+                }
+
+                $stmt->close();
+                break;
         }
-    }
-    break;
 
-    case "CreateMinorRequirement":
-    if ($stmt -> num_rows > 0 ){
-    $sql = "INSERT INTO MinorRequirement
-            (MinorID, CourseID, RequirementDescription, RequirementType, CreditsRequired, SemesterLevel)
-             VALUES (?, (SELECT CourseID FROM Courses WHERE CourseID = ?), ?, NULL, 3, NULL)";
-       $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param(
-            "isssii",
-            $minorID, $minorCourseID, $minorRequirementDescription, $minorRequirementType, $minorCreditsRequired, $minorSemesterLevel
-        );
-        if ($stmt->execute()) {
-            echo "alert('Minor requirement created ✅');";
-        } else {
-            echo "alert('Could not create Minor Requirement');";
-        }
-    }
-    break;
+        $mysqli->commit();
+        echo "<script>alert('Requirements created for all selected courses!');</script>";
 
-    case 'createProgramReq':
-        if ($stmt -> num_rows > 0 ){
-        $sql = "INSERT INTO ProgramRequirement (ProgramID, CourseID, RequirementType, Notes)
-        VALUES (?, (SELECT CourseID FROM Courses WHERE CourseID = ?), ?, ?)";
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param(
-            "isss",
-            $programID, $programCourseID, $requirementType, $notes
-        );
-        if ($stmt->execute()) {
-            echo "alert('Program requirement created ✅');";
-        } else {
-            echo "alert('Could not create Program Requirement');";
-        }
+    } catch (Exception $e) {
+        $mysqli->rollback();
+        die("PHP Exception: " . $e->getMessage());
     }
-    break;
-    }
-    $mysqli->commit();
 }
+
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'student':
+        $dashboard = 'student_dashboard.php';
+        $profile = 'student_profile.php';
+        break;
+    case 'faculty':
+        $dashboard = 'faculty_dashboard.php';
+        $profile = 'faculty_profile.php';
+        break;
+    case 'admin':
+        // if you have update/view admin types:
+        if (($_SESSION['admin_type'] ?? '') === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        } else {
+            $dashboard = 'view_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        }
+        break;
+    case 'statstaff':
+        $dashboard = 'statstaff_dashboard.php';
+        $profile = 'admin_profile.php';
+        break;
+    default:
+        $dashboard = 'login.html'; // fallback
+        $profile = 'login.html';
+}
+
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
@@ -141,9 +171,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
         <div class="user-meta"><div class="name"><?php echo htmlspecialchars($user['UserType']) ?></div></div>
-        <div class="dropdown">
+        <div class="menu">
           <button>☰ Menu</button>
-          <div class="dropdown-content">
+          <div class="menu-content">
             <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
             <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
             <a href="logout.php">Logout</a>
@@ -157,111 +187,74 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <section class="hero card">
           <div class="card-head between">
             <div>
-              <h2 class="card-title">Create Major/Minor</h2>
+              <h2 class="card-title">Create Requirements</h2>
+              <h4 class = "card-title">Create by semester level</h4>
             </div>
           </div>
        </section>
 
-<div class="top-actions">
-          <a href="javascript:history.back()" title="Back to Dashboard">← Back to Dashboard</a>
-        </div>
+    <div id = "create-section-requirement">
+        <form id = "reqForm" method = "POST">
+            <label for="requirementSelection">Select Type of Requirement:</label>
+                <select id="requirementSelection" name="requirementSelection" required>
+                    <option value="">-- Select --</option>
+                    <option value="major">Major Requirement</option>
+                    <option value="minor">Minor Requirement</option>
+                    <option value="program">Program Requirement</option>
+                </select>
 
-       <h3>Create Requirements</h3>
+                    <div class="form-row">
+                        <label for="programID">Program Name:</label>
+                        <select id="programID" name="programID">
+                            <option value="">-- Select --</option>
+                        </select>
+                    </div>
 
-    <label for="requirementSelection">Select Type of Requirement to Create:</label>
-    <select id="requirementSelection" name="requirementSelection" required>
-            <option value="">-- Select --</option>
-            <option value="majorRequirement">Major Requirement</option>
-            <option value="minorRequirement">Minor Requirement</option>
-            <option value="programRequirement">Program Requirement</option>
-    </select><br>
+                    <label for="req_type">Requirement Type: </label>
+                    <select id="req_type" name="req_type" required>
+                      <option value="">-- Select Requirement Type --</option>
+                      <option value="Core">Core</option>
+                      <option value="Elective">Elective</option>
+                    </select>
 
-<section id = "major-req-menu" class = "hero card hidden">
- <div id = "major-req-form">
-            <form id = "MajorReqForm" method = "POST" action = "">
-            <label for ="majorID">Major ID:</label>
-             <select id="majorID" name="majorID">
-                <option value="">-- Select Major ID --</option>
-            </select><br>
-            <label for = "major_courseID">Course ID:</label>
-            <input type = "text" id="major_courseID" name="major_courseID" required><br>
-            <label for ="major_req_description">Requirement Description:</label>
-            <input type = "text" id="major_req_description" name="major_req_description" required><br>
-            <label for="major_req_type">Requirement Type:</label>
-            <select id="major_req_type" name="major_req_type" required>
-              <option value="">-- Select Requirement Type --</option>
-              <option value="core">Core</option>
-              <option value="elective">Elective</option>
-            </select><br>
-            <label for = "major_credits_required">Credits Required:</label>
-            <input type = "number" id = "major_credits_required" name = "major_credits_required" required><br>
-            <label for = "major_semester_level">Semester Level:</label>
-            <input type = "number" id = "major_semester_level" name = "major_semester_level" required><br>
+                    <div class="form-row" id="semesterLevelContainer">
+                        <label for="semester_level">Semester Level:</label>
+                        <input type="number" id="semester_level" name="semester_level">
+                    </div>
 
-            <button type="submit" name = "major_req_action" value ="create">Create Major Requirement</button>
-            </form>
-        </div>
-</section>
+                    <!-- Department Filter -->
+                    <div id="departmentFilterContainer" style="margin-top: 20px;">
+                        <label for="deptFilter">Filter by Department:</label>
+                        <select id="deptFilter" multiple size="5" style="width: 200px;">
+                        </select>
+                    </div>
 
-<section id = "minor-req-menu" class = "hero card hidden">
-        <div id = "minor-req-form">
-            <form id = "MinorReqForm" method = "POST" action = "">
-            <label for ="minorID">Minor ID:</label>
-            <select id="minorID" name="minorID">
-                <option value="">-- Select Minor ID --</option>
-            </select><br>
-            <label for = "minor_courseID">Course ID:</label>
-            <input type = "text" id="minor_courseID" name="minor_courseID" required><br>
-            <label for ="minor_req_description">Requirement Description:</label>
-            <input type = "text" id="minor_req_description" name="minor_req_description" required><br>
-            <label for="minor_req_type">Requirement Type:</label>
-            <select id="minor_req_type" name="minor_req_type" required>
-              <option value="">-- Select Requirement Type --</option>
-              <option value="core">Core</option>
-              <option value="elective">Elective</option>
-            </select><br>
-            <label for = "minor_credits_required">Credits Required:</label>
-            <input type = "number" id = "minor_credits_required" name = "minor_credits_required" required><br>
-            <label for = "minor_semester_level">Semester Level:</label>
-            <input type = "number" id = "minor_semester_level" name = "minor_semester_level" required><br>
+                    <!-- Course Table -->
+                    <div id="courseTableContainer" style="margin-top: 20px;">
+                        <label>Select Courses:</label>
 
-            <button type="submit" name = "minor_req_action" value ="create">Create Minor Requirement</button>
-            </form>
-        </div>
-</section>
+                        <div class="course-table-container">
+                          <table class="course-table" id="courseTable">
+                            <thead>
+                              <tr>
+                                <th>Select</th>
+                                <th>Course ID</th>
+                                <th>Course Name</th>
+                                <th>Dept</th>
+                                <th>Credits</th>
+                                <th>Level</th>
+                              </tr>
+                            </thead>
+                            <tbody></tbody>
+                          </table>
+                        </div>
+                    </div><br>
 
-<section id = "program-req-menu" class = "hero card hidden">
-<div id = "program-requirement">
-            <form id = "programRequirementForm" method = "POST" action = "">
-            <label for = "requirementID" hidden>Requirement ID:</label>
-            <input type = "hidden" id = "requirementID" name="requirementID" required><br>
+                    <button type="submit" id = "submit">Submit</button>
+        </form>
+    </div>
 
-            <label for="programID">Program Requirement ID:</label>
-            <select id="programID" name="programID" required>
-                <option value="">-- Select Program ID --</option>
-            </select><br>
-
-            <label for="program_courseID">Program Course ID:</label>
-            <select id="program_courseID" name="program_courseID" required>
-                <option value="">-- Select Program Course ID --</option>
-            </select><br>
-
-            <label for="req_type">Requirement Type:</label>
-            <select id="req_type" name="req_type" required>
-              <option value="">-- Select Requirement Type --</option>
-              <option value="core">Core</option>
-              <option value="elective">Elective</option>
-              <option value="capstone">Capstone</option>
-            </select><br>
-
-            <label for="notes">Program Course Notes:</label>
-            <input type = "text" select id="notes" name="notes" required><br>
-
-            <button type="submit" name = "program_action" value ="create">Create Program Requirements</button>
-             </form>
-          </div>
-</section>
-<footer class="footer">© 2025 Northport University • All rights reserved</footer>
+<footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
 
  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
@@ -282,18 +275,14 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       if (window.lucide) lucide.createIcons();
     });
-
-    const majorReq = document.getElementById("major-req-menu");
-    const minorReq = document.getElementById("minor-req-menu");
-    const programReq = document.getElementById("program-req-menu");
     const requirementSelection = document.getElementById("requirementSelection");
     requirementSelection.addEventListener("change", function() => {
         const value = this.value;
 
         if (value === "majorRequirement"){
-            majorReq.style.display = "block";
-            minorReq.style.display = "none";
-            programReq.style.display = "none";
+            major-req-menu.style.display = "block";
+            minor-req-menu.style.display = "none";
+            program-req-menu.style.display = "none";
             fetch('get_majorrequirements.php')
             .then(response => response.json())
             .then(data =>){
@@ -314,9 +303,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             })
            }
         } else if (value === "minorRequirement"){
-           majorReq.style.display = "none";
-           minorReq.style.display = "block";
-           programReq.style.display = "none";
+        major-req-menu.style.display = "none";
+           minor-req-menu.style.display = "block";
+           program-req-menu.style.display = "none";
            fetch('get_minorrequirements.php')
             .then(response => response.json())
             .then(data =>){
@@ -337,9 +326,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             })
            }
         } else if (value === "programRequirement"){
-           majorReq.style.display = "none";
-           minorReq.style.display = "none";
-           programReq.style.display = "block";
+           major-req-menu.style.display = "none";
+           minor-req-menu.style.display = "none";
+           program-req-menu.style.display = "block";
             fetch('get_programrequirements.php')
             .then(response => response.json())
             .then(data =>){
@@ -360,9 +349,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             })
            }
         } else{
-            majorReq.style.display = "none";
-            minorReq.style.display = "none";
-            programReq.style.display = "none";
+            major-req-menu.style.display = "none";
+            minor-req-menu.style.display = "none";
+            program-req-menu.style.display = "none";
         }
     }
     );

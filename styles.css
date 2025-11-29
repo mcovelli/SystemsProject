@@ -115,12 +115,12 @@ display: flex;
 align-items: center;
 gap: 10px;
 }
-.dropdown {
+.menu {
     position: relative;
     display: inline-block;
 }
 
-.dropdown button {
+.menu button {
     background: #e2e8f0;
     color: #1e293b;
     border: none;
@@ -131,10 +131,10 @@ gap: 10px;
 }
 
 
-.dropdown-content {
+.menu-content {
     display: none;
     position: absolute;
-    right: 0;          /* <-- fixes overflow */
+    right: 0;
     left: auto;
     background: #fff;
     min-width: 150px;
@@ -145,18 +145,18 @@ gap: 10px;
 }
 
 
-.dropdown-content a {
+.menu-content a {
     display: block;
     padding: 10px 15px;
     color: #1e293b;
     text-decoration: none;
 }
 
-.dropdown-content a:hover {
+.menu-content a:hover {
     background: #f1f5f9;
 }
 
-.dropdown:hover .dropdown-content {
+.menu:hover .menu-content {
     display: block;
 }
 
@@ -225,75 +225,19 @@ gap: 10px;
 /* Utilities */
 .row.gap i, .btn i{width:16px; height:16px}
 
-/* Overlay background */
-    .popup-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(4px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
+    .course-table-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    margin-top: 10px;
     }
 
-    /* Card style popup */
-    .popup-card {
-      background: var(--panel, #fff);
-      color: var(--text, #111);
-      padding: 24px 28px;
-      border-radius: 14px;
-      width: 90%;
-      max-width: 480px;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
-      animation: slideUp 0.25s ease-out;
-      position: relative;
+    .course-table {
+        width: 100%;
+        border-collapse: collapse;
     }
 
-    /* Fade/slide animation */
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(40px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Close button */
-    .popup-card .close-btn {
-      position: absolute;
-      top: 10px;
-      right: 16px;
-      font-size: 22px;
-      color: var(--muted, #777);
-      cursor: pointer;
-      transition: color 0.2s ease;
-    }
-    .popup-card .close-btn:hover {
-      color: var(--primary, #4f46e5);
-    }
-
-    /* Form layout */
-    .popup-card .form-grid {
-      display: grid;
-      gap: 14px;
-      margin-top: 20px;
-    }
-    .popup-card .form-grid label {
-      display: flex;
-      flex-direction: column;
-      text-align: left;
-      font-size: 14px;
-      color: var(--muted, #666);
-    }
-    .popup-card .form-grid input,
-    .popup-card .form-grid textarea {
-      margin-top: 6px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border, #ccc);
-      background: var(--panel, #fff);
-      color: var(--text, #111);
-      font-size: 14px;
-    }
-    .popup-card .form-grid input:focus,
-    .popup-card .form-grid textarea:focus {
-      outline: 2px solid var(--primary, #4f46e5);
+    .course-table th, .course-table td {
+        padding: 6px 10px;
+        border-bottom: 1px solid #e5e5e5;
     }

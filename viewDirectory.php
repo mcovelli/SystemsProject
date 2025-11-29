@@ -101,14 +101,12 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       <button class="icon-btn" aria-label="Notifications"><i data-lucide="bell"></i></button>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
-      <div class="crumb"><a href="<?= htmlspecialchars($dashboard) ?>" aria-label="Back to Dashboard">← Back to Dashboard</a></div>
-    </div>
 
     <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
         <div class="user-meta"><div class="name"><?php echo htmlspecialchars($user['UserType']) ?></div></div>
-        <div class="dropdown">
+        <div class="menu">
           <button>☰ Menu</button>
-          <div class="dropdown-content">
+          <div class="menu-content">
             <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
             <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
             <a href="logout.php">Logout</a>

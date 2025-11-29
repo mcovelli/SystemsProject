@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 session_start();
 require_once __DIR__ . '/config.php';
 
-if (!isset($_SESSION['user_id']) || (($_SESSION['role'] ?? '') !== 'faculty' && ($_SESSION['role'] ?? '') !== 'admin')) {
+if (!isset($_SESSION['user_id'])) {
     redirect(PROJECT_ROOT . "/login.html");
 }
 
@@ -127,7 +127,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <i class="search-icon" data-lucide="search"></i>
         <input type="text" placeholder="Search courses, people, anything…" />
       </div>
-      <button class="icon-btn" aria-label="Notifications"><i data-lucide="bell"></i></button>
+      <button class="icon-btn" aria-label="Notifications" a href = "announcements.php"><i data-lucide="bell"></i></button>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
       <div class="crumb"><a href="viewDirectory.php" aria-label="Back to Directory">← Back to Directory</a></div>

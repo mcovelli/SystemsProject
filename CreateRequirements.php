@@ -27,9 +27,13 @@ $userstmt->close();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $requirementSelection = $_POST['requirementSelection'] ?? '';
     $programID = $_POST['programID'] ?? '';
-    $courses = $_POST['courseID'] ?? [];  // <-- ARRAY
+    $courses = $_POST['courseID'] ?? [];
     $requirementType = $_POST['req_type'] ?? NULL;
     $semesterLevel = $_POST['semester_level'] ?? 1;
+
+    if (empty($courses)) {
+        throw new Exception("No courses selected.");
+    }
 
     $mysqli->begin_transaction();
 
@@ -39,8 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             case "major":
                 $sql = "INSERT INTO MajorRequirement
-                        (MajorID, CourseID, RequirementType, SemesterLevel)
-                        VALUES (?, ?, ?, ?)";
+                    (MajorID, CourseID, RequirementType, SemesterLevel)
+                    VALUES (?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType),
+                                            SemesterLevel = VALUES(SemesterLevel)";
 
                 $stmt = $mysqli->prepare($sql);
 
@@ -56,7 +62,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case "minor":
                 $sql = "INSERT INTO MinorRequirement
                         (MinorID, CourseID, RequirementType, SemesterLevel)
-                        VALUES (?, ?, ?, ?)";
+                        VALUES (?, ?, ?, ?)
+                        ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType),
+                                            SemesterLevel = VALUES(SemesterLevel)";
 
                 $stmt = $mysqli->prepare($sql);
 
@@ -72,7 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case "program":
                 $sql = "INSERT INTO ProgramRequirement
                         (ProgramID, CourseID, RequirementType)
-                        VALUES (?, ?, ?)";
+                        VALUES (?, ?, ?)
+                        ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType)";
 
                 $stmt = $mysqli->prepare($sql);
 
@@ -90,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } catch (Exception $e) {
         $mysqli->rollback();
-        echo "<script>alert('Error creating requirements.');</script>";
+        die("PHP Exception: " . $e->getMessage());
     }
 }
 
@@ -362,10 +371,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         }
     });
 
-    form.addEventListener("submit", (e) => {
-        console.log("Form submitted ✅");
-    });
-
     // Load all courses
     fetch("get_courses.php")
         .then(r => r.json())
@@ -414,7 +419,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         filtered.forEach(c => {
             courseTableBody.insertAdjacentHTML("beforeend", `
                 <tr>
-                    <td><input type="checkbox" name="courseID[]" value="${c.id}"></td>
+                    <td><input type="checkbox" name="courseID[]" value="${c.courseID}"></td>
                     <td>${c.courseID}</td>
                     <td>${c.courseName}</td>
                     <td>${c.deptName}</td>

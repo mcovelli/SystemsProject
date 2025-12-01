@@ -43,10 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             case "major":
                 $sql = "INSERT INTO MajorRequirement
-                    (MajorID, CourseID, RequirementType, SemesterLevel)
-                    VALUES (?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType),
-                                            SemesterLevel = VALUES(SemesterLevel)";
+        (MajorID, CourseID, RequirementType, SemesterLevel)
+        VALUES (?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType),
+                                SemesterLevel = VALUES(SemesterLevel)";
 
                 $stmt = $mysqli->prepare($sql);
 
@@ -62,9 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case "minor":
                 $sql = "INSERT INTO MinorRequirement
                         (MinorID, CourseID, RequirementType, SemesterLevel)
-                        VALUES (?, ?, ?, ?)
-                        ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType),
-                                            SemesterLevel = VALUES(SemesterLevel)";
+                        VALUES (?, ?, ?, ?)";
 
                 $stmt = $mysqli->prepare($sql);
 
@@ -80,9 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case "program":
                 $sql = "INSERT INTO ProgramRequirement
                         (ProgramID, CourseID, RequirementType)
-                        VALUES (?, ?, ?)
-                        ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType),
-                                            SemesterLevel = VALUES(SemesterLevel)";
+                        VALUES (?, ?, ?)";
 
                 $stmt = $mysqli->prepare($sql);
 

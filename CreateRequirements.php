@@ -81,7 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $sql = "INSERT INTO ProgramRequirement
                         (ProgramID, CourseID, RequirementType)
                         VALUES (?, ?, ?)
-                        ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType)";
+                        ON DUPLICATE KEY UPDATE RequirementType = VALUES(RequirementType),
+                                            SemesterLevel = VALUES(SemesterLevel)";
 
                 $stmt = $mysqli->prepare($sql);
 
@@ -163,6 +164,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <i class="search-icon" data-lucide="search"></i>
         <input type="text" placeholder="Search courses, people, anything…" />
       </div>
+      <button class="icon-btn" aria-label="Notifications" a href="announcements.php"><i data-lucide="bell"></i></button>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
       <div class="crumb"><a href="createDirectory.php" aria-label="Back to Directory">← Back to Directory</a></div>
@@ -201,92 +203,13 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <option value="minor">Minor Requirement</option>
                     <option value="program">Program Requirement</option>
                 </select>
-                    
-               <section id = "major-req-menu" class = "hero card hidden">
- <div id = "major-req-form">
-            <form id = "MajorReqForm" method = "POST" action = "">
-            <label for ="majorID">Major ID:</label>
-             <select id="majorID" name="majorID">
-                <option value="">-- Select Major ID --</option>
-            </select><br>
-            <label for = "major_courseID">Course ID:</label>
-            <input type = "text" id="major_courseID" name="major_courseID"><br>
-            <label for ="major_req_description">Requirement Description:</label>
-            <input type = "text" id="major_req_description" name="major_req_description"><br>
-            <label for="major_req_type">Requirement Type:</label>
-            <select id="major_req_type" name="major_req_type" required>
-              <option value="">-- Select Requirement Type --</option>
-              <option value="core">Core</option>
-              <option value="elective">Elective</option>
-            </select><br>
-            <label for = "major_credits_required">Credits Required:</label>
-            <input type = "number" id = "major_credits_required" name = "major_credits_required"><br>
-            <label for = "major_semester_level">Semester Level:</label>
-            <input type = "number" id = "major_semester_level" name = "major_semester_level"><br>
 
-            <button type="submit" name = "major_req_action" value ="update">Update Major Requirement</button>
-            </form>
-        </div>
-</section>
-
-<section id = "minor-req-menu" class = "hero card hidden">
-        <div id = "minor-req-form">
-            <form id = "MinorReqForm" method = "POST" action = "">
-            <label for ="minorID">Minor ID:</label>
-            <select id="minorID" name="minorID">
-                <option value="">-- Select Minor ID --</option>
-            </select><br>
-            <label for = "minor_courseID">Course ID:</label>
-            <input type = "text" id="minor_courseID" name="minor_courseID"><br>
-            <label for ="minor_req_description">Requirement Description:</label>
-            <input type = "text" id="minor_req_description" name="minor_req_description"><br>
-            <label for="minor_req_type">Requirement Type:</label>
-            <select id="minor_req_type" name="minor_req_type">
-              <option value="">-- Select Requirement Type --</option>
-              <option value="core">Core</option>
-              <option value="elective">Elective</option>
-            </select><br>
-            <label for = "minor_credits_required">Credits Required:</label>
-            <input type = "number" id = "minor_credits_required" name = "minor_credits_required"><br>
-            <label for = "minor_semester_level">Semester Level:</label>
-            <input type = "number" id = "minor_semester_level" name = "minor_semester_level"><br>
-
-            <button type="submit" name = "minor_req_action" value ="update">Update Minor Requirement</button>
-            </form>
-        </div>
-</section>
-
-<section id = "program-req-menu" class = "hero card hidden">
-<div id = "program-requirement">
-            <form id = "programRequirementForm" method = "POST" action = "">
-            <label for = "requirementID" hidden>Requirement ID:</label>
-            <input type = "hidden" id = "requirementID" name="requirementID"><br>
-
-            <label for="programID">Program Requirement ID:</label>
-            <select id="programID" name="programID">
-                <option value="">-- Select Program ID --</option>
-            </select><br>
-
-            <label for="program_courseID">Program Course ID:</label>
-            <select id="program_courseID" name="program_courseID">
-                <option value="">-- Select Program Course ID --</option>
-            </select><br>
-
-            <label for="req_type">Requirement Type:</label>
-            <select id="req_type" name="req_type">
-              <option value="">-- Select Requirement Type --</option>
-              <option value="core">Core</option>
-              <option value="elective">Elective</option>
-              <option value="capstone">Capstone</option>
-            </select><br>
-
-            <label for="notes">Program Course Notes:</label>
-            <input type = "text" select id="notes" name="notes"><br>
-
-            <button type="submit" name = "program_action" value ="update">Update Program Requirements</button>
-             </form>
-          </div>
-</section>
+                    <div class="form-row">
+                        <label for="programID">Program Name:</label>
+                        <select id="programID" name="programID">
+                            <option value="">-- Select --</option>
+                        </select>
+                    </div>
 
                     <label for="req_type">Requirement Type: </label>
                     <select id="req_type" name="req_type" required>
@@ -353,89 +276,168 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       if (window.lucide) lucide.createIcons();
     });
-    const majorReq = document.getElementById("major-req-menu");
-    const minorReq = document.getElementById("minor-req-menu");
-    const programReq = document.getElementById("program-req-menu");
-    const requirementSelection = document.getElementById("requirementSelection");
-    requirementSelection.addEventListener("change", function() => {
+
+    document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("reqForm");
+    const RequirementSelection = document.getElementById("requirementSelection");
+    const semesterLevelContainer = document.getElementById("semesterLevelContainer");
+    const SemesterLevel = document.getElementById("semester_level");
+    const ProgramID = document.getElementById("programID");
+    const deptFilter = document.getElementById("deptFilter");
+    const courseTableBody = document.querySelector("#courseTable tbody");
+
+    let ALL_COURSES = [];
+
+    semesterLevelContainer.style.display = "none";
+    SemesterLevel.required = false;
+    ProgramID.style.display = "block";
+
+    RequirementSelection.addEventListener("change", function () {
         const value = this.value;
 
-        if (value === "majorRequirement"){
-            majorReq.style.display = "block";
-            minorReq.style.display = "none";
-            programReq.style.display = "none";
-            fetch('get_majorrequirements.php')
-            .then(response => response.json())
-            .then(data =>){
-               const majorRequirementSelect = document.getElementById('majorID');
-              const selectedMajorRequirement = new URLSearchParams(window.location.search).get('majorID');
-              
-              data.forEach(major => {
-                const opt = document.createElement('option');
-                opt.value = major.majorid;
-                opt.textContent = major.courseid;
-                if (major.majorid === selectedMajorRequirement) opt.selected = true;
-                majorRequirementSelect.appendChild(opt);
-              })
-               .catch(err => console.error('Error loading departments:', err));
+        // Reset
+        semesterLevelContainer.style.display = "none";
+        SemesterLevel.required = false;
+        SemesterLevel.value = "";
+        ProgramID.style.display = "block";
+        ProgramID.required = true;
+        ProgramID.innerHTML = '<option value="">-- Select --</option>';
 
-                document.getElementById("MajorReqForm").addEventListener("submit", (e) => {
-                console.log("Form submitted");
-            })
-           }
-        } else if (value === "minorRequirement"){
-        majorReq.style.display = "none";
-           minorReq.style.display = "block";
-           programReq.style.display = "none";
-           fetch('get_minorrequirements.php')
-            .then(response => response.json())
-            .then(data =>){
-               const minorRequirementSelect = document.getElementById('minorID');
-              const selectedMinorRequirement = new URLSearchParams(window.location.search).get('minorID');
+        if (!value) return;
 
-              data.forEach(minor => {
-                const opt = document.createElement('option');
-                opt.value = minor.minorid;
-                opt.textContent = minor.courseid;
-                if (minor.minorid === selectedMinorRequirement) opt.selected = true;
-                minorRequirementSelect.appendChild(opt);
-              })
-               .catch(err => console.error('Error loading departments:', err));
+        // PROGRAM → load programs
+        if (value === "program") {
+            fetch('get_programs.php')
+                .then(r => r.json())
+                .then(programs => {
+                    ProgramID.style.display = "block";
+                    ProgramID.required = true;
+                    ProgramID.innerHTML = '<option value="">-- Select --</option>';
+                    semesterLevelContainer.style.display = "none";
+                    SemesterLevel.required = false;
+                    SemesterLevel.value = "";
 
-                document.getElementById("MinorReqForm").addEventListener("submit", (e) => {
-                console.log("Form submitted");
-            })
-           }
-        } else if (value === "programRequirement"){
-           majorReq.style.display = "none";
-           minorReq.style.display = "none";
-           programReq.style.display = "block";
-            fetch('get_programrequirements.php')
-            .then(response => response.json())
-            .then(data =>){
-               const programRequirementSelect = document.getElementById('programID');
-              const selectedProgramRequirement = new URLSearchParams(window.location.search).get('programID');
-
-              data.forEach(program => {
-                const opt = document.createElement('option');
-                opt.value = program.programid;
-                opt.textContent = program.requirementid + "-" + program.courseid;
-                if (program.programid === selectedProgramRequirement) opt.selected = true;
-                programRequirementSelect.appendChild(opt);
-              })
-               .catch(err => console.error('Error loading departments:', err));
-
-                document.getElementById("ProgramReqForm").addEventListener("submit", (e) => {
-                console.log("Form submitted");
-            })
-           }
-        } else{
-            majorReq.style.display = "none";
-            minorReq.style.display = "none";
-            programReq.style.display = "none";
+                    programs.forEach(p => {
+                        const opt = document.createElement("option");
+                        opt.value = p.id;
+                        opt.textContent = p.name;
+                        ProgramID.appendChild(opt);
+                    });
+                });
+            return;
         }
+
+        // MAJOR → load majors
+        if (value === "major") {
+            fetch('get_majors.php')
+                .then(r => r.json())
+                .then(majors => {
+                    ProgramID.style.display = "block";
+                    ProgramID.required = true;
+                    ProgramID.innerHTML = '<option value="">-- Select --</option>';
+                    semesterLevelContainer.style.display = "block";
+                    SemesterLevel.required = true;
+                    SemesterLevel.value = "";
+
+                    majors.forEach(m => {
+                        const opt = document.createElement("option");
+                        opt.value = m.id;
+                        opt.textContent = m.name;
+                        ProgramID.appendChild(opt);
+                    });
+                });
+            return;
+        }
+
+        // MINOR → load minors
+        if (value === "minor") {
+            fetch('get_minors.php')
+                .then(r => r.json())
+                .then(minors => {
+                    ProgramID.style.display = "block";
+                    ProgramID.required = true;
+                    ProgramID.innerHTML = '<option value="">-- Select --</option>';
+                    semesterLevelContainer.style.display = "block";
+                    SemesterLevel.required = true;
+                    SemesterLevel.value = "";
+
+                    minors.forEach(m => {
+                        const opt = document.createElement("option");
+                        opt.value = m.id;
+                        opt.textContent = m.name;
+                        ProgramID.appendChild(opt);
+                    });
+                });
+            return;
+        }
+    });
+
+    // Load all courses
+    fetch("get_courses.php")
+        .then(r => r.json())
+        .then(data => {
+            ALL_COURSES = data;
+
+            // Populate department list
+            const departments = [...new Set(data.map(c => c.deptName))];
+
+            deptFilter.insertAdjacentHTML("beforeend", `
+                <option value="__ALL__">-- All Departments --</option>
+            `);
+
+            departments.forEach(d => {
+                deptFilter.insertAdjacentHTML("beforeend", `
+                    <option value="${d}">${d}</option>
+                `);
+            });
+        });
+
+    // Filter function
+    function updateCourseTable() {
+        const selectedRequirement = RequirementSelection.value;
+        const selectedDepartments = Array.from(deptFilter.selectedOptions).map(o => o.value);
+
+        // Filter by course type
+        let filtered = ALL_COURSES.filter(c => {
+            if (selectedRequirement === "major" || selectedRequirement === "minor") {
+                return c.level === "UNDERGRAD";
+            }
+            if (selectedRequirement === "program") {
+                return c.level === "GRAD";
+            }
+            return true;
+        });
+
+        // Filter by selected departments
+        if (selectedDepartments.includes("__ALL__")) {
+            filtered = filtered; // no filtering
+        } else if (selectedDepartments.length > 0) {
+            filtered = filtered.filter(c => selectedDepartments.includes(c.deptName));
+        }
+
+        // Render table
+        courseTableBody.innerHTML = "";
+        filtered.forEach(c => {
+            courseTableBody.insertAdjacentHTML("beforeend", `
+                <tr>
+                    <td><input type="checkbox" name="courseID[]" value="${c.courseID}"></td>
+                    <td>${c.courseID}</td>
+                    <td>${c.courseName}</td>
+                    <td>${c.deptName}</td>
+                    <td>${c.credits}</td>
+                    <td>${c.level}</td>
+                </tr>
+            `);
+        });
     }
-    );
+
+    // React when requirement type changes
+    RequirementSelection.addEventListener("change", updateCourseTable);
+
+    // React when department filter changes
+    deptFilter.addEventListener("change", updateCourseTable);
+});
+
 
 </script>
 </body>

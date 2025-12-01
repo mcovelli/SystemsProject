@@ -26,17 +26,16 @@ $userstmt->close();
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $CourseId = $_POST['courseID'] ?? '';
-    $CourseSectionNo = $_POST['courseSectionNo'] ?? '';
+    $CRN = $_POST['crn'] ?? '';
     
 $mysqli->begin_transaction();
 
-  $sql = "DELETE FROM CourseSection WHERE CourseID = ? AND CourseSectionNo = ?";
+  $sql = "DELETE FROM CourseSection WHERE CRN = ? ";
   $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("si", $CourseId, $CourseSectionNo);
+  $stmt->bind_param("i", $CRN);
         
   if ($stmt->execute()) {
-    echo "alert('$CourseId - $CourseSectionNo deleted ✅');";
+    echo "alert('$CRN deleted ✅');";
   } else {
     echo "alert('Could not delete course section');";
         }
@@ -97,17 +96,14 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <section class="hero card">
             <div class="card-head between">
                 <div>
-                  <h1 class="card-title">Create Course Section</h1>
+                  <h1 class="card-title">Delete Course Section</h1>
                 </div>
             </div>
                 <div id = "delete-section-course">
                     <form id = "DeleteCourseSection" method = "POST" action = "">
-                        <label for="courseID">Course ID: </label>
-                             <select name="courseID" id="courseID">
+                        <label for="crn">CRN: </label>
+                             <select name="crn" id="crn">
                                 </select><br>
-
-                        <label for="courseSectionNo">Course Section No.: </label>
-                             <input type = "number" id="courseSectionNo" name="courseSectionNo" required placeholder="ex. 1"><br>
 
                         <button type="submit" id = "submit">Submit</button>
                     </form>

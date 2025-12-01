@@ -95,13 +95,15 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <section class="hero card">
             <div class="card-head between">
                 <div>
-                  <h1 class="card-title">Create Department</h1>
+                  <h1 class="card-title">Delete Department</h1>
                 </div>
             </div>
                 <div id = "delete-section-department">
                     <form id = "DeleteDepartment" method = "POST" action = "">
-                      <label for = "deptID">Department ID: </label>
-                            <input type = "text" id = "deptID" name="deptID" required placeholder="ex. MATH"><br>
+                      <label for="deptID">Department: </label>
+                             <select name="deptID" id="deptID" required>
+                              <option>--SELECT--</option>
+                                </select><br>
                         
                         <button type="submit" id = "submit">Submit</button>
                     </form>
@@ -128,6 +130,23 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       if (window.lucide) lucide.createIcons();
     });
+
+    // Fetch departments from get_departments.php
+    fetch('get_departments.php')
+    .then(response => response.json())
+    .then(data => {
+        const deptSelect = document.getElementById('deptID');
+        const selected = new URLSearchParams(window.location.search).get('deptID');
+
+    data.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name.id;
+        opt.textContent = name.name;
+        deptSelect.appendChild(opt);
+        });
+    })
+    .catch(err => console.error('Error loading departments:', err));
+
     // Delete departments
     document.getElementById("DeleteDepartment").addEventListener("submit", (e) => {
     console.log("Form submitted");

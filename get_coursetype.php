@@ -9,7 +9,10 @@ $result = $mysqli->query("SELECT DISTINCT CourseType FROM Course WHERE CourseTyp
 $type = [];
 
 while ($row = $result->fetch_assoc()) {
-    $type[] = $row['CourseType'];
+    $type[] = [
+        'type' => $row['CourseType']
+
+];
 }
 
 echo json_encode($type);

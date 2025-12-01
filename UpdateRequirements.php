@@ -350,7 +350,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
               data.forEach(program => {
                 const opt = document.createElement('option');
                 opt.value = program.programid;
-                opt.textContent = program.programid;
+                opt.textContent = program.requirementid + "-" + program.courseid;
                 if (program.programid === selectedProgramRequirement) opt.selected = true;
                 programRequirementSelect.appendChild(opt);
               })

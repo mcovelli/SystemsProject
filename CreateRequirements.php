@@ -201,13 +201,92 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <option value="minor">Minor Requirement</option>
                     <option value="program">Program Requirement</option>
                 </select>
+                    
+               <section id = "major-req-menu" class = "hero card hidden">
+ <div id = "major-req-form">
+            <form id = "MajorReqForm" method = "POST" action = "">
+            <label for ="majorID">Major ID:</label>
+             <select id="majorID" name="majorID">
+                <option value="">-- Select Major ID --</option>
+            </select><br>
+            <label for = "major_courseID">Course ID:</label>
+            <input type = "text" id="major_courseID" name="major_courseID"><br>
+            <label for ="major_req_description">Requirement Description:</label>
+            <input type = "text" id="major_req_description" name="major_req_description"><br>
+            <label for="major_req_type">Requirement Type:</label>
+            <select id="major_req_type" name="major_req_type" required>
+              <option value="">-- Select Requirement Type --</option>
+              <option value="core">Core</option>
+              <option value="elective">Elective</option>
+            </select><br>
+            <label for = "major_credits_required">Credits Required:</label>
+            <input type = "number" id = "major_credits_required" name = "major_credits_required"><br>
+            <label for = "major_semester_level">Semester Level:</label>
+            <input type = "number" id = "major_semester_level" name = "major_semester_level"><br>
 
-                    <div class="form-row">
-                        <label for="programID">Program Name:</label>
-                        <select id="programID" name="programID">
-                            <option value="">-- Select --</option>
-                        </select>
-                    </div>
+            <button type="submit" name = "major_req_action" value ="update">Update Major Requirement</button>
+            </form>
+        </div>
+</section>
+
+<section id = "minor-req-menu" class = "hero card hidden">
+        <div id = "minor-req-form">
+            <form id = "MinorReqForm" method = "POST" action = "">
+            <label for ="minorID">Minor ID:</label>
+            <select id="minorID" name="minorID">
+                <option value="">-- Select Minor ID --</option>
+            </select><br>
+            <label for = "minor_courseID">Course ID:</label>
+            <input type = "text" id="minor_courseID" name="minor_courseID"><br>
+            <label for ="minor_req_description">Requirement Description:</label>
+            <input type = "text" id="minor_req_description" name="minor_req_description"><br>
+            <label for="minor_req_type">Requirement Type:</label>
+            <select id="minor_req_type" name="minor_req_type">
+              <option value="">-- Select Requirement Type --</option>
+              <option value="core">Core</option>
+              <option value="elective">Elective</option>
+            </select><br>
+            <label for = "minor_credits_required">Credits Required:</label>
+            <input type = "number" id = "minor_credits_required" name = "minor_credits_required"><br>
+            <label for = "minor_semester_level">Semester Level:</label>
+            <input type = "number" id = "minor_semester_level" name = "minor_semester_level"><br>
+
+            <button type="submit" name = "minor_req_action" value ="update">Update Minor Requirement</button>
+            </form>
+        </div>
+</section>
+
+<section id = "program-req-menu" class = "hero card hidden">
+<div id = "program-requirement">
+            <form id = "programRequirementForm" method = "POST" action = "">
+            <label for = "requirementID" hidden>Requirement ID:</label>
+            <input type = "hidden" id = "requirementID" name="requirementID"><br>
+
+            <label for="programID">Program Requirement ID:</label>
+            <select id="programID" name="programID">
+                <option value="">-- Select Program ID --</option>
+            </select><br>
+
+            <label for="program_courseID">Program Course ID:</label>
+            <select id="program_courseID" name="program_courseID">
+                <option value="">-- Select Program Course ID --</option>
+            </select><br>
+
+            <label for="req_type">Requirement Type:</label>
+            <select id="req_type" name="req_type">
+              <option value="">-- Select Requirement Type --</option>
+              <option value="core">Core</option>
+              <option value="elective">Elective</option>
+              <option value="capstone">Capstone</option>
+            </select><br>
+
+            <label for="notes">Program Course Notes:</label>
+            <input type = "text" select id="notes" name="notes"><br>
+
+            <button type="submit" name = "program_action" value ="update">Update Program Requirements</button>
+             </form>
+          </div>
+</section>
 
                     <label for="req_type">Requirement Type: </label>
                     <select id="req_type" name="req_type" required>
@@ -294,7 +373,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
               data.forEach(major => {
                 const opt = document.createElement('option');
                 opt.value = major.majorid;
-                opt.textContent = major.majorid;
+                opt.textContent = major.courseid;
                 if (major.majorid === selectedMajorRequirement) opt.selected = true;
                 majorRequirementSelect.appendChild(opt);
               })
@@ -317,7 +396,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
               data.forEach(minor => {
                 const opt = document.createElement('option');
                 opt.value = minor.minorid;
-                opt.textContent = minor.minorid;
+                opt.textContent = minor.courseid;
                 if (minor.minorid === selectedMinorRequirement) opt.selected = true;
                 minorRequirementSelect.appendChild(opt);
               })
@@ -340,7 +419,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
               data.forEach(program => {
                 const opt = document.createElement('option');
                 opt.value = program.programid;
-                opt.textContent = program.programid;
+                opt.textContent = program.requirementid + "-" + program.courseid;
                 if (program.programid === selectedProgramRequirement) opt.selected = true;
                 programRequirementSelect.appendChild(opt);
               })

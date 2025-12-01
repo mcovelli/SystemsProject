@@ -163,7 +163,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     data.forEach(name => {
         const opt = document.createElement('option');
-        opt.value = name.name;
+        opt.value = name.id;
         opt.textContent = name.name;
         deptSelect.appendChild(opt);
         });
@@ -179,8 +179,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     data.forEach(type => {
         const opt = document.createElement('option');
-        opt.value = type;
-        opt.textContent = type;
+        opt.value = type.type;
+        opt.textContent = type.type;
         courseTypeSelect.appendChild(opt);
         });
     })

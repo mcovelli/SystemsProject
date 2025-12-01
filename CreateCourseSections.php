@@ -223,8 +223,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     data.forEach(course => {
         const opt = document.createElement('option');
-        opt.value = course.id;
-        opt.textContent = course.id;
+        opt.value = course.courseId;
+        opt.textContent = course.courseName;
         courseSelect.appendChild(opt);
         });
     })
@@ -256,7 +256,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     data.forEach(semester => {
         const opt = document.createElement('option');
         opt.value = semester.SemesterID;
-        opt.textContent = semester.SemesterID;
+        opt.textContent = semester.SemesterName + ' ' + semester.Year;
         semesterSelect.appendChild(opt);
         });
     })

@@ -105,7 +105,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                              <select name="crn" id="crn">
                                 </select><br>
 
-                        <button type="submit" id = "submit">Submit</button>
+                        <button type="submit" id = "submit">Delete</button>
                     </form>
                 </div>
         </section>
@@ -131,8 +131,23 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       if (window.lucide) lucide.createIcons();
     });
 
-    // Delete course section
+    // Fetch course sections from get_coursesection.php
+    fetch('get_coursesection.php')
+    .then(response => response.json())
+    .then(data => {
+        const deptSelect = document.getElementById('crn');
+        const selected = new URLSearchParams(window.location.search).get('crn');
 
+    data.forEach(cs => {
+        const opt = document.createElement('option');
+        opt.value = cs.crn;
+        opt.textContent = cs.crn + ' - ' + cs.courseID;
+        deptSelect.appendChild(opt);
+        });
+    })
+    .catch(err => console.error('Error loading course sections:', err));
+
+    // Delete course section
     document.getElementById("DeleteCourseSection").addEventListener("submit", (e) => {
     console.log("Form submitted");
 });

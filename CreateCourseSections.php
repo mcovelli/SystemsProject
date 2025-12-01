@@ -26,7 +26,7 @@ $userstmt->close();
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $CourseId = $_POST['courseID'] ?? '';
+    $CourseID = $_POST['courseID'] ?? '';
     $CourseSectionNo = $_POST['courseSectionNo'] ?? '';
     $FacultyId = $_POST['facultyID'] ?? '';
     $TimeSlotId = $_POST['timeSlotID'] ?? '';
@@ -60,10 +60,10 @@ $mysqli->begin_transaction();
 
   $sql = "INSERT INTO CourseSection (CourseID, CourseSectionNo, FacultyID, TimeSlotID, RoomID, Year, SemesterID, AvailableSeats, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PLANNED')";
   $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("siiisssi", $CourseId, $CourseSectionNo, $FacultyId, $TimeSlotId, $RoomId, $Year, $SemesterId, $AvailableSeats);
+  $stmt->bind_param("siiisssi", $CourseID, $CourseSectionNo, $FacultyId, $TimeSlotId, $RoomId, $Year, $SemesterId, $AvailableSeats);
         
   if ($stmt->execute()) {
-    echo "alert('$CourseId. created ✅');";
+    echo "alert('$CourseID. created ✅');";
   } else {
     echo "alert('Could not create course section');";
         }
@@ -223,7 +223,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     data.forEach(course => {
         const opt = document.createElement('option');
-        opt.value = course.courseId;
+        opt.value = course.courseID;
         opt.textContent = course.courseName;
         courseSelect.appendChild(opt);
         });

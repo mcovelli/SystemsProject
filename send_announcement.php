@@ -2,11 +2,11 @@
 session_start();
 require_once __DIR__ . '/config.php';
 
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'faculty') {
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'faculty' && ($_SESSION['role'] ?? '') !== 'admin' ) {
     redirect('login.php');
 }
 
-$facultyId = $_SESSION['user_id'];
+$userId = $_SESSION['user_id'];
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -20,7 +20,7 @@ $stmt = $mysqli->prepare("
     WHERE cs.FacultyID = ?
     ORDER BY s.Year DESC, s.SemesterName DESC
 ");
-$stmt->bind_param('i', $facultyId);
+$stmt->bind_param('i', $userId);
 $stmt->execute();
 $sections = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();

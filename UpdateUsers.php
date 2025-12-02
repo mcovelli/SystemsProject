@@ -162,15 +162,20 @@ if (isset($_POST['updateUser'])) {
 
     try {
 
+      $status = strtoupper(trim($_POST['Status']));
+      if (!in_array($status, ['ACTIVE', 'INACTIVE'])) {
+          die("Invalid status value: $status");
+      }
+
         /* ----------------------
            UPDATE USERS TABLE
         ----------------------- */
         $sql = "UPDATE Users 
-                SET FirstName=?, MiddleName=?, LastName=?, HouseNumber=?, Street=?, City=?, State=?, ZIP=?, Gender=?, DOB=?, PhoneNumber=?, Status='ACTIVE'
+                SET FirstName=?, MiddleName=?, LastName=?, HouseNumber=?, Street=?, City=?, State=?, ZIP=?, Gender=?, DOB=?, PhoneNumber=?, Status=?
                 WHERE UserID=?";
         $stmt = $mysqli->prepare($sql);
         $stmt->bind_param(
-            "sssisssssssi",
+            "sssissssssssi",
             $_POST['FirstName'],
             $_POST['MiddleName'],
             $_POST['LastName'],
@@ -182,6 +187,8 @@ if (isset($_POST['updateUser'])) {
             $_POST['Gender'],
             $_POST['DOB'],
             $_POST['PhoneNumber'],
+            $status,
+  
             $uid
         );
         $stmt->execute();
@@ -460,7 +467,7 @@ input[type=text], input[type=date], select {
 
         <div class="field-block">
             <label>House Number</label>
-            <input type="text" name="HouseNumber" value="<?php echo $loaded[$i]['HouseNumber']; ?>">
+            <input type="text" name="HouseNumber" value="<?php echo $loadedUser['HouseNumber']; ?>">
         </div>
 
         <div class="field-block">
@@ -491,6 +498,14 @@ input[type=text], input[type=date], select {
         <div class="field-block">
             <label>Date of Birth</label>
             <input type="date" name="DOB" value="<?php echo $loadedUser['DOB']; ?>">
+        </div>
+
+        <div class="field-block">
+          <label>Status</label>
+             <select name="Status">
+                <option value="ACTIVE" <?php if ($loadedUser['Status'] === 'ACTIVE') echo 'selected'; ?>>ACTIVE</option>
+                <option value="INACTIVE" <?php if ($loadedUser['Status'] === 'INACTIVE') echo 'selected'; ?>>INACTIVE</option>
+            </select>
         </div>
 
         <div class="field-block">

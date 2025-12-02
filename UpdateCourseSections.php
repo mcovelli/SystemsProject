@@ -181,7 +181,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       lucide.createIcons();
     });
 
-
     // Fetch faculty from get_faculty.php
     fetch('get_faculty.php')
     .then(response => response.json())

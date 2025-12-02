@@ -5,7 +5,10 @@ header('Content-Type: application/json');
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$result = $mysqli->query("SELECT CRN, Title, Message, DatePosted FROM CourseAnnouncements");
+$result = $mysqli->query("SELECT ca.CRN, ca.Title, ca.Message, ca.DatePosted, f.FacultyID FROM CourseAnnouncements ca
+JOIN Faculty f ON ca.FacultyID = f.FacultyID
+JOIN CourseSection cs ON ca.CRN = cs.CRN && f.FacultyID = cs.FacultyID
+ORDER BY ca.DatePosted DESC");
 $rooms = [];
 
 while ($row = $result->fetch_assoc()) {
@@ -13,7 +16,8 @@ while ($row = $result->fetch_assoc()) {
         'crn' => $row['CRN'],
         'title' => $row['Title'],
         'message' => $row['Message'],
-        'date_posted' => $row['DatePosted']
+        'date_posted' => $row['DatePosted'],
+        'faculty_id' => $row['FacultyID']
     ];
 }
 

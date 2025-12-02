@@ -252,7 +252,8 @@ $messages = [
         <i class="search-icon" data-lucide="search"></i>
         <input type="text" placeholder="Search courses, people, anything…" />
       </div>
-      <button class="icon-btn" aria-label="Notifications" a href = announcements.php><i data-lucide="bell"></i></button>
+      <button id="Notifications" class="icon-btn" aria-label="Notifications" onClick="seeAnnouncements()"><i data-lucide="bell"></i></button>
+      <div id="notificationArea" class = "notification-area"></div>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
       <div class="user">
@@ -571,6 +572,24 @@ $messages = [
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       lucide.createIcons();
     });
+
+    function seeAnnouncements() {
+        document.getElementById('notificationArea').addEventListener('click', function(){
+          fetch('get_announcements.php')
+          .then(response => response.json())
+          .then(data => {
+            const announcement = 
+            data.forEach(announcement => 
+              alert("Announcement Title: " + announcement.title + "\n" +
+                    "Course CRN: " + announcement.crn + "\n" +
+                    "Message: " + announcement.message + "\n" +
+                    "Date Posted: " + announcement.date_posted + "\n" +)
+            )
+          }
+          )
+        }
+        )
+        };
 
     // Tab switching
     document.querySelectorAll('.tabs .tab').forEach(tab => {

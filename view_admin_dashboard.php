@@ -75,7 +75,7 @@ $messages = [
         <i class="search-icon" data-lucide="search"></i>
         <input type="text" placeholder="Search courses, people, anything…" />
       </div>
-      <button class="icon-btn" aria-label="Notifications"><i data-lucide="bell"></i></button>
+      <div id="notificationArea" class="notification-area"></div>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
       <div class="user">

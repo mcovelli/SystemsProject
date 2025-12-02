@@ -219,10 +219,8 @@ $quickLinks = [
 $tasks = [
 ];
 
-
 $messages = [
-    ['from' => 'Dr. Lee',    'subject' => 'Project Update',      'time' => 'Oct 10', 'preview' => 'Please send me your latest project status by Friday.'],
-    ['from' => 'Bursar',     'subject' => 'Payment Reminder',    'time' => 'Oct 08', 'preview' => 'Your tuition payment is due Oct 25.'],
+   
 ];
 
 
@@ -575,6 +573,8 @@ $messages = [
 
     function seeAnnouncements() {
         document.getElementById('notificationArea').addEventListener('click', function(){
+          const announcements = 
+          const notificationArea = document.getElementById('notificationArea'); 
           fetch('get_announcements.php')
           .then(response => response.json())
           .then(data => {
@@ -631,7 +631,6 @@ $messages = [
       item.innerHTML = '<span>' + task.title + '</span><span class="muted">' + task.due + '</span>';
       taskList.appendChild(item);
     });
-
 
     // Messages
     const messages = <?php echo json_encode($messages); ?>;

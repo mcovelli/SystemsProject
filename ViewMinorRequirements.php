@@ -26,9 +26,10 @@ $res = $stmt->get_result();
 $user = $res->fetch_assoc();
 $stmt->close();
 
-$minor_requirement_sql = "SELECT mnr.MinorID, mn.MinorName, mnr.CourseID, mnr.RequirementDescription, mnr.RequirementType, mnr.CreditsRequired
+$minor_requirement_sql = "SELECT mnr.MinorID, mn.MinorName, mnr.CourseID, mnr.RequirementType, c.Course_Desc, c.Credits
                        FROM MinorRequirement mnr
                        JOIN Minor mn ON mnr.MinorID = mn.MinorID
+                       JOIN Course c ON mnr.CourseID = c.CourseID
                        WHERE mnr.MinorID = ?";
 
 $minor_requirement_stmt = $mysqli->prepare($minor_requirement_sql);
@@ -136,9 +137,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <td><?= htmlspecialchars($mnr['MinorID']) ?> </td>
                     <td><?= htmlspecialchars($mnr['MinorName']) ?></td>
                     <td><?= htmlspecialchars($mnr['CourseID']) ?></td>
-                    <td><?= htmlspecialchars($mnr['RequirementDescription']) ?></td>
+                    <td><?= htmlspecialchars($mnr['Course_Desc']) ?></td>
                     <td><?= htmlspecialchars($mnr['RequirementType']) ?></td>
-                    <td><?= htmlspecialchars($mnr['CreditsRequired']) ?></td>
+                    <td><?= htmlspecialchars($mnr['Credits']) ?></td>
                   </tr>
                 <?php endforeach; ?>
               <?php else: ?>

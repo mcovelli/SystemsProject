@@ -124,7 +124,7 @@ $conflictStmt = $mysqli->prepare("
     JOIN Day d ON tsd.DayID = d.DayID
     JOIN TimeSlotPeriod tsp ON tsp.TS_ID = ts.TS_ID
     JOIN Period p ON tsp.PeriodID = p.PeriodID
-    WHERE e.StudentID = ? AND cs.SemesterID = ?
+    WHERE e.StudentID = ? AND cs.SemesterID = ? AND e.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED')
     GROUP BY cs.CRN
 ");
 $conflictStmt->bind_param('is', $userId, $courseInfo['SemesterID']);

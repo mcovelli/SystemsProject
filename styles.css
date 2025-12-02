@@ -56,6 +56,7 @@ body{
   height:36px; width:36px; border-radius:10px; border:1px solid var(--border);
   display:grid; place-items:center; background: var(--panel); color:var(--text); cursor:pointer;
 }
+.notification-area {position: absolute; background-color: white; color: black; padding: 10px;}
 .icon-btn:hover{border-color: color-mix(in srgb, var(--primary) 40%, var(--border))}
 .divider{height:24px; width:1px; background:var(--border); margin:0 2px}
 .user{display:flex; align-items:center; gap:10px}
@@ -69,10 +70,10 @@ body{
   display:grid; grid-template-columns: 1fr; gap:24px;
 }
 @media (min-width:1024px){
-  .container{grid-template-columns: 2fr 2fr;}
+  .container{grid-template-columns: 2fr 1fr;}
 }
 .left{display:grid; gap:24px}
-.right{display:grid; gap:24px; grid-template-columns: 1fr;}
+.right{display:grid; gap:24px}
 .stats{display:grid; grid-template-columns:1fr; gap:16px}
 @media (min-width:640px){ .stats{grid-template-columns: repeat(2,1fr);} }
 @media (min-width:1280px){ .stats{grid-template-columns: repeat(4,1fr);} }
@@ -187,34 +188,26 @@ gap: 10px;
 
 /* Quick Links */
 .quick-grid {
-  display:grid; 
+  display:block; 
   grid-template-columns: 
-  repeat(4, 
+  repeat(3, 
   minmax(0,1fr)); 
   gap:8px}
 .quick-grid .ql,
 .quick-grid .ul,
 .quick-grid .ol,
 .quick-grid .dl {
-  display: flex;
+  display: block;
   align-items: center;
   gap: 8px;
   border: 1px solid var(--border);
-  padding: 10px !important;
+  padding: 8px;
   border-radius: 10px;
   background: var(--panel);
   cursor: pointer;
-  width: 100%;
-  font-size: 11px !important;
-}
-
-.quick-links-card {
-    grid-column: 1 / -1;
-    width: 100%;
-    max-height: 180px;
-    overflow-y: auto;
-    padding: 10px !important;
-
+  width: 60%;
+  padding: 8px 18px;
+  font-size: 12px;
 }
 
 /* Tabs */

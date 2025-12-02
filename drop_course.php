@@ -61,19 +61,30 @@ try {
     ");
     $drop->bind_param('iis', $userId, $crn, $semester);
     $drop->execute();
-    $drop->close();
+    
+    // CHECK if a row was actually changed before giving back the seat!
+    if ($drop->affected_rows > 0) {
+        $drop->close();
 
-    // Only increment seats if someone was actually enrolled
-    $update = $mysqli->prepare("
-        UPDATE CourseSection
-        SET AvailableSeats = AvailableSeats + 1
-        WHERE CRN = ? 
-    ");
-    $update->bind_param('i', $crn);
-    $update->execute();
-    $update->close();
+        // Only increment seats if someone was actually enrolled
+        $update = $mysqli->prepare("
+            UPDATE CourseSection
+            SET AvailableSeats = AvailableSeats + 1
+            WHERE CRN = ? 
+        ");
+        $update->bind_param('i', $crn);
+        $update->execute();
+        $update->close();
+        
+        $_SESSION['success_message'] = "Successfully dropped course CRN $crn.";
+    } else {
+        // If 0 rows affected, they were likely already dropped
+        $drop->close();
+        $_SESSION['error_message'] = "Course was already dropped or could not be processed.";
+    }
 
     $mysqli->commit();
+    
     $_SESSION['success_message'] = "Successfully dropped course CRN $crn.";
 } catch (Throwable $e) {
     $mysqli->rollback();

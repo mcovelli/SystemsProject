@@ -25,12 +25,15 @@ $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
 // Prepare statements
-$check = $mysqli->prepare("SELECT 1 FROM StudentEnrollment WHERE StudentID = ? AND CRN = ?");
+$check = $mysqli->prepare("SELECT 1 FROM StudentEnrollment WHERE StudentID = ? AND CRN = ? AND Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED')");
 $getCourse = $mysqli->prepare("SELECT SemesterID, CourseID, AvailableSeats FROM CourseSection WHERE CRN = ?");
 
 $insertEnroll = $mysqli->prepare("
     INSERT INTO StudentEnrollment (StudentID, SemesterID, CRN, CourseID, Status, EnrollmentDate)
     VALUES (?, ?, ?, ?, ?, CURRENT_DATE())
+    ON DUPLICATE KEY UPDATE 
+        Status = VALUES(Status),
+        EnrollmentDate = VALUES(EnrollmentDate)
 ");
 
 $updateSeats = $mysqli->prepare("UPDATE CourseSection SET AvailableSeats = AvailableSeats - 1 WHERE CRN = ?");

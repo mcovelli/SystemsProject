@@ -189,6 +189,7 @@ if ($selectedSemester) {
       $sched_sql = "
         SELECT 
             se.CRN,
+            se.SemesterID,
             c.CourseName,
             GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
             MIN(DATE_FORMAT(p.StartTime, '%l:%i %p')) AS StartTime,
@@ -204,6 +205,7 @@ if ($selectedSemester) {
         JOIN Day d ON tsd.DayID = d.DayID
         WHERE se.StudentID = ? 
           AND se.SemesterID = ?
+          AND se.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED')
         GROUP BY se.CRN, c.CourseName, cs.RoomID
         ORDER BY MIN(p.StartTime)
     ";
@@ -334,7 +336,7 @@ if ($selectedSemester) {
                       <form method="POST" action="add_to_cart.php" style="display:inline;">
                         <input type="hidden" name="crn" value="<?= htmlspecialchars($row['CRN']) ?>">
                         <input type="hidden" name="courseID" value="<?= htmlspecialchars($row['CourseID']) ?>">
-                        <input type="hidden" name="semester" value="<?= htmlspecialchars($selectedSemester) ?>">
+                        <input type="hidden" name="semester" value="<?= htmlspecialchars($row['SemesterID']) ?>">
                         <input type="hidden" name="dept" value="<?= htmlspecialchars($selectedDept) ?>">
                         <button type="submit" class="btn gradient">Add</button>
                       </form>
@@ -423,37 +425,44 @@ if ($selectedSemester) {
                     <th>Days</th>
                     <th>Time</th>
                     <th>Location</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody id="studentScheduleBody">
                   <?php if (empty($schedule)): ?>
-                    <tr><td colspan="5">No courses scheduled for this semester.</td></tr>
+                    <tr><td colspan="6">No courses scheduled for this semester.</td></tr>
                   <?php else: ?>
                     <?php foreach ($schedule as $row): ?>
-                      <tr>
-                        <td><?php echo htmlspecialchars($row['CRN']); ?></td>
-                        <td><?php echo htmlspecialchars($row['CourseName']); ?></td>
+
+                    <tr>
+                        <td><?= htmlspecialchars((string)$row['CRN']); ?></td>
+                        <td><?= htmlspecialchars((string)$row['CourseName']); ?></td>
+
                         <?php
-                        $dayStr = (string)($row['DayOfWeek'] ?? $row['Days'] ?? '');
-                        $dayStr = $dayStr === '' ? '—' : $dayStr;
+                        // Always define safely
+                        $dayStr = isset($row['Days']) && $row['Days'] !== '' ? $row['Days'] : '—';
                         ?>
-                        <td><?= htmlspecialchars($dayStr) ?></td>
+                        <td><?= htmlspecialchars($dayStr); ?></td>
+
                         <?php
                         $start = $row['StartTime'] ?? '';
-                        $end   = $row['EndTime']   ?? '';
-                        $timeStr = trim($start . ($start && $end ? ' – ' : '') . $end);
-                        $timeStr = $timeStr === '' ? 'TBA' : $timeStr;
+                        $end   = $row['EndTime'] ?? '';
+                        $timeStr = ($start !== '' || $end !== '') ? trim("$start – $end") : 'TBA';
                         ?>
-                        <td><?= htmlspecialchars($timeStr) ?></td>
-                        <td><?php echo htmlspecialchars($row['RoomID']); ?></td>
-                        <td><form method="POST" action="drop_course.php" style="display:inline;">
-                            <input type="hidden" name="crn" value="<?= htmlspecialchars($row['CRN']) ?>">
-                            <input type="hidden" name="semester" value="<?= htmlspecialchars($selectedSemester) ?>">
-                            <input type="hidden" name="dept" value="<?= htmlspecialchars($selectedDept) ?>">
-                            <button type="submit" class="btn outline">Drop</button>
-                          </form>
+                        <td><?= htmlspecialchars($timeStr); ?></td>
+
+                        <td><?= htmlspecialchars((string)$row['RoomID']); ?></td>
+
+                        <td>
+                            <form method="POST" action="drop_course.php">
+                                <input type="hidden" name="crn" value="<?= htmlspecialchars((string)$row['CRN']); ?>">
+                                <input type="hidden" name="semester" value="<?= htmlspecialchars((string)$row['SemesterID']); ?>">
+                                <input type="hidden" name="dept" value="<?= htmlspecialchars((string)$selectedDept); ?>">
+                                <button type="submit" class="btn outline">Drop</button>
+                            </form>
                         </td>
-                      </tr>
+                    </tr>
+
                     <?php endforeach; ?>
                   <?php endif; ?>
                 </tbody>

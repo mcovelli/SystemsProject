@@ -188,7 +188,7 @@ gap: 10px;
 
 /* Quick Links */
 .quick-grid {
-  display:grid; 
+  display:block; 
   grid-template-columns: 
   repeat(3, 
   minmax(0,1fr)); 
@@ -197,7 +197,7 @@ gap: 10px;
 .quick-grid .ul,
 .quick-grid .ol,
 .quick-grid .dl {
-  display: flex;
+  display: block;
   align-items: center;
   gap: 8px;
   border: 1px solid var(--border);
@@ -205,8 +205,8 @@ gap: 10px;
   border-radius: 10px;
   background: var(--panel);
   cursor: pointer;
-  width: 100%;
-  padding: 6px 8px;
+  width: 60%;
+  padding: 8px 18px;
   font-size: 12px;
 }
 

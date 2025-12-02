@@ -50,27 +50,53 @@ try {
     }
     $check->close();
 
-    // Delete enrollment record
+    // Drop only if currently enrolled
     $drop = $mysqli->prepare("
-        UPDATE StudentEnrollment SET Status = 'DROPPED'
-        WHERE StudentID = ? AND CRN = ? AND SemesterID = ?
+        UPDATE StudentEnrollment 
+        SET Status = 'DROPPED'
+        WHERE StudentID = ? 
+          AND CRN = ? 
+          AND SemesterID = ? 
+          AND Status IN ('ENROLLED','IN-PROGRESS')
     ");
     $drop->bind_param('iis', $userId, $crn, $semester);
-
     $drop->execute();
-    $drop->close();
 
-    // Increment available seats in the course section
-    $update = $mysqli->prepare("
-        UPDATE CourseSection
-        SET AvailableSeats = AvailableSeats + 1
-        WHERE CRN = ?
+    // Drop only if currently enrolled
+    $delete = $mysqli->prepare("
+        DELETE FROM StudentHIstory sh
+        JOIN StudentEnrollment se
+        WHERE sh.StudentID = ? 
+          AND sh.CRN = ? 
+          AND sh.SemesterID = ? 
+          AND se.Status IN ('DROPPED')
     ");
-    $update->bind_param('i', $crn);
-    $update->execute();
-    $update->close();
+    $drop->bind_param('iis', $userId, $crn, $semester);
+    $drop->execute();
+    
+    // CHECK if a row was actually changed before giving back the seat!
+    if ($drop->affected_rows > 0) {
+        $drop->close();
+
+        // Only increment seats if someone was actually enrolled
+        $update = $mysqli->prepare("
+            UPDATE CourseSection
+            SET AvailableSeats = AvailableSeats + 1
+            WHERE CRN = ? 
+        ");
+        $update->bind_param('i', $crn);
+        $update->execute();
+        $update->close();
+        
+        $_SESSION['success_message'] = "Successfully dropped course CRN $crn.";
+    } else {
+        // If 0 rows affected, they were likely already dropped
+        $drop->close();
+        $_SESSION['error_message'] = "Course was already dropped or could not be processed.";
+    }
 
     $mysqli->commit();
+    
     $_SESSION['success_message'] = "Successfully dropped course CRN $crn.";
 } catch (Throwable $e) {
     $mysqli->rollback();

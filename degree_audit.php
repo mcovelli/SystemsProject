@@ -323,60 +323,6 @@ $standing = ($gpa > 2.99) ? 'Good Standing' : 'Needs Improvement';
       </div>
     </div>
 
-    <!-- What-If / Filters -->
-    <div class="card" style="margin-top:16px">
-      <div class="card-head"><div>What‑If & Filters</div></div>
-      <div class="card-body">
-        <div class="field-row" style="margin-bottom:12px">
-          <label>
-            <div>What‑If Major</div>
-            <select id="whatIfMajor">
-              <option>Computer Science (B.S.)</option>
-              <option>Data Science (B.S.)</option>
-              <option>Information Systems (B.S.)</option>
-            </select>
-          </label>
-          <label>
-            <div>What‑If Minor</div>
-            <select id="whatIfMinor">
-              <option>None</option>
-              <option>Mathematics</option>
-              <option>Cybersecurity</option>
-              <option>Music Technology</option>
-            </select>
-          </label>
-          <label>
-            <div>Search</div>
-            <input id="searchInput" type="text" placeholder="Find course or requirement…" />
-          </label>
-        </div>
-        <div class="field-row">
-          <label>
-            <div>Group</div>
-            <select id="groupFilter">
-              <option value="all">All</option>
-              <option>Core</option>
-              <option>Electives</option>
-              <option>General Education</option>
-            </select>
-          </label>
-          <label>
-            <div>Status</div>
-            <select id="statusFilter">
-              <option value="all">Any</option>
-              <option value="met">Met</option>
-              <option value="ip">In‑Progress</option>
-              <option value="unmet">Unmet</option>
-            </select>
-          </label>
-          <div style="align-self:end;display:flex;gap:8px">
-            <button class="btn" id="runWhatIf">Run What‑If</button>
-            <button class="btn" id="clearFilters">Clear</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Overview chart -->
     <div class="card" style="margin-top:16px">
       <div class="card-head"><div>Requirement Overview</div></div>

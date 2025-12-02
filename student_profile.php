@@ -158,6 +158,7 @@ $courses_sql = "
   JOIN CourseSection cs 
   ON se.CRN = cs.CRN 
   AND se.SemesterID = cs.SemesterID
+  AND se.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED', 'COMPLETED')
   JOIN Course c ON cs.CourseID = c.CourseID
   JOIN Semester s ON se.SemesterID = s.SemesterID
   WHERE se.StudentID = ?
@@ -212,6 +213,7 @@ if ($selectedSemester) {
         JOIN Day d ON tsd.DayID = d.DayID
         WHERE se.StudentID = ? 
           AND se.SemesterID = ?
+          AND se.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED', 'COMPLETED')
         GROUP BY se.CRN, c.CourseName, cs.RoomID
         ORDER BY MIN(p.StartTime)
     ";

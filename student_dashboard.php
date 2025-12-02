@@ -123,21 +123,6 @@ $percentComplete = $totalCreditsNeeded > 0 ? round(($creditsEarned / $totalCredi
 // Determine academic standing based on GPA
 $standing = ($gpa >= 3.0) ? 'Good Standing' : 'Needs Improvement';
 
-// Compute credits currently registered (in‑progress)
-$credits_sql = "
-    SELECT SUM(c.Credits) AS TotalCredits
-    FROM StudentEnrollment se
-    JOIN CourseSection cs ON se.CRN = cs.CRN
-    JOIN Course c ON cs.CourseID = c.CourseID
-    WHERE se.StudentID = ? AND se.Status IN('ENROLLED', 'IN-PROGRESS')
-";
-$credits_stmt = $mysqli->prepare($credits_sql);
-$credits_stmt->bind_param('i', $userId);
-$credits_stmt->execute();
-$credits_result = $credits_stmt->get_result()->fetch_assoc();
-$credits_stmt->close();
-$semesterCredits = (int)($credits_result['TotalCredits'] ?? 0);
-
 // Fetch all semesters for the schedule dropdown
 $sem_sql = "SELECT SemesterID, SemesterName, Year FROM Semester ORDER BY Year DESC, SemesterName DESC";
 $sem_stmt = $mysqli->prepare($sem_sql);
@@ -156,6 +141,23 @@ if ($selectedSemester === null) {
         $selectedSemester = $auto_row['SemesterID'];
     }
 }
+
+// Compute credits currently registered (in‑progress)
+$credits_sql = "
+    SELECT SUM(c.Credits) AS TotalCredits
+    FROM StudentEnrollment se
+    JOIN CourseSection cs ON se.CRN = cs.CRN
+    JOIN Course c ON cs.CourseID = c.CourseID
+    WHERE se.StudentID = ? 
+      AND se.SemesterID = ?
+      AND se.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED')
+";
+$credits_stmt = $mysqli->prepare($credits_sql);
+$credits_stmt->bind_param('is', $userId, $selectedSemester);
+$credits_stmt->execute();
+$credits_result = $credits_stmt->get_result()->fetch_assoc();
+$credits_stmt->close();
+$semesterCredits = (int)($credits_result['TotalCredits'] ?? 0);
 
 // Fetch schedule entries for the selected semester
 $schedule = [];
@@ -180,6 +182,7 @@ if ($selectedSemester) {
         JOIN Day d ON tsd.DayID = d.DayID
         WHERE se.StudentID = ? 
           AND se.SemesterID = ?
+          AND se.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED', 'COMPLETED')
         GROUP BY se.CRN, c.CourseName, cs.RoomID
         ORDER BY MIN(p.StartTime)
     ";
@@ -191,7 +194,7 @@ if ($selectedSemester) {
     $sched_stmt->close();
 }
 
-$message_sql = "
+$announcement_sql = "
     SELECT a.Title, a.Message, a.DatePosted, c.CourseName
     FROM CourseAnnouncements a
     JOIN CourseSection cs ON a.CRN = cs.CRN
@@ -201,10 +204,10 @@ $message_sql = "
     ORDER BY a.DatePosted DESC
     LIMIT 10
 ";
-$message_stmt = $mysqli->prepare($message_sql);
-$message_stmt->bind_param('i', $userId);
-$message_stmt->execute();
-$message_res = $message_stmt->get_result();
+$announcement_stmt = $mysqli->prepare($announcement_sql);
+$announcement_stmt->bind_param('i', $userId);
+$announcement_stmt->execute();
+$announcement_res = $announcement_stmt->get_result();
 
 // Placeholder quick links, tasks, announcements and messages
 $quickLinks = [
@@ -250,8 +253,6 @@ $messages = [
         <i class="search-icon" data-lucide="search"></i>
         <input type="text" placeholder="Search courses, people, anything…" />
       </div>
-      <button id="Notifications" class="icon-btn" aria-label="Notifications" onClick="seeAnnouncements()"><i data-lucide="bell"></i></button>
-      <div id="notificationArea" class = "notification-area"></div>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
       <div class="user">
@@ -389,14 +390,6 @@ $messages = [
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-title">GPA Trend</div>
-          <div class="chart-wrap">
-            <canvas id="gpaChart" height="200"></canvas>
-          </div>
-        </div>
-      </div>
-
       <div class="card">
         <div class="card-head between">
           <div class="card-title">Semester Schedule</div>
@@ -463,9 +456,9 @@ $messages = [
     </section>
 
     <aside class="right">
-      <div class="card">
-        <div class="card-title">Application</div>
-        <div class="quick-grid" id="studentQuickLinks"></div>
+      <div class="card quick-links-card">
+          <div class="card-title">Application</div>
+          <div class="quick-grid" id="studentQuickLinks"></div>
       </div>
 
       <div class="tabs">
@@ -525,22 +518,6 @@ $messages = [
           </div>
         </div>
       </div>
-      
-        <div class="card">
-          <div class="card-title">Billing Snapshot</div>
-          <div class="row between small">
-            <span>Current Balance</span>
-            <strong>$1,240.00</strong>
-          </div>
-          <div class="row between small muted">
-            <span>Next Payment</span>
-            <span>Oct 25, 2025</span>
-          </div>
-          <div class="row gap pt-8">
-            <button class="btn"><i data-lucide="credit-card"></i> Pay Now</button>
-            <button class="btn outline">View Statement</button>
-          </div>
-        </div>
       </div>
     </aside>
   </main>
@@ -573,8 +550,6 @@ $messages = [
 
     function seeAnnouncements() {
         document.getElementById('notificationArea').addEventListener('click', function(){
-          const announcements = 
-          const notificationArea = document.getElementById('notificationArea'); 
           fetch('get_announcements.php')
           .then(response => response.json())
           .then(data => {

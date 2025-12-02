@@ -76,7 +76,7 @@ if ($userRole === 'faculty' && isset($_POST['target_crn'])) {
         VALUES (?, ?, ?, ?, ?)
     ");
     // Bind types: TargetGroup(s), AdminID(i), Title(s), Message(s), DatePosted(s)
-    $stmt->bind_param('siss', $targetGroup, $userId, $title, $message, $datePosted);
+    $stmt->bind_param('sisss', $targetGroup, $userId, $title, $message, $datePosted);
 
 } else {
     // Neither faculty CRN nor admin target group was successfully submitted

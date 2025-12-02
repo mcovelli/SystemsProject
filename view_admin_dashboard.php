@@ -31,7 +31,8 @@ if (!$admin) {
 $quickLinks = [
     ['label' => 'Profile',      'href' => 'admin_profile.php',    'icon' => 'user'],
     ['label' => 'Messages',     'href' => 'messages.php',                      'icon' => 'mail'],
-    ['label' => 'View Directory', 'href' => 'viewDirectory.php',       'icon' => 'file-text']
+    ['label' => 'View Directory', 'href' => 'viewDirectory.php',       'icon' => 'file-text'],
+    ['label' => 'Announcements',      'href' => 'send_announcement.php',                'icon' => 'megaphone'],
 ];
 
 $tasks = [

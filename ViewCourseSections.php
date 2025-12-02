@@ -253,11 +253,11 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           const courseTypeSelect = document.getElementById('courseType');
           const selectedType = new URLSearchParams(window.location.search).get('courseType');
 
-          data.forEach(name => {
+          data.forEach(type => {
             const opt = document.createElement('option');
-            opt.value = name;
-            opt.textContent = name;
-            if (name === selectedType) opt.selected = true;
+            opt.value = type.type;
+            opt.textContent = type.type;
+            if (type === selectedType) opt.selected = true;
             courseTypeSelect.appendChild(opt);
           });
         })

@@ -9,10 +9,10 @@ $result = $mysqli->query("SELECT ca.CRN, ca.Title, ca.Message, ca.DatePosted, f.
 JOIN Faculty f ON ca.FacultyID = f.FacultyID
 JOIN CourseSection cs ON ca.CRN = cs.CRN && f.FacultyID = cs.FacultyID
 ORDER BY ca.DatePosted DESC");
-$rooms = [];
+$announcements = [];
 
 while ($row = $result->fetch_assoc()) {
-    $rooms[] = [
+    $announcements[] = [
         'crn' => $row['CRN'],
         'title' => $row['Title'],
         'message' => $row['Message'],
@@ -21,5 +21,5 @@ while ($row = $result->fetch_assoc()) {
     ];
 }
 
-echo json_encode($rooms);
+echo json_encode($announcements);
 ?>

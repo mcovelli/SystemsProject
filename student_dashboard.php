@@ -252,8 +252,6 @@ $messages = [
         <i class="search-icon" data-lucide="search"></i>
         <input type="text" placeholder="Search courses, people, anything…" />
       </div>
-      <button id="Notifications" class="icon-btn" aria-label="Notifications" onClick="seeAnnouncements()"><i data-lucide="bell"></i></button>
-      <div id="notificationArea" class = "notification-area"></div>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
       <div class="user">
@@ -391,14 +389,6 @@ $messages = [
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-title">GPA Trend</div>
-          <div class="chart-wrap">
-            <canvas id="gpaChart" height="200"></canvas>
-          </div>
-        </div>
-      </div>
-
       <div class="card">
         <div class="card-head between">
           <div class="card-title">Semester Schedule</div>
@@ -465,9 +455,9 @@ $messages = [
     </section>
 
     <aside class="right">
-      <div class="card">
-        <div class="card-title">Application</div>
-        <div class="quick-grid" id="studentQuickLinks"></div>
+      <div class="card quick-links-card">
+          <div class="card-title">Application</div>
+          <div class="quick-grid" id="studentQuickLinks"></div>
       </div>
 
       <div class="tabs">
@@ -527,22 +517,6 @@ $messages = [
           </div>
         </div>
       </div>
-      
-        <div class="card">
-          <div class="card-title">Billing Snapshot</div>
-          <div class="row between small">
-            <span>Current Balance</span>
-            <strong>$1,240.00</strong>
-          </div>
-          <div class="row between small muted">
-            <span>Next Payment</span>
-            <span>Oct 25, 2025</span>
-          </div>
-          <div class="row gap pt-8">
-            <button class="btn"><i data-lucide="credit-card"></i> Pay Now</button>
-            <button class="btn outline">View Statement</button>
-          </div>
-        </div>
       </div>
     </aside>
   </main>
@@ -572,24 +546,6 @@ $messages = [
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       lucide.createIcons();
     });
-
-    function seeAnnouncements() {
-        document.getElementById('notificationArea').addEventListener('click', function(){
-          fetch('get_announcements.php')
-          .then(response => response.json())
-          .then(data => {
-            const announcement = 
-            data.forEach(announcement => 
-              alert("Announcement Title: " + announcement.title + "\n" +
-                    "Course CRN: " + announcement.crn + "\n" +
-                    "Message: " + announcement.message + "\n" +
-                    "Date Posted: " + announcement.date_posted + "\n" +)
-            )
-          }
-          )
-        }
-        )
-        };
 
     // Tab switching
     document.querySelectorAll('.tabs .tab').forEach(tab => {

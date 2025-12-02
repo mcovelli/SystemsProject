@@ -241,7 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           break;
 
             case 'Faculty':
-              $department = $_POST['Department'] ?? null;
+              $departmentId = isset($_POST['Department']) ? (int)$_POST['Department'] : null;
               $ranking    = $_POST['Ranking'] ?? 'Asst Prof';
               $specialty  = $_POST['Specialty'] ?? 'Undeclared';
               $office     = $_POST['Office'] ?? null;
@@ -273,9 +273,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
               // Faculty_Dept link
               $q3 = "INSERT INTO Faculty_Dept (FacultyID, DeptID, DoA)
-                     VALUES (?, (SELECT DeptID FROM Department WHERE DeptName = ? LIMIT 1), CURRENT_DATE)";
+                     VALUES (?, ?, CURRENT_DATE)";
               $stmt = $mysqli->prepare($q3);
-              $stmt->bind_param("is", $userId, $department);
+              $stmt->bind_param("is", $userId, $departmentId);
               $stmt->execute();
               $stmt->close();
               break;
@@ -604,21 +604,21 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           deptSelect.required = true;
           officeSelect.required = true;
 
-          deptSelect.innerHTML = "";
+          deptSelect.innerHTML = "<option value=''>-- Select Department --</option>";
           departments.forEach(d => {
-            const opt = document.createElement("option");
-            opt.textContent = d.name;
-            opt.value = d.id;
-            deptSelect.appendChild(opt);
+              const opt = document.createElement("option");
+              opt.textContent = d.name;
+              opt.value = d.id;
+              deptSelect.appendChild(opt);
           });
 
           // Populate Office
-          officeSelect.innerHTML = "";
+          officeSelect.innerHTML = "<option value=''>-- Select Office --</option>";
           offices.forEach(o => {
-            const opt = document.createElement("option");
-            opt.textContent = o.id;
-            opt.value = o.id;
-            officeSelect.appendChild(opt);
+              const opt = document.createElement("option");
+              opt.textContent = o.id;
+              opt.value = o.id;
+              officeSelect.appendChild(opt);
           });
         });
       }

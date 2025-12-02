@@ -64,15 +64,14 @@ try {
 
     // Drop only if currently enrolled
     $delete = $mysqli->prepare("
-        DELETE FROM StudentHIstory sh
-        JOIN StudentEnrollment se
-        WHERE sh.StudentID = ? 
-          AND sh.CRN = ? 
-          AND sh.SemesterID = ? 
-          AND se.Status IN ('DROPPED')
+    DELETE FROM StudentHistory
+    WHERE StudentID = ?
+      AND CRN = ?
+      AND SemesterID = ?
     ");
-    $drop->bind_param('iis', $userId, $crn, $semester);
-    $drop->execute();
+    $delete->bind_param('iis', $userId, $crn, $semester);
+    $delete->execute();
+    $delete->close();
     
     // CHECK if a row was actually changed before giving back the seat!
     if ($drop->affected_rows > 0) {

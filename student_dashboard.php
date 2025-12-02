@@ -180,6 +180,7 @@ if ($selectedSemester) {
         JOIN Day d ON tsd.DayID = d.DayID
         WHERE se.StudentID = ? 
           AND se.SemesterID = ?
+          AND se.Status IN ('Enrolled', 'PLANNED', 'COMPLETED', 'IN-PROGRESS')
         GROUP BY se.CRN, c.CourseName, cs.RoomID
         ORDER BY MIN(p.StartTime)
     ";

@@ -26,7 +26,7 @@ $res = $stmt->get_result();
 $user = $res->fetch_assoc();
 $stmt->close();
 
-$major_requirement_sql = "SELECT mr.MajorID, m.MajorName, mr.CourseID, mr.RequirementType, c.Course_Desc, c.Credits
+$major_requirement_sql = "SELECT mr.MajorID, m.MajorName, mr.CourseID, mr.RequirementType, c.Course_Desc, c.CourseName, c.Credits
                        FROM MajorRequirement mr
                        JOIN Major m ON mr.MajorID = m.MajorID
                        JOIN Course c ON mr.CourseID = c.CourseID
@@ -137,6 +137,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <td><?= htmlspecialchars($mr['MajorID']) ?> </td>
                     <td><?= htmlspecialchars($mr['MajorName']) ?></td>
                     <td><?= htmlspecialchars($mr['CourseID']) ?></td>
+                    <td><?= htmlspecialchars($mr['CourseName']) ?></td>
                     <td><?= htmlspecialchars($mr['Course_Desc']) ?></td>
                     <td><?= htmlspecialchars($mr['RequirementType']) ?></td>
                     <td><?= htmlspecialchars($mr['Credits']) ?></td>

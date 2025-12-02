@@ -26,7 +26,7 @@ $res = $stmt->get_result();
 $user = $res->fetch_assoc();
 $stmt->close();
 
-$minor_requirement_sql = "SELECT mnr.MinorID, mn.MinorName, mnr.CourseID, mnr.RequirementType, c.Course_Desc, c.Credits
+$minor_requirement_sql = "SELECT mnr.MinorID, mn.MinorName, mnr.CourseID, mnr.RequirementType, c.Course_Desc, c.CourseName, c.Credits
                        FROM MinorRequirement mnr
                        JOIN Minor mn ON mnr.MinorID = mn.MinorID
                        JOIN Course c ON mnr.CourseID = c.CourseID
@@ -137,6 +137,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <td><?= htmlspecialchars($mnr['MinorID']) ?> </td>
                     <td><?= htmlspecialchars($mnr['MinorName']) ?></td>
                     <td><?= htmlspecialchars($mnr['CourseID']) ?></td>
+                    <td><?= htmlspecialchars($mnr['CourseName']) ?></td>
                     <td><?= htmlspecialchars($mnr['Course_Desc']) ?></td>
                     <td><?= htmlspecialchars($mnr['RequirementType']) ?></td>
                     <td><?= htmlspecialchars($mnr['Credits']) ?></td>

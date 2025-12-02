@@ -481,19 +481,41 @@ $messages = [
           </div>
           <div class="tab-panel" id="panel-announcements">
             <div class="card">
-              <div class="card-title">Recent Announcements</div>
+              <div class="card-title">Recent Announcements (Faculty & Admin)</div>
               <?php
+              // --- COMBINED SQL QUERY using UNION ---
               $recent = $mysqli->prepare("
-                  SELECT a.Title, a.Message, a.DatePosted, c.CourseName
-                  FROM CourseAnnouncements a
-                  JOIN CourseSection cs ON a.CRN = cs.CRN
+                  -- 1. Announcements from Admin
+                  SELECT
+                      a.Title,
+                      a.Message,
+                      a.DatePosted,
+                      'System Announcement' AS CourseName, -- Placeholder for Admin
+                      'Admin' AS SenderType                -- Type for identification
+                  FROM AdminAnnouncements a
+                  WHERE a.TargetGroup IN ('ALL', 'STUDENTS')
+
+                  UNION ALL
+
+                  -- 2. Announcements from Faculty (Course Specific)
+                  SELECT
+                      ca.Title,
+                      ca.Message,
+                      ca.DatePosted,
+                      c.CourseName,                      -- Course context
+                      'Faculty' AS SenderType            -- Type for identification
+                  FROM CourseAnnouncements ca
+                  JOIN CourseSection cs ON ca.CRN = cs.CRN
                   JOIN Course c ON cs.CourseID = c.CourseID
+                  -- Filter by courses the student is enrolled in (assuming this is still desired)
                   JOIN StudentEnrollment se ON se.CRN = cs.CRN
-                  WHERE se.StudentID = ?
-                  ORDER BY a.DatePosted DESC
+                  WHERE se.StudentID = ? 
+                  
+                  ORDER BY DatePosted DESC
                   LIMIT 3
               ");
-              $recent->bind_param('i', $userId);
+
+              $recent->bind_param('i', $userId); 
               $recent->execute();
               $res = $recent->get_result();
 
@@ -503,7 +525,9 @@ $messages = [
                   <?php while ($a = $res->fetch_assoc()): ?>
                     <li style="border-bottom:1px solid var(--line); padding:10px 0;">
                       <strong><?= htmlspecialchars($a['Title']) ?></strong>
-                      <span style="color:var(--muted);"> — <?= htmlspecialchars($a['CourseName']) ?></span>
+                      <span style="color:var(--muted);"> 
+                        — <?= htmlspecialchars($a['CourseName'] . " (" . $a['SenderType'] . ")") ?>
+                      </span>
                       <div style="margin-top:4px;"><?= nl2br(htmlspecialchars($a['Message'])) ?></div>
                       <small style="color:var(--muted);">Posted <?= htmlspecialchars($a['DatePosted']) ?></small>
                     </li>
@@ -513,7 +537,7 @@ $messages = [
                   <a href="announcements.php" class="btn outline">View All Announcements →</a>
                 </div>
               <?php else: ?>
-                <p>No recent announcements.</p>
+                <p>No recent announcements from faculty or administration.</p>
               <?php endif;
               $recent->close();
               ?>
@@ -521,22 +545,6 @@ $messages = [
           </div>
         </div>
       </div>
-      
-        <div class="card">
-          <div class="card-title">Billing Snapshot</div>
-          <div class="row between small">
-            <span>Current Balance</span>
-            <strong>$1,240.00</strong>
-          </div>
-          <div class="row between small muted">
-            <span>Next Payment</span>
-            <span>Oct 25, 2025</span>
-          </div>
-          <div class="row gap pt-8">
-            <button class="btn"><i data-lucide="credit-card"></i> Pay Now</button>
-            <button class="btn outline">View Statement</button>
-          </div>
-        </div>
       </div>
     </aside>
   </main>

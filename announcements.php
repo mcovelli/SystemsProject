@@ -49,7 +49,7 @@ if ($userRole === 'student') {
         FROM CourseAnnouncements a
         JOIN CourseSection cs ON a.CRN = cs.CRN
         JOIN Course c ON cs.CourseID = c.CourseID
-        JOIN FacultyCourseAssignments fca ON fca.CRN = cs.CRN
+        JOIN FacultyHistory fca ON fca.CRN = cs.CRN
         WHERE fca.FacultyID = ?
 
         UNION ALL
@@ -106,7 +106,14 @@ if ($userRole === 'student') {
 } elseif ($userRole === 'faculty') {
     $dashboardLink = 'faculty_dashboard.php';
 } elseif ($userRole === 'admin') {
-    $dashboardLink = 'admin_dashboard.php';
+    // ADMIN ROLE: Check for specific admin permission levels
+    if ($adminPermission === 'UpdateAdmin') {
+        $dashboardLink = 'update_admin_dashboard.php';
+    } elseif ($adminPermission === 'ViewAdmin') {
+        $dashboardLink = 'view_admin_dashboard.php';
+    } else {
+        $dashboardLink = 'login.html';
+    }
 }
 ?>
 

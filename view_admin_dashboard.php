@@ -199,11 +199,68 @@ $messages = [
           </div>
           <div class="tab-panel" id="panel-announcements">
             <div class="card">
-              <div class="card-title">Admin Updates</div>
-              <div id="adminAnnList" class="vstack gap"></div>
-              <div class="pt-8">
-                <button class="btn outline">View All Announcements</button>
-              </div>
+              <div class="card-title">Recent Announcements (Faculty & Admin)</div>
+              <?php
+              // --- COMBINED SQL QUERY using UNION ---
+              $recent = $mysqli->prepare("
+                  -- 1. Announcements from Admin
+                  SELECT
+                      a.Title,
+                      a.Message,
+                      a.DatePosted,
+                      'System Announcement' AS CourseName, -- Placeholder for Admin
+                      'Admin' AS SenderType                -- Type for identification
+                  FROM AdminAnnouncements a
+                  WHERE a.TargetGroup IN ('ALL', 'STUDENTS')
+
+                  UNION ALL
+
+                  -- 2. Announcements from Faculty (Course Specific)
+                  SELECT
+                      ca.Title,
+                      ca.Message,
+                      ca.DatePosted,
+                      c.CourseName,                      -- Course context
+                      'Faculty' AS SenderType            -- Type for identification
+                  FROM CourseAnnouncements ca
+                  JOIN CourseSection cs ON ca.CRN = cs.CRN
+                  JOIN Course c ON cs.CourseID = c.CourseID
+                  -- Filter by courses the student is enrolled in (assuming this is still desired)
+                  JOIN StudentEnrollment se ON se.CRN = cs.CRN
+                  WHERE se.StudentID = ? 
+                  
+                  ORDER BY DatePosted DESC
+                  LIMIT 3
+              ");
+              
+              // The CourseAnnouncements part still needs the StudentID to filter by enrollment
+              // If you want *all* Faculty announcements (not just enrolled courses), remove the last JOIN/WHERE clauses and the bind_param.
+              $recent->bind_param('i', $userId); 
+              $recent->execute();
+              $res = $recent->get_result();
+
+              if ($res->num_rows > 0):
+              ?>
+                <ul style="list-style:none; padding:0; margin:0;">
+                  <?php while ($a = $res->fetch_assoc()): ?>
+                    <li style="border-bottom:1px solid var(--line); padding:10px 0;">
+                      <strong><?= htmlspecialchars($a['Title']) ?></strong>
+                      <span style="color:var(--muted);"> 
+                        — <?= htmlspecialchars($a['CourseName'] . " (" . $a['SenderType'] . ")") ?>
+                      </span>
+                      <div style="margin-top:4px;"><?= nl2br(htmlspecialchars($a['Message'])) ?></div>
+                      <small style="color:var(--muted);">Posted <?= htmlspecialchars($a['DatePosted']) ?></small>
+                    </li>
+                  <?php endwhile; ?>
+                </ul>
+                <div style="text-align:right; margin-top:10px;">
+                  <a href="announcements.php" class="btn outline">View All Announcements →</a>
+                </div>
+              <?php else: ?>
+                <p>No recent announcements from faculty or administration.</p>
+              <?php endif;
+              $recent->close();
+              ?>
             </div>
           </div>
         </div>

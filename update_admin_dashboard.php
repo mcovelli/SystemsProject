@@ -86,13 +86,6 @@ $quickLinks = [
   <main class="container">
     <section class="left">
       <div class="stats">
-        <div class="card stat">
-          <div class="card-head">
-            <div class="muted">Number of Courses (All)</div>
-            <i data-lucide="pencil"></i>
-          </div>
-          <div class="stat-value"></div>
-        </div>
 
         <div class="card stat">
           <div class="card-head">
@@ -102,60 +95,42 @@ $quickLinks = [
           <div class="stat-value"><?php echo htmlspecialchars($admin['AdminID']); ?></div>
         </div>
 
-        <div class="grid-two sm-one">
-        <div class="card">
-          <div class="card-title">Recent Messages</div>
-              <?php
-              $list = $mysqli->prepare("
-                  SELECT 
-                      c.CopyID,
-                      m.Title, 
-                      LEFT(m.Message, 120) AS PreviewText,
-                      m.DatePosted,
-                      m.SenderEmail
-                  FROM MessageCopies c
-                  JOIN Messages m ON m.MessageID = c.MessageID
-                  WHERE c.OwnerEmail = ?
-                    AND c.Folder = 'INBOX'
-                    AND c.IsDeleted = 0
-                  ORDER BY m.DatePosted DESC
-                  LIMIT 5
-              ");
-              $list->bind_param("s", $admin['Email']);
-              $list->execute();
-              $list_res = $list->get_result();
+        
 
-              if ($list_res->num_rows > 0):
-              ?>
-                <ul style="list-style:none; padding:0; margin:0;">
-                  <?php while ($m = $list_res->fetch_assoc()): ?>
-                    <li style="border-bottom:1px solid var(--line); padding:10px 0;">
-                      <strong><?= htmlspecialchars($m['Title']) ?></strong>
-                      <span style="color:var(--muted);"> — <?= htmlspecialchars($m['SenderEmail']) ?></span>
-                      <div style="margin-top:4px;"><?= nl2br(htmlspecialchars($m['PreviewText'])) ?>…</div>
-                      <small style="color:var(--muted);">Posted <?= htmlspecialchars($m['DatePosted']) ?></small>
-                    </li>
-                  <?php endwhile; ?>
-                </ul>
-                <div style="text-align:right; margin-top:10px;">
-                  <a href="messages.php" class="btn outline">View All Messages →</a>
-                </div>
-              <?php else: ?>
-                <p>No recent Messages.</p>
-              <?php endif;
-              $list->close();
-              ?>
-            </div>
-            <div class="tabs">
+        <div class="card stat">
+          <div class="card-head">
+            <div class="muted">Security Level</div>
+            <i data-lucide="user"></i>
+          </div>
+          <div class="stat-value"><?php echo htmlspecialchars($admin['SecurityType']); ?></div>
+        </div>
+
+        <div class="card stat">
+          <div class="card-head">
+            <div class="muted">Date of Birth</div>
+            <i data-lucide="calendar"></i>
+          </div>
+          <div class="stat-value"><?php echo $admin['DOB'] ? date('m/d/Y', strtotime($admin['DOB'])) : 'N/A'; ?></div>
+        </div>
+
+    </section>
+
+    <aside class="right">
+      <div class="card">
+        <div class="card-title">Quick Actions</div>
+        <div class="quick-grid" id="adminQuickLinks"></div>
+      </div>
+
+      <div class="tabs">
         <div class="tabs-list">
-          <button class="tab active" data-tab="tasks">To‑Dos</button>
+          <button class="tab active" data-tab="tasks">To-Dos</button>
           <button class="tab" data-tab="announcements">Announcements</button>
         </div>
         <div class="tab-panels">
           <div class="tab-panel active" id="panel-tasks">
             <div class="card">
               <div class="card-title">Upcoming Deadlines</div>
-              <div id="studentTasksList" class="vstack gap"></div>
+              <div id="facultyTasksList" class="vstack gap"></div>
               <div class="pt-8">
                 <button class="btn"><i data-lucide="clipboard-list"></i> View All Tasks</button>
               </div>
@@ -230,39 +205,46 @@ $quickLinks = [
         </div>
       </div>
 
-        <div class="card stat">
-          <div class="card-head">
-            <div class="muted">Security Level</div>
-            <i data-lucide="user"></i>
-          </div>
-          <div class="stat-value"><?php echo htmlspecialchars($admin['SecurityType']); ?></div>
+      <div class="grid-two sm-one">
+        <div class="card">
+          <div class="card-title">Recent Messages</div>
+              <?php
+              $recent_messages = $mysqli->prepare("
+                  SELECT m.Title, m.Message, m.DatePosted, su.Email
+                  FROM Messages m
+                  JOIN Users su ON m.SenderEmail = su.Email
+                  WHERE m.RecipientEmail = (SELECT Email FROM Users WHERE UserID = ?)
+                  ORDER BY m.DatePosted DESC
+              ");
+              $recent_messages->bind_param('i', $userId);
+              $recent_messages->execute();
+              $res_messages = $recent_messages->get_result();
+
+              if ($res_messages->num_rows > 0):
+              ?>
+                <ul style="list-style:none; padding:0; margin:0;">
+                  <?php while ($m = $res_messages->fetch_assoc()): ?>
+                    <li style="border-bottom:1px solid var(--line); padding:10px 0;">
+                      <strong><?= htmlspecialchars($m['Title']) ?></strong>
+                      <span style="color:var(--muted);"> — <?= htmlspecialchars($m['Email']) ?></span>
+                      <div style="margin-top:4px;"><?= nl2br(htmlspecialchars($m['Message'])) ?></div>
+                      <small style="color:var(--muted);">Posted <?= htmlspecialchars($m['DatePosted']) ?></small>
+                    </li>
+                  <?php endwhile; ?>
+                </ul>
+                <div style="text-align:right; margin-top:10px;">
+                  <a href="messages.php" class="btn outline">View All Messages →</a>
+                </div>
+              <?php else: ?>
+                <p>No recent Messages.</p>
+              <?php endif;
+              $recent_messages->close();
+              ?>
+            </div>
         </div>
-
-        <div class="card stat">
-          <div class="card-head">
-            <div class="muted">Date of Birth</div>
-            <i data-lucide="calendar"></i>
-          </div>
-          <div class="stat-value"><?php echo $admin['DOB'] ? date('m/d/Y', strtotime($admin['DOB'])) : 'N/A'; ?></div>
-        </div>
-
-        <div class="card stat">
-          <div class="card-head">
-            <div class="muted">Office Location</div>
-            <i data-lucide="map-pin"></i>
-          </div>
-          <div class="stat-value"></div>
-        </div>
-      </div>
-
-    </section>
-
-    <aside class="right">
-      <div class="card">
-        <div class="card-title">Quick Actions</div>
-        <div class="quick-grid" id="adminQuickLinks"></div>
-      </div>
     </aside>
+
+
   </main>
 
 <footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>

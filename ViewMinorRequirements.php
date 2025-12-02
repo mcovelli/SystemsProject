@@ -129,8 +129,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <section>
       <div class="hero card">
         <table id="majorRequirementsTable" cellpadding="10" cellspacing="50">
-          <thead><tr><th>MinorID</th><th>MinorName</th><th>CourseID</th><th>Description</th><th>Type</th><th>Credits</th></tr></thead>
-            <tbody id="majorRequirementsBody">
+                    <thead><tr><th>MinorID</th><th>MinorName</th><th>CourseID</th><th>CourseName</th><th>Description</th><th>Course Type</th><th>Credits</th></tr></thead>
               <?php if (!empty($minor_requirement)): ?>
                 <?php foreach ($minor_requirement as $mnr): ?>
                   <tr>

@@ -123,21 +123,6 @@ $percentComplete = $totalCreditsNeeded > 0 ? round(($creditsEarned / $totalCredi
 // Determine academic standing based on GPA
 $standing = ($gpa >= 3.0) ? 'Good Standing' : 'Needs Improvement';
 
-// Compute credits currently registered (in‑progress)
-$credits_sql = "
-    SELECT SUM(c.Credits) AS TotalCredits
-    FROM StudentEnrollment se
-    JOIN CourseSection cs ON se.CRN = cs.CRN
-    JOIN Course c ON cs.CourseID = c.CourseID
-    WHERE se.StudentID = ? AND se.Status IN('ENROLLED', 'IN-PROGRESS', 'COMPLETED', 'PLANNED')
-";
-$credits_stmt = $mysqli->prepare($credits_sql);
-$credits_stmt->bind_param('i', $userId);
-$credits_stmt->execute();
-$credits_result = $credits_stmt->get_result()->fetch_assoc();
-$credits_stmt->close();
-$semesterCredits = (int)($credits_result['TotalCredits'] ?? 0);
-
 // Fetch all semesters for the schedule dropdown
 $sem_sql = "SELECT SemesterID, SemesterName, Year FROM Semester ORDER BY Year DESC, SemesterName DESC";
 $sem_stmt = $mysqli->prepare($sem_sql);
@@ -156,6 +141,23 @@ if ($selectedSemester === null) {
         $selectedSemester = $auto_row['SemesterID'];
     }
 }
+
+// Compute credits currently registered (in‑progress)
+$credits_sql = "
+    SELECT SUM(c.Credits) AS TotalCredits
+    FROM StudentEnrollment se
+    JOIN CourseSection cs ON se.CRN = cs.CRN
+    JOIN Course c ON cs.CourseID = c.CourseID
+    WHERE se.StudentID = ? 
+      AND se.SemesterID = ?
+      AND se.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED')
+";
+$credits_stmt = $mysqli->prepare($credits_sql);
+$credits_stmt->bind_param('is', $userId, $selectedSemester);
+$credits_stmt->execute();
+$credits_result = $credits_stmt->get_result()->fetch_assoc();
+$credits_stmt->close();
+$semesterCredits = (int)($credits_result['TotalCredits'] ?? 0);
 
 // Fetch schedule entries for the selected semester
 $schedule = [];

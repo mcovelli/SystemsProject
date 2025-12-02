@@ -4,700 +4,749 @@ require_once __DIR__ . '/config.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-if (!isset($_SESSION['user_id']) || 
-  ($_SESSION['role'] ?? '') !== 'admin' &&
-($_SESSION['admin_type'] ?? '') !== 'update') {
+/* --------------------------------------------------------------------------
+   1. SECURITY CHECK — ONLY UpdateAdmin CAN ACCESS THIS PAGE
+--------------------------------------------------------------------------- */
+
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     redirect(PROJECT_ROOT . "/login.html");
 }
-
-$userId = $_SESSION['user_id'];
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
-        FROM Users WHERE UserID = ? LIMIT 1";
-$userstmt = $mysqli->prepare($usersql);
-$userstmt->bind_param("i", $userId);
-$userstmt->execute();
-$userres = $userstmt->get_result();
-$user = $userres->fetch_assoc();
-$userstmt->close();
+// Fetch admin security type
+$adminCheck = $mysqli->prepare("
+    SELECT SecurityType 
+    FROM Admin 
+    WHERE AdminID = ? LIMIT 1
+");
+$adminCheck->bind_param("i", $_SESSION['user_id']);
+$adminCheck->execute();
+$adminType = $adminCheck->get_result()->fetch_assoc()['SecurityType'] ?? null;
+$adminCheck->close();
 
+if ($adminType !== 'UPDATE') {
+    die("<h2 style='color:red;'>Access Denied: You are not an UpdateAdmin.</h2>");
+}
 
+/* --------------------------------------------------------------------------
+   2. LOAD STATIC LOOKUP DATA
+--------------------------------------------------------------------------- */
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $userId = $_POST['userID'] ?? '';
-    $firstName = $_POST['fname'] ?? '';
-    $middleName = $_POST['mname'] ?? '';
-    $lastName  = $_POST['lname'] ?? '';
-    $dob       = $_POST['DOB'] ?? null;
-    if ($dob === '') $dob = null;
-    $gender    = $_POST['gender'] ?? null;
-    $userType  = $_POST['UserType'] ?? '';
-    $subType   = $_POST['subType'] ?? '';
-    $subType2  = $_POST['subType2'] ?? '';
-    $major     = $_POST['Major'] ?? null;
-    $minor     = $_POST['Minor'] ?? null;
-    $housenumber = $_POST['housenumber'] ?? null;
-     if ($housenumber === '' || $housenumber === null) $housenumber = null;
-    $street    = $_POST['street'] ?? '';
-    $city      = $_POST['city'] ?? '';
-    $state     = $_POST['state'] ?? '';
-    $zip       = $_POST['zip'] ?? '';
-    $phonenumber = $_POST['PhoneNumber'] ?? '';
+function loadMajors($mysqli) {
+    $res = $mysqli->query("SELECT MajorID, MajorName FROM Major ORDER BY MajorName");
+    return $res->fetch_all(MYSQLI_ASSOC);
+}
 
+function loadMinors($mysqli) {
+    $res = $mysqli->query("SELECT MinorID, MinorName FROM Minor ORDER BY MinorName");
+    return $res->fetch_all(MYSQLI_ASSOC);
+}
 
-    // Validate MajorID before insert
-    $majorId = null;
-    $minorId = null;
+function loadPrograms($mysqli) {
+    $res = $mysqli->query("SELECT ProgramID, ProgramName FROM Program ORDER BY ProgramName");
+    return $res->fetch_all(MYSQLI_ASSOC);
+}
 
-    if (strtolower($userType) === 'student') {
-        // Validate MajorID
-        if ($major === 'null' || $major === '' || strtolower($major ?? '') === 'undeclared') {
-            $majorId = null; // treat as undeclared
-        } else {
-            $majorId = (int)$major;
-            if ($majorId <= 0) {
-                throw new Exception("Invalid Major selection: '{$major}'");
+function loadDepartments($mysqli) {
+    $res = $mysqli->query("SELECT DeptID, DeptName FROM Department ORDER BY DeptName");
+    return $res->fetch_all(MYSQLI_ASSOC);
+}
+
+function loadOffices($mysqli) {
+    $res = $mysqli->query("SELECT RoomID FROM Room ORDER BY RoomID");
+    return $res->fetch_all(MYSQLI_ASSOC);
+}
+
+/* --------------------------------------------------------------------------
+   3. INITIALIZE VARIABLES
+--------------------------------------------------------------------------- */
+
+$loadedUser = null;
+$studentData = null;
+$facultyData = null;
+$adminData = null;
+$statData = null;
+$facultyDepartments = [];
+
+/* --------------------------------------------------------------------------
+   4. SEARCH HANDLER
+--------------------------------------------------------------------------- */
+
+if (isset($_POST['searchUser'])) {
+    $searchId = intval($_POST['searchID']);
+
+    // Load Users table
+    $stmt = $mysqli->prepare("SELECT * FROM Users WHERE UserID = ?");
+    $stmt->bind_param("i", $searchId);
+    $stmt->execute();
+    $loadedUser = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if ($loadedUser) {
+        $role = $loadedUser['UserType'];
+
+        /** Load Student Data **/
+        if ($role === 'Student') {
+            $q = $mysqli->prepare("SELECT * FROM Student WHERE StudentID = ?");
+            $q->bind_param("i", $searchId);
+            $q->execute();
+            $studentData = $q->get_result()->fetch_assoc();
+            $q->close();
+
+            // Undergraduate or Graduate sub-tables
+            if ($studentData['StudentType'] === 'Undergraduate') {
+                $q = $mysqli->prepare("SELECT * FROM Undergraduate WHERE StudentID = ?");
+                $q->bind_param("i", $searchId);
+                $q->execute();
+                $studentUG = $q->get_result()->fetch_assoc();
+                $q->close();
+                $studentData['UG'] = $studentUG;
+            } else {
+                $q = $mysqli->prepare("SELECT * FROM Graduate WHERE StudentID = ?");
+                $q->bind_param("i", $searchId);
+                $q->execute();
+                $studentGrad = $q->get_result()->fetch_assoc();
+                $q->close();
+                $studentData['GR'] = $studentGrad;
             }
         }
 
-        // Validate MinorID if applicable
-        if (!empty($minor) && $minor !== 'null' && $minor !== 'None') {
-            $minorId = (int)$minor;
+        /** Load Faculty Data **/
+        if ($role === 'Faculty') {
+            $q = $mysqli->prepare("SELECT * FROM Faculty WHERE FacultyID = ?");
+            $q->bind_param("i", $searchId);
+            $q->execute();
+            $facultyData = $q->get_result()->fetch_assoc();
+            $q->close();
+
+            // Load multiple departments
+            $dep = $mysqli->prepare("SELECT DeptID FROM Faculty_Dept WHERE FacultyID = ?");
+            $dep->bind_param("i", $searchId);
+            $dep->execute();
+            $facultyDepartments = array_column($dep->get_result()->fetch_all(MYSQLI_ASSOC), 'DeptID');
+            $dep->close();
+        }
+
+        /** Load Admin Data **/
+        if ($role === 'Admin') {
+            $q = $mysqli->prepare("SELECT * FROM Admin WHERE AdminID = ?");
+            $q->bind_param("i", $searchId);
+            $q->execute();
+            $adminData = $q->get_result()->fetch_assoc();
+            $q->close();
+        }
+
+        /** Load StatStaff Data **/
+        if ($role === 'StatStaff') {
+            $q = $mysqli->prepare("SELECT * FROM StatStaff WHERE StatStaffID = ?");
+            $q->bind_param("i", $searchId);
+            $q->execute();
+            $statData = $q->get_result()->fetch_assoc();
+            $q->close();
         }
     }
-    error_log("DEBUG: Major={$major}, MajorID={$majorId}");
+}
+
+/* --------------------------------------------------------------------------
+   5. UPDATE HANDLER
+--------------------------------------------------------------------------- */
+
+if (isset($_POST['updateUser'])) {
+
+    $uid = intval($_POST['UserID']); // READ ONLY FIELD
+    $role = $_POST['UserType'];      // READ ONLY FIELD
 
     $mysqli->begin_transaction();
 
-    error_log("DEBUG: UserType={$userType}, subType={$subType}, subType2={$subType2}");
-
-    error_log("FORM DEBUG: " . print_r($_POST, true));
-
-    if ($userType === 'StatStaff') {
-        $subType = '';
-        $subType2 = '';
-    }
-
     try {
-      // Normalize UserType to match ENUM
-      switch (strtolower(trim($userType))) {
-          case 'student':
-              $userType = 'Student';
-              break;
-          case 'faculty':
-              $userType = 'Faculty';
-              break;
-          case 'admin':
-              $userType = 'Admin';
-              break;
-          case 'statstaff':
-          case 'staff':
-          case 'stat staff':
-              $userType = 'StatStaff';
-              break;
-          default:
-              throw new Exception("Invalid user type: " . var_export($userType, true));
-      }
 
-
-        // Generate email
-        $stmt = $mysqli->prepare("CALL GenerateUserEmail(?, ?, ?, @genEmail)");
-        $stmt->bind_param("sss", $firstName, $middleName, $lastName);
-        $stmt->execute();
-        $stmt->close();
-        $mysqli->next_result();
-
-        $result = $mysqli->query("SELECT @genEmail AS email");
-        $generatedEmail = ($result->fetch_assoc())['email'] ?? null;
-
-        // Insert into Users
+        /* ----------------------
+           UPDATE USERS TABLE
+        ----------------------- */
         $sql = "UPDATE Users 
-            SET FirstName = ?, MiddleName = ?, LastName = ?, HouseNumber = ?, Street = ?, City = ?, State = ?, ZIP = ?, Gender = ?, DOB = ?, UserType = ?, Email = ?, PhoneNumber = ?, Status = 'ACTIVE'
-            WHERE UserID = ?";
+                SET FirstName=?, MiddleName=?, LastName=?, HouseNumber=?, Street=?, City=?, State=?, ZIP=?, Gender=?, DOB=?, PhoneNumber=?, Status='ACTIVE'
+                WHERE UserID=?";
         $stmt = $mysqli->prepare($sql);
         $stmt->bind_param(
-            "sssisssssssssii",
-            $firstName, $middleName, $lastName, $housenumber,
-            $street, $city, $state, $zip,
-            $gender, $dob, $userType, $generatedEmail, $phonenumber, $userId
+            "sssisssssssi",
+            $_POST['FirstName'],
+            $_POST['MiddleName'],
+            $_POST['LastName'],
+            $_POST['HouseNumber'],
+            $_POST['Street'],
+            $_POST['City'],
+            $_POST['State'],
+            $_POST['ZIP'],
+            $_POST['Gender'],
+            $_POST['DOB'],
+            $_POST['PhoneNumber'],
+            $uid
         );
         $stmt->execute();
         $stmt->close();
 
-        $password = password_hash('hashed_pw', PASSWORD_DEFAULT);
-        $q = "INSERT INTO Login (LoginID, Email, UserType, Password, LoginAttempts, ResetToken, ResetExpiry, MustReset)
-              VALUES (?, ?, ?, ?, 0, NULL, NULL, 1)";
-        $stmt = $mysqli->prepare($q);
-        $stmt->bind_param("isss", $userId, $generatedEmail, $userType, $password);
-        $stmt->execute();
-        $stmt->close();
+        /* ----------------------
+           STUDENT UPDATE
+        ----------------------- */
+        if ($role === 'Student') {
 
-        // Role-specific inserts
-        switch ($userType) {
-        case 'Student':
-        // Insert Student
-              $q = "UPDATE Student SET MajorID = ?, MinorID = ?, StudentType = ? WHERE StudentID = ?";
-              $stmt = $mysqli->prepare($q);
-              $stmt->bind_param("iisi", $majorId, $minorId, $subType, $userId);
-              $stmt->execute();
-              $stmt->close();
-          if ($subType === 'Undergraduate') {
-              // Insert into Undergraduate
-              $q1 = "UPDATE Undergraduate SET DeptID = (SELECT DeptID FROM Major WHERE MajorID = ? LIMIT 1), UGStudentType = ? WHERE StudentID = ?";
-              $stmt = $mysqli->prepare($q1);
-              $stmt->bind_param("isi", $majorId, $subType2, $userId);
-              $stmt->execute();
-              $stmt->close();
+            // Update Student main table
+            $q = $mysqli->prepare("
+                UPDATE Student
+                SET MajorID=?, MinorID=?, StudentType=?
+                WHERE StudentID=?
+            ");
+            $q->bind_param("iisi", $_POST['MajorID'], $_POST['MinorID'], $_POST['StudentType'], $uid);
+            $q->execute();
+            $q->close();
 
-              // Full/Part Time
-              if ($subType2 === 'FullTimeUG') {
-                  $q2 = "UPDATE FullTimeUG SET MaxCredits = 18, MinCredits = 12, Year = 'Freshman', CreditsEarned = 0 WHERE StudentID = ?";
-              } else {
-                  $q2 = "UPDATE PartTimeUG SET MaxCredits = 9, MinCredits = 3, Year = 'Freshman', CreditsEarned = 0 WHERE StudentID = ?";
-              }
-              $stmt = $mysqli->prepare($q2);
-              $stmt->bind_param("i", $userId);
-              $stmt->execute();
-              $stmt->close();
+            /* --- IF UNDERGRADUATE --- */
+            if ($_POST['StudentType'] === "Undergraduate") {
 
-              // StudentMajor
-              if ($majorId !== null) {
-                  $q3 = "UPDATE StudentMajor SET MajorID = ?, DateOfDeclaration = CURRENT_DATE WHERE StudentID = ?";
-                  $stmt = $mysqli->prepare($q3);
-                  $stmt->bind_param("ii", $majorId, $userId);
-                  $stmt->execute();
-                  $stmt->close();
-              } else {
-                  // Optionally, log or insert a placeholder record
-                  error_log("DEBUG: Skipped StudentMajor insert — undeclared major for UserID={$userId}");
-              }
+                // Delete graduate row if exists
+                $mysqli->query("DELETE FROM Graduate WHERE StudentID = $uid");
 
-              // StudentMinor (optional)
-              if ($minorId) {
-                  $q4 = "UPDATE StudentMinor SET MinorID = ?, DateOfDeclaration = CURRENT_DATE WHERE StudentID = ?";
-                  $stmt = $mysqli->prepare($q4);
-                  $stmt->bind_param("ii", $minorId, $userId);
-                  $stmt->execute();
-                  $stmt->close();
-              }
+                // Update Undergraduate
+                $q = $mysqli->prepare("
+                    REPLACE INTO Undergraduate(StudentID, DeptID, UGStudentType)
+                    VALUES (?, (SELECT DeptID FROM Major WHERE MajorID=?), ?)
+                ");
+                $q->bind_param("iis", $uid, $_POST['MajorID'], $_POST['UGStudentType']);
+                $q->execute();
+                $q->close();
 
-          } elseif ($subType === 'Graduate') {
-              $programId = (int)$major;
-              $deptId = null;
+            } else {
 
-              if (empty($major) || !ctype_digit($major)) {
-                  throw new Exception("Missing or invalid Program selection for Graduate student.");
-              }
+                // Delete undergraduate row if exists
+                $mysqli->query("DELETE FROM Undergraduate WHERE StudentID = $uid");
 
-              $stmt = $mysqli->prepare("SELECT DeptID FROM Program WHERE ProgramID = ? LIMIT 1");
-              $stmt->bind_param("i", $programId);
-              $stmt->execute();
-              $stmt->bind_result($deptId);
-              $stmt->fetch();
-              $stmt->close();
+                // Update Graduate
+                $q = $mysqli->prepare("
+                    REPLACE INTO Graduate(StudentID, DeptID, Year, GradStudentType, ProgramID)
+                    VALUES (?, (SELECT DeptID FROM Program WHERE ProgramID=?), 1, ?, ?)
+                ");
+                $q->bind_param("issi", $uid, $_POST['ProgramID'], $_POST['GradStudentType'], $_POST['ProgramID']);
+                $q->execute();
+                $q->close();
+            }
 
-              if (!$programId || !$deptId) {
-                  throw new Exception("Invalid Program selection (ProgramID={$programId})");
-              }
+            // Reset StudentMajor
+            $mysqli->query("DELETE FROM StudentMajor WHERE StudentID = $uid");
+            if (!empty($_POST['MajorID'])) {
+                $q = $mysqli->prepare("INSERT INTO StudentMajor(StudentID, MajorID, DateOfDeclaration) VALUES (?, ?, CURRENT_DATE)");
+                $q->bind_param("ii", $uid, $_POST['MajorID']);
+                $q->execute();
+                $q->close();
+            }
 
-              $q1 = "UPDATE Graduate SET DeptID = ?, Year = 1, ProgramID = ?, GradStudentType = ? WHERE StudentID = ?";
-              $stmt = $mysqli->prepare($q1);
-              $stmt->bind_param("iisi", $deptId, $programId, $subType2, $userId);
-              $stmt->execute();
-              $stmt->close();
+            // Reset StudentMinor
+            $mysqli->query("DELETE FROM StudentMinor WHERE StudentID = $uid");
+            if (!empty($_POST['MinorID'])) {
+                $q = $mysqli->prepare("INSERT INTO StudentMinor(StudentID, MinorID, DateOfDeclaration) VALUES (?, ?, CURRENT_DATE)");
+                $q->bind_param("ii", $uid, $_POST['MinorID']);
+                $q->execute();
+                $q->close();
+            }
+        }
 
-              // Full/Part Time Grad
-              $q2 = ($subType2 === 'FullTimeGrad')
-                  ? "UPDATE FullTimeGrad SET Year = 1, CreditsEarned = 0, ThesisYear = NULL WHERE StudentID = ?"
-                  : "UPDATE PartTimeGrad SET Year = 1, CreditsEarned = 0, ThesisYear = NULL WHERE StudentID = ?";
-              $stmt = $mysqli->prepare($q2);
-              $stmt->bind_param("i", $userId);
-              $stmt->execute();
-              $stmt->close();
-          }
-          break;
+        /* ----------------------
+           FACULTY UPDATE
+        ----------------------- */
+        if ($role === 'Faculty') {
 
-            case 'Faculty':
-              $department = $_POST['Department'] ?? null;
-              $ranking    = $_POST['Ranking'] ?? 'Asst Prof';
-              $specialty  = $_POST['Specialty'] ?? 'Undeclared';
-              $office     = $_POST['Office'] ?? null;
-              $subType    = $_POST['subType'] ?? ''; // ensure this is captured
+            // Update Faculty table
+            $q = $mysqli->prepare("
+                UPDATE Faculty
+                SET OfficeID=?, Specialty=?, Ranking=?, FacultyType=?
+                WHERE FacultyID=?
+            ");
+            $q->bind_param(
+                "ssssi",
+                $_POST['OfficeID'],
+                $_POST['Specialty'],
+                $_POST['Ranking'],
+                $_POST['FacultyType'],
+                $uid
+            );
+            $q->execute();
+            $q->close();
 
-              // Validate FacultyType
-              if (!in_array($subType, ['FullTimeFaculty', 'PartTimeFaculty'])) {
-                  throw new Exception("Invalid FacultyType value: " . var_export($subType, true));
-              }
+            // Reset multi-departments
+            $mysqli->query("DELETE FROM Faculty_Dept WHERE FacultyID = $uid");
 
-              // Update Faculty
-              $q1 = "UPDATE Faculty SET OfficeID = ?, Specialty = ?, Ranking = ?, FacultyType = ? WHERE FacultyID = ?";
-              $stmt = $mysqli->prepare($q1);
-              $stmt->bind_param("ssssi", $office, $specialty, $ranking, $subType, $userId);
-              $stmt->execute();
-              $stmt->close();
+            if (!empty($_POST['Departments'])) {
+                foreach ($_POST['Departments'] as $dept) {
+                    $ins = $mysqli->prepare("
+                        INSERT INTO Faculty_Dept(FacultyID, DeptID, DOA)
+                        VALUES (?, ?, CURRENT_DATE)
+                    ");
+                    $ins->bind_param("ii", $uid, $dept);
+                    $ins->execute();
+                    $ins->close();
+                }
+            }
+        }
 
-              // Faculty subtype tables
-              if ($subType === 'FullTimeFaculty') {
-                  $q2 = "UPDATE FullTimeFaculty SET MaxCourses = 4 WHERE FacultyID = ?";
-              } else {
-                  $q2 = "UPDATE PartTimeFaculty SET MaxCourses = 2 WHERE FacultyID = ?";
-              }
-              $stmt = $mysqli->prepare($q2);
-              $stmt->bind_param("i", $userId);
-              $stmt->execute();
-              $stmt->close();
+        /* ----------------------
+           ADMIN UPDATE
+        ----------------------- */
+        if ($role === 'Admin') {
+            $q = $mysqli->prepare("UPDATE Admin SET SecurityType=? WHERE AdminID=?");
+            $q->bind_param("si", $_POST['SecurityType'], $uid);
+            $q->execute();
+            $q->close();
+        }
 
-              // Faculty_Dept link
-              $q3 = "UPDATE Faculty_Dept SET DeptID = (SELECT DeptID FROM Department WHERE DeptName = ? LIMIT 1), DoA = CURRENT_DATE WHERE FacultyID = ?";
-              $stmt = $mysqli->prepare($q3);
-              $stmt->bind_param("si", $department, $userId);
-              $stmt->execute();
-              $stmt->close();
-              break;
-
-            case 'Admin':
-              // Update base Admin table (no SecurityLevel column)
-              $q1 = "UPDATE Admin SET AdminID = ? WHERE AdminID = ?";
-              $stmt = $mysqli->prepare($q1);
-              $stmt->bind_param("i", $userId);
-              $stmt->execute();
-              $stmt->close();
-
-              // Insert into subtype table based on admin type
-              if ($subType === 'UpdateAdmin') {
-                  $q2 = "UPDATE UpdateAdmin SET AdminID = ? WHERE AdminID = ?";
-              } else {
-                  $q2 = "UPDATE ViewAdmin SET AdminID = ? WHERE AdminID = ?";
-              }
-              $stmt = $mysqli->prepare($q2);
-              $stmt->bind_param("i", $userId);
-              $stmt->execute();
-              $stmt->close();
-              break;
-
-          case 'StatStaff':
-            $q1 = "UPDATE StatStaff SET StaffName = (SELECT CONCAT(FirstName, ' ', LastName) FROM Users WHERE UserID = ?), Status = 'ACTIVE' WHERE StatStaffID = ?";
-            $stmt = $mysqli->prepare($q1);
-            $stmt->bind_param("i", $userId);
-            $stmt->execute();
-            $stmt->close();
-            break;
-      }
-
-      error_log("DEBUG UPDATE PATH: UserType=$userType, subType=$subType, subType2=$subType2, majorId=$majorId, deptId=" . ($deptId ?? 'NULL'));
+        /* ----------------------
+           STAT STAFF UPDATE
+        ----------------------- */
+        if ($role === 'StatStaff') {
+            $q = $mysqli->prepare("
+                UPDATE StatStaff
+                SET StaffName=(SELECT CONCAT(FirstName,' ',LastName) FROM Users WHERE UserID=?)
+                WHERE StatStaffID=?
+            ");
+            $q->bind_param("ii", $uid, $uid);
+            $q->execute();
+            $q->close();
+        }
 
         $mysqli->commit();
-        header("Location: update_admin_dashboard.php?success=1");
-        exit();
-
+        $successMsg = "User updated successfully!";
+    
     } catch (Exception $e) {
         $mysqli->rollback();
-        die("Error creating user: " . $e->getMessage());
-        if (!$stmt->execute()) {
-    throw new Exception("SQL Error: " . $stmt->error);
-}
+        die("Error updating user: " . $e->getMessage());
     }
 }
-
-$initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="light">
 <head>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Create Users</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Update Users • Northport University</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="./stylesGrade.css" />
+<style>
+/* Inline enhancements */
+.field-block {
+    margin-bottom: 12px;
+}
+label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 3px;
+}
+input[type=text], input[type=date], select {
+    width: 280px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+.multiselect {
+    height: 120px;
+    width: 300px;
+    padding: 6px;
+}
+.section-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    background: var(--card-bg);
+}
+</style>
 </head>
+
 <body>
-  <header class="topbar">
+<header class="topbar">
     <div class="brand">
-      <div class="logo"><i data-lucide="graduation-cap"></i></div>
-      <h1>Northport University</h1>
-      <span class="pill">Create Users</span>
+        <div class="logo"><i data-lucide="graduation-cap"></i></div>
+        <h1>Northport University</h1>
+        <span class="pill">Update Users Portal</span>
     </div>
+
     <div class="top-actions">
-      <div class="search">
-        <i class="search-icon" data-lucide="search"></i>
-        <input type="text" placeholder="Search courses, people, anything…" />
-      </div>
-      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
-      <div class="divider"></div>
-      <div class="crumb"><a href="createDirectory.php" aria-label="Back to Directory">← Back to Directory</a></div>
+        <button id="themeToggle" class="icon-btn"><i data-lucide="moon"></i></button>
+
+        <div class="divider"></div>
+
+        <div class="header-left">
+            <div class="menu">
+                <button>☰ Menu</button>
+                <div class="menu-content">
+                    <a href="admin_profile.php">Profile</a>
+                    <a href="update_admin_dashboard.php">Dashboard</a>
+                    <a href="viewDirectory.php">View Directory</a>
+                    <a href="createDirectory.php">Create User</a>
+                    <a href="logout.php">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+<main class="page">
+
+<!-- SEARCH USER CARD -->
+<section class="hero card">
+    <div class="card-head">
+        <h2>Search for User to Update</h2>
     </div>
 
-    <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
-        <div class="user-meta"><div class="name"><?php echo htmlspecialchars($user['UserType']) ?></div></div>
-        <div class="dropdown">
-          <button>☰ Menu</button>
-          <div class="dropdown-content">
-            <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
-            <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
-            <a href="logout.php">Logout</a>
-          </div>
+    <form method="POST" style="margin-top: 10px;">
+        <div class="field-block">
+            <label>UserID</label>
+            <input type="text" name="searchID" required placeholder="Enter UserID...">
         </div>
-      </div>
+
+        <button type="submit" name="searchUser" class="btn">Search</button>
+    </form>
+</section>
+
+
+<!-- IF USER LOADED, DISPLAY FORM -->
+<?php if (!empty($loadedUser)) : ?>
+
+<section class="hero card" style="margin-top: 20px;">
+    <h2>Update User: <?php echo htmlspecialchars($loadedUser['FirstName'] . " " . $loadedUser['LastName']); ?></h2>
+
+    <?php if (!empty($successMsg)): ?>
+        <p style="color: green; font-weight: 600;"><?php echo $successMsg; ?></p>
+    <?php endif; ?>
+
+    <form method="POST">
+
+    <input type="hidden" name="UserID" value="<?php echo $loadedUser['UserID']; ?>">
+    <input type="hidden" name="UserType" value="<?php echo $loadedUser['UserType']; ?>">
+
+    <!-- USERS TABLE FIELDS -->
+    <div class="section-card">
+        <h3>Basic Information</h3>
+
+        <div class="field-block">
+            <label>UserID (Read Only)</label>
+            <input type="text" value="<?php echo $loadedUser['UserID']; ?>" readonly>
+        </div>
+
+        <div class="field-block">
+            <label>Email (Read Only)</label>
+            <input type="text" value="<?php echo $loadedUser['Email']; ?>" readonly>
+        </div>
+
+        <div class="field-block">
+            <label>First Name</label>
+            <input type="text" name="FirstName" value="<?php echo $loadedUser['FirstName']; ?>">
+        </div>
+
+        <div class="field-block">
+            <label>Middle Name</label>
+            <input type="text" name="MiddleName" value="<?php echo $loadedUser['MiddleName']; ?>">
+        </div>
+
+        <div class="field-block">
+            <label>Last Name</label>
+            <input type="text" name="LastName" value="<?php echo $loadedUser['LastName']; ?>">
+        </div>
+
+        <div class="field-block">
+            <label>House Number</label>
+            <input type="text" name="HouseNumber" value="<?php echo $loaded[$i]['HouseNumber']; ?>">
+        </div>
+
+        <div class="field-block">
+            <label>Street</label>
+            <input type="text" name="Street" value="<?php echo $loadedUser['Street']; ?>">
+        </div>
+
+        <div class="field-block">
+            <label>City</label>
+            <input type="text" name="City" value="<?php echo $loadedUser['City']; ?>">
+        </div>
+
+        <div class="field-block">
+            <label>State</label>
+            <input type="text" name="State" value="<?php echo $loadedUser['State']; ?>">
+        </div>
+
+        <div class="field-block">
+            <label>ZIP</label>
+            <input type="text" name="ZIP" value="<?php echo $loadedUser['ZIP']; ?>">
+        </div>
+
+        <div class="field-block">
+            <label>Phone Number</label>
+            <input type="text" name="PhoneNumber" value="<?php echo $loadedUser['PhoneNumber']; ?>">
+        </div>
+
+        <div class="field-block">
+            <label>Date of Birth</label>
+            <input type="date" name="DOB" value="<?php echo $loadedUser['DOB']; ?>">
+        </div>
+
+        <div class="field-block">
+            <label>Gender</label>
+            <select name="Gender">
+                <option value="M" <?php if ($loadedUser['Gender'] === 'M') echo 'selected'; ?>>Male</option>
+                <option value="F" <?php if ($loadedUser['Gender'] === 'F') echo 'selected'; ?>>Female</option>
+            </select>
+        </div>
     </div>
-  </header>
 
-      <main class="page">
-        <section class="hero card">
-          <div class="card-head between">
-            <div>
-              <h2 class="card-title">Create User</h2>
-            </div>
-          </div>
-        </section>
 
-      <section class="hero card">
-        <div>
-          <!-- CREATE USER FORM -->
-          <div id = "create-section-user">
-            <form id="CreateUser" method="POST" action="">
-              <label for="UserType">User Type:</label>
-              <select id="UserType" name="UserType" required>
-                <option value="">-- Select User Type --</option>
-                <option value="Student">Student</option>
-                <option value="Faculty">Faculty</option>
-                <option value="Admin">Admin</option>
-                <option value="StatStaff">Stat Staff</option>
-              </select>
-              <br>
+<!-- STUDENT SECTION -->
+<?php if ($loadedUser['UserType'] === 'Student') : ?>
+    <div class="section-card" id="studentSection">
+        <h3>Student Information</h3>
 
-            <div id="subTypeMenu">
-              <label for="subType">User Sub Type:</label>
-              <select id="subType" name="subType"></select>
-            </div>
-
-            <div id="subTypeMenu2">
-              <label for="subType2">Student Sub Type:</label>
-              <select id="subType2" name="subType2" required></select>
-            </div>
-
-            <br>
-            <label for ="userID" hidden>User ID:</label>
-            <input type = "hidden" id = "userID" name="userID"></br>
-            
-            <label for="fname">First Name:</label>
-            <input type="text" id="fname" name="fname"><br>
-
-            <label for="mname">Middle Name:</label>
-            <input type="text" id="mname" name="mname"><br>
-
-            <label for="lname">Last Name:</label>
-            <input type="text" id="lname" name="lname"><br>
-
-            <label for="housenumber">House Number:</label>
-            <input type="text" id="housenumber" name="housenumber" placeholder="ex. 123">
-            <br>
-
-            <label for="street">Street:</label>
-            <input type="text" id="street" name="street" placeholder="ex. Main St., Apt 5">
-            <br>
-
-            <label for="city">City:</label>
-            <input type="text" id="city" name="city" placeholder="ex. Merrick"><br>
-
-            <label for="state">State:</label>
-            <input type="text" id="state" name="state" placeholder="ex. NY"><br>
-
-            <label for="zip">Zip Code:</label>
-            <input type="text" id="zip" name="zip" placeholder="ex. 11566"><br>
-
-            <br>
-
-            <label for="gender">Gender:</label>
-            <select id="gender" name="gender">
-              <option value="">-- Select Gender --</option>
-              <option value="M">Male</option>
-              <option value="F">Female</option>
-            </select><br>
-
-            <label for="DOB">Date of Birth:</label>
-            <input type="date" id="DOB" name="DOB"><br>
-
-            <div id="MajorMenu">
-              <label for="Major">Major:</label>
-              <select id="Major" name="Major">
-                <option value="" selected>Undeclared</option>
-              </select>
-            </div>
-
-            <div id="MinorMenu">
-              <label for="Minor">Minor:</label>
-              <select id="Minor" name="Minor">
-                <option value="" selected>Undeclared</option>
-              </select>
-            </div>
-
-            <div id="DepartmentMenu">
-              <label for="Department">Department:</label>
-              <select id="Department" name="Department"></select>
-            </div>
-
-            <div id="RankingMenu">
-              <label for="Ranking">Ranking:</label>
-              <select id="Ranking" name="Ranking">
-                <option value="">-- Select Ranking --</option>
-                <option value="Dr.">Dr.</option>
-                <option value="Asst Prof">Asst Prof</option>
-                <option value="Assoc Prof">Assoc Prof</option>
-                <option value="Professor">Professor</option>
-              </select>
-            </div>
-
-            <div id="SpecialtyMenu">
-              <label for="Specialty">Specialty:</label>
-              <input type="text" id="Specialty" name="Specialty" placeholder="e.g. Artificial Intelligence, Microbiology, etc.">
-            </div>
-
-            <div id="OfficeMenu">
-              <label for="Office">Office:</label>
-              <select id="Office" name="Office"></select>
-            </div>
-
-            <button type="submit" id="submit">Submit</button>
-          </form>
+        <div class="field-block">
+            <label>Student Type</label>
+            <select name="StudentType" id="StudentType">
+                <option value="Undergraduate" <?php if ($studentData['StudentType'] === "Undergraduate") echo "selected"; ?>>Undergraduate</option>
+                <option value="Graduate" <?php if ($studentData['StudentType'] === "Graduate") echo "selected"; ?>>Graduate</option>
+            </select>
         </div>
-      </section>
-    </main>
 
-    <footer class="footer">© 2025 Northport University • All rights reserved</footer>
+        <div class="field-block">
+            <label>Major</label>
+            <select name="MajorID" id="MajorID">
+                <?php foreach (loadMajors($mysqli) as $m): ?>
+                    <option value="<?php echo $m['MajorID']; ?>"
+                        <?php if ($studentData['MajorID'] == $m['MajorID']) echo 'selected'; ?>>
+                        <?php echo $m['MajorName']; ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
 
-   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <script>
-    // Immediately create Lucide icons
+        <div class="field-block" id="MinorBlock">
+            <label>Minor</label>
+            <select name="MinorID">
+                <option value="">None</option>
+                <?php foreach (loadMinors($mysqli) as $n): ?>
+                    <option value="<?php echo $n['MinorID']; ?>"
+                        <?php if ($studentData['MinorID'] == $n['MinorID']) echo 'selected'; ?>>
+                        <?php echo $n['MinorName']; ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <!-- Undergrad sub-options -->
+        <?php if ($studentData['StudentType'] === 'Undergraduate') : ?>
+        <div class="field-block" id="UGTypeBlock">
+            <label>Undergrad Type</label>
+            <select name="UGStudentType">
+                <option value="FullTimeUG" <?php if ($studentData['UG']['UGStudentType'] === 'FullTimeUG') echo 'selected'; ?>>Full Time UG</option>
+                <option value="PartTimeUG" <?php if ($studentData['UG']['UGStudentType'] === 'PartTimeUG') echo 'selected'; ?>>Part Time UG</option>
+            </select>
+        </div>
+        <?php endif; ?>
+
+        <!-- Graduate sub-options -->
+        <?php if ($studentData['StudentType'] === 'Graduate') : ?>
+        <div class="field-block" id="GradTypeBlock">
+            <label>Grad Enrollment Type</label>
+            <select name="GradStudentType">
+                <option value="FullTimeGrad" <?php if ($studentData['GR']['GradStudentType'] === 'FullTimeGrad') echo 'selected'; ?>>Full Time Grad</option>
+                <option value="PartTimeGrad" <?php if ($studentData['GR']['GradStudentType'] === 'PartTimeGrad') echo 'selected'; ?>>Part Time Grad</option>
+            </select>
+        </div>
+
+        <div class="field-block" id="ProgramBlock">
+            <label>Graduate Program</label>
+            <select name="ProgramID">
+                <?php foreach (loadPrograms($mysqli) as $p): ?>
+                    <option value="<?php echo $p['ProgramID']; ?>"
+                        <?php if ($studentData['GR']['ProgramID'] == $p['ProgramID']) echo 'selected'; ?>>
+                        <?php echo $p['ProgramName']; ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <?php endif; ?>
+
+    </div>
+<?php endif; ?>
+
+
+<!-- FACULTY SECTION -->
+<?php if ($loadedUser['UserType'] === 'Faculty'): ?>
+    <div class="section-card" id="facultySection">
+        <h3>Faculty Information</h3>
+
+        <div class="field-block">
+            <label>Faculty Type</label>
+            <select name="FacultyType">
+                <option value="FullTimeFaculty" <?php if ($facultyData['FacultyType'] === 'FullTimeFaculty') echo 'selected'; ?>>Full Time Faculty</option>
+                <option value="PartTimeFaculty" <?php if ($facultyData['FacultyType'] === 'PartTimeFaculty') echo 'selected'; ?>>Part Time Faculty</option>
+            </select>
+        </div>
+
+        <div class="field-block">
+            <label>Office</label>
+            <select name="OfficeID">
+                <?php foreach (loadOffices($mysqli) as $o): ?>
+                    <option value="<?php echo $o['RoomID']; ?>"
+                        <?php if ($facultyData['OfficeID'] == $o['RoomID']) echo 'selected'; ?>>
+                        <?php echo $o['RoomID']; ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="field-block">
+            <label>Ranking</label>
+            <select name="Ranking">
+                <option value="Dr." <?php if ($facultyData['Ranking'] === "Dr.") echo 'selected'; ?>>Dr.</option>
+                <option value="Asst Prof" <?php if ($facultyData['Ranking'] === "Asst Prof") echo 'selected'; ?>>Asst Prof</option>
+                <option value="Assoc Prof" <?php if ($facultyData['Ranking'] === "Assoc Prof") echo 'selected'; ?>>Assoc Prof</option>
+                <option value="Professor" <?php if ($facultyData['Ranking'] === "Professor") echo 'selected'; ?>>Professor</option>
+            </select>
+        </div>
+
+        <div class="field-block">
+            <label>Specialty</label>
+            <input type="text" name="Specialty" value="<?php echo $facultyData['Specialty']; ?>">
+        </div>
+
+        <div class="field-block">
+            <label>Departments (Multi-Select)</label>
+            <select name="Departments[]" class="multiselect" multiple>
+                <?php foreach (loadDepartments($mysqli) as $d): ?>
+                <option value="<?php echo $d['DeptID']; ?>"
+                    <?php if (in_array($d['DeptID'], $facultyDepartments)) echo "selected"; ?>>
+                    <?php echo $d['DeptName']; ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+    </div>
+<?php endif; ?>
+
+
+<!-- ADMIN SECTION -->
+<?php if ($loadedUser['UserType'] === 'Admin'): ?>
+    <div class="section-card" id="adminSection">
+        <h3>Admin Options</h3>
+
+        <div class="field-block">
+            <label>Security Type</label>
+            <select name="SecurityType">
+                <option value="VIEW" <?php if ($adminData['SecurityType'] === 'VIEW') echo 'selected'; ?>>View Admin</option>
+                <option value="UPDATE" <?php if ($adminData['SecurityType'] === 'UPDATE') echo 'selected'; ?>>Update Admin</option>
+            </select>
+        </div>
+    </div>
+<?php endif; ?>
+
+
+<!-- STAT STAFF SECTION -->
+<?php if ($loadedUser['UserType'] === 'StatStaff'): ?>
+    <div class="section-card" id="statSection">
+        <h3>Statistical Staff</h3>
+        <p>Name is generated automatically from Users table on update.</p>
+    </div>
+<?php endif; ?>
+
+
+<!-- SUBMIT BUTTON -->
+<div style="margin-top: 20px;">
+    <button type="submit" name="updateUser">Save Changes</button>
+</div>
+
+</form>
+
+</section>
+
+<?php endif; ?>
+
+
+</main>
+
+<footer class="footer">
+    © <span id="year"></span> Northport University • All rights reserved
+</footer>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script>
+lucide.createIcons();
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+<script>
+/* ============================================================================
+   THEME TOGGLE
+============================================================================ */
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.addEventListener('click', () => {
+    const root = document.documentElement;
+    const cur = root.getAttribute('data-theme') || 'light';
+    root.setAttribute('data-theme', cur === 'light' ? 'dark' : 'light');
+    themeToggle.querySelector('i').setAttribute('data-lucide', cur === 'light' ? 'sun' : 'moon');
     lucide.createIcons();
+});
 
-    // Populate the year in the footer
-    document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      // Swap the icon
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      lucide.createIcons();
-    });
-    document.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById("CreateUser");
-      subTypeMenu2.style.display = "none";
-      MajorMenu.style.display = "none";
-      MinorMenu.style.display = "none";
-      DepartmentMenu.style.display = "none";
-      OfficeMenu.style.display = "none";
-      RankingMenu.style.display = "none";
-      SpecialtyMenu.style.display = "none";
-    });
+/* ============================================================================
+   STUDENT DYNAMIC FORM CONTROL
+   Handles:
+   - Switching between Undergraduate and Graduate
+   - Showing UGStudentType
+   - Showing GradStudentType
+   - Showing Grad Program
+   - Hiding Minor for Grad
+============================================================================ */
+document.addEventListener("DOMContentLoaded", () => {
 
-    const UserType = document.getElementById("UserType");
-    const subType = document.getElementById("subType");
-    const subTypeMenu = document.getElementById("subTypeMenu");
-    const subType2 = document.getElementById("subType2");
-    const subTypeMenu2 = document.getElementById("subTypeMenu2");
-    const MajorMenu = document.getElementById("MajorMenu");
-    const MinorMenu = document.getElementById("MinorMenu");
-    const DepartmentMenu = document.getElementById("DepartmentMenu");
-    const OfficeMenu = document.getElementById("OfficeMenu");
-    const RankingMenu = document.getElementById("RankingMenu");
-    const SpecialtyMenu = document.getElementById("SpecialtyMenu");
-
-    const majorSelect = document.getElementById("Major");
-    const minorSelect = document.getElementById("Minor");
-    const deptSelect = document.getElementById("Department");
-    const officeSelect = document.getElementById("Office");
-
-    const options = {
-      Student: ["-- Select User SubType --", "Undergraduate", "Graduate"],
-      Faculty: ["-- Select User SubType --", "FullTimeFaculty", "PartTimeFaculty"],
-      Admin: ["-- Select User SubType --", "UpdateAdmin", "ViewAdmin"],
-      StatStaff: [""]
-    };
-
-    const options2 = {
-      Undergraduate: ["-- Select Student SubType --", "FullTimeUG", "PartTimeUG"],
-      Graduate: ["-- Select Student SubType --", "FullTimeGrad", "PartTimeGrad"],
-    };
-
-    // STEP 1: When UserType changes
-    UserType.addEventListener("change", function() {
-      const value = this.value;
-
-      if (value === "StatStaff") {
-        subTypeMenu.style.display = "none";
-        subType.required = false;
-      } else {
-        subTypeMenu.style.display = "block";
-        subType.required = true;
-      }
-
-      // Reset/hide all optional menus
-      [subTypeMenu2, MajorMenu, MinorMenu, DepartmentMenu, OfficeMenu, RankingMenu, SpecialtyMenu].forEach(div => {
-        div.style.display = "none";
-        div.querySelectorAll("select, input").forEach(el => el.required = false);
-      });
-      subType.innerHTML = "";
-      subType2.innerHTML = "";
-
-      if (!value || !options[value]) {
-        subTypeMenu.style.display = "none";
-        return;
-      }
-
-      // Populate subtype dropdown
-      options[value].forEach(function(item) {
-        const option = document.createElement("option");
-        option.textContent = item;
-        option.value = item;
-        subType.appendChild(option);
-      });
-
-      subTypeMenu.style.display = "block";
-
-      // If Faculty selected → load Department, Office, Ranking, Specialty
-      if (value === "Faculty") {
-        Promise.all([
-          fetch('get_departments.php').then(r => r.json()),
-          fetch('get_offices.php').then(r => r.json())
-        ]).then(([departments, offices]) => {
-          // Populate Department
-          DepartmentMenu.style.display = "block";
-          OfficeMenu.style.display = "block";
-          RankingMenu.style.display = "block";
-          SpecialtyMenu.style.display = "block";
-          // make them required if needed
-          deptSelect.required = true;
-          officeSelect.required = true;
-
-          deptSelect.innerHTML = "";
-          departments.forEach(d => {
-            const opt = document.createElement("option");
-            opt.textContent = d;
-            opt.value = d;
-            deptSelect.appendChild(opt);
-          });
-
-          // Populate Office
-          officeSelect.innerHTML = "";
-          offices.forEach(o => {
-            const opt = document.createElement("option");
-            opt.textContent = o;
-            opt.value = o;
-            officeSelect.appendChild(opt);
-          });
-        });
-      }
-    });
-
-    // STEP 2: When SubType (Undergraduate / Graduate) changes
-    subType.addEventListener("change", function() {
-      const value2 = this.value;
-      subType2.innerHTML = "";
-      MajorMenu.style.display = "none";
-      MinorMenu.style.display = "none";
-
-      if (!value2 || !options2[value2]) {
-        subTypeMenu2.style.display = "none";
-        return;
-      }
-
-      // Populate Student SubType (FullTimeUG, PartTimeUG, etc.)
-      options2[value2].forEach(function(item2) {
-        const opt2 = document.createElement("option");
-        opt2.textContent = item2;
-        opt2.value = item2;
-        subType2.appendChild(opt2);
-      });
-      subTypeMenu2.style.display = "block";
-
-     // Only show Major/Minor if "Undergraduate" or load programs if "Graduate"
-
-      if (value2 === "Undergraduate" || value2 === "Graduate") {
-        subType2.required = true;
-        majorSelect.required = true;
-      }
-    if (value2 === "Undergraduate") {
-      // Load majors for undergrads
-      fetch('get_majors.php')
-      .then(res => res.json())
-      .then(data => {
-        majorSelect.innerHTML = "";
-        const undeclared = document.createElement("option");
-        undeclared.value = "";
-        undeclared.textContent = "Undeclared";
-        majorSelect.appendChild(undeclared);
-        data.forEach(m => {
-          const opt = document.createElement("option");
-          opt.textContent = m.name;
-          opt.value = m.id; // MajorID
-          majorSelect.appendChild(opt);
-        });
-        MajorMenu.style.display = "block";
-      });
-
-      // Load minors for undergrads
-      fetch('get_minors.php')
-      .then(res => res.json())
-      .then(data => {
-        minorSelect.innerHTML = "";
-        const undeclaredMinor = document.createElement("option");
-        undeclaredMinor.value = "";
-        undeclaredMinor.textContent = "Undeclared";
-        minorSelect.appendChild(undeclaredMinor);
-        data.forEach(m => {
-          const opt = document.createElement("option");
-          opt.textContent = m.name;
-          opt.value = m.id;  // send MinorID instead of name
-          minorSelect.appendChild(opt);
-        });
-        MinorMenu.style.display = "block";
-      });
-
-    } else if (value2 === "Graduate") {
-      // Load graduate programs
-      fetch('get_programs.php')
-      .then(res => res.json())
-      .then(data => {
-        majorSelect.innerHTML = "";
-        const undeclared = document.createElement("option");
-        undeclared.value = "";
-        undeclared.textContent = "Undeclared";
-        majorSelect.appendChild(undeclared);
-        data.forEach(p => {
-          const opt = document.createElement("option");
-          opt.textContent = p.name;
-          opt.value = p.id; // ProgramID
-          majorSelect.appendChild(opt);
-        });
-        MajorMenu.style.display = "block";
-        MinorMenu.style.display = "none";// Hide minors for graduate
-        });
-
-    } else {
-      // Hide if neither Undergraduate nor Graduate
-      MajorMenu.style.display = "none";
-      MinorMenu.style.display = "none";
+    const studentType = document.getElementById("StudentType");
+    if (studentType) {
+        studentType.addEventListener("change", updateStudentFormDisplay);
+        updateStudentFormDisplay(); // run once on load
     }
-  });
+});
 
-    form.addEventListener("submit", (e) => {
-      console.log("Form submitted ✅");
-    });
+function updateStudentFormDisplay() {
 
-    </script>
-  </body>
+    const type = document.getElementById("StudentType")?.value;
+
+    const minorBlock = document.getElementById("MinorBlock");
+    const UGTypeBlock = document.getElementById("UGTypeBlock");
+    const GradTypeBlock = document.getElementById("GradTypeBlock");
+    const ProgramBlock = document.getElementById("ProgramBlock");
+
+    // Hide all by default
+    if (UGTypeBlock) UGTypeBlock.style.display = "none";
+    if (GradTypeBlock) GradTypeBlock.style.display = "none";
+    if (ProgramBlock) ProgramBlock.style.display = "none";
+
+    // Show relevant fields
+    if (type === "Undergraduate") {
+        if (minorBlock) minorBlock.style.display = "block";
+        if (UGTypeBlock) UGTypeBlock.style.display = "block";
+        if (GradTypeBlock) GradTypeBlock.style.display = "none";
+        if (ProgramBlock) ProgramBlock.style.display = "none";
+    }
+
+    if (type === "Graduate") {
+        if (minorBlock) minorBlock.style.display = "none"; // Grad students do NOT have minors
+        if (UGTypeBlock) UGTypeBlock.style.display = "none";
+        if (GradTypeBlock) GradTypeBlock.style.display = "block";
+        if (ProgramBlock) ProgramBlock.style.display = "block";
+    }
+}
+
+lucide.createIcons();
+</script>
+</body>
 </html>

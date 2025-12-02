@@ -129,7 +129,7 @@ $credits_sql = "
     FROM StudentEnrollment se
     JOIN CourseSection cs ON se.CRN = cs.CRN
     JOIN Course c ON cs.CourseID = c.CourseID
-    WHERE se.StudentID = ? AND se.Status IN('ENROLLED', 'IN-PROGRESS')
+    WHERE se.StudentID = ? AND se.Status IN('ENROLLED', 'IN-PROGRESS', 'COMPLETED', 'PLANNED')
 ";
 $credits_stmt = $mysqli->prepare($credits_sql);
 $credits_stmt->bind_param('i', $userId);
@@ -180,7 +180,7 @@ if ($selectedSemester) {
         JOIN Day d ON tsd.DayID = d.DayID
         WHERE se.StudentID = ? 
           AND se.SemesterID = ?
-          AND se.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED')
+          AND se.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED', 'COMPLETED')
         GROUP BY se.CRN, c.CourseName, cs.RoomID
         ORDER BY MIN(p.StartTime)
     ";
@@ -192,7 +192,7 @@ if ($selectedSemester) {
     $sched_stmt->close();
 }
 
-$message_sql = "
+$announcement_sql = "
     SELECT a.Title, a.Message, a.DatePosted, c.CourseName
     FROM CourseAnnouncements a
     JOIN CourseSection cs ON a.CRN = cs.CRN
@@ -202,10 +202,10 @@ $message_sql = "
     ORDER BY a.DatePosted DESC
     LIMIT 10
 ";
-$message_stmt = $mysqli->prepare($message_sql);
-$message_stmt->bind_param('i', $userId);
-$message_stmt->execute();
-$message_res = $message_stmt->get_result();
+$announcement_stmt = $mysqli->prepare($announcement_sql);
+$announcement_stmt->bind_param('i', $userId);
+$announcement_stmt->execute();
+$announcement_res = $announcement_stmt->get_result();
 
 // Placeholder quick links, tasks, announcements and messages
 $quickLinks = [

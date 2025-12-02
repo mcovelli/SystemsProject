@@ -321,6 +321,7 @@ if (isset($_POST['updateUser'])) {
         }
 
         $mysqli->commit();
+        $_SESSION['update_success'] = true;
         $successMsg = "User updated successfully!";
     
     } catch (Exception $e) {
@@ -370,10 +371,37 @@ input[type=text], input[type=date], select {
     margin-top: 10px;
     background: var(--card-bg);
 }
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-15px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.hidden {
+    display: none;
+}
 </style>
 </head>
 
 <body>
+
 <header class="topbar">
     <div class="brand">
         <div class="logo"><i data-lucide="graduation-cap"></i></div>
@@ -401,6 +429,13 @@ input[type=text], input[type=date], select {
     </div>
 </header>
 
+<div id="toast" class="toast hidden">User updated successfully!</div>
+
+<?php if (!empty($successMsg)): ?>
+    <script>
+        showToast("✅ User updated successfully!");
+    </script>
+<?php endif; ?>
 
 <main class="page">
 
@@ -426,10 +461,6 @@ input[type=text], input[type=date], select {
 
 <section class="hero card" style="margin-top: 20px;">
     <h2>Update User: <?php echo htmlspecialchars($loadedUser['FirstName'] . " " . $loadedUser['LastName']); ?></h2>
-
-    <?php if (!empty($successMsg)): ?>
-        <p style="color: green; font-weight: 600;"><?php echo $successMsg; ?></p>
-    <?php endif; ?>
 
     <form method="POST">
 
@@ -762,6 +793,32 @@ function updateStudentFormDisplay() {
 }
 
 lucide.createIcons();
+
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+
+    // Trigger animation
+    setTimeout(() => {
+        toast.classList.add("show");
+    }, 100);
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.classList.add("hidden"), 300);
+    }, 3000);
+}
 </script>
+
+<?php if (!empty($_SESSION['update_success'])): ?>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    showToast("User updated successfully!");
+});
+</script>
+<?php unset($_SESSION['update_success']); ?>
+<?php endif; ?>
 </body>
 </html>

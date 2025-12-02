@@ -50,21 +50,24 @@ try {
     }
     $check->close();
 
-    // Delete enrollment record
+    // Drop only if currently enrolled
     $drop = $mysqli->prepare("
-        UPDATE StudentEnrollment SET Status = 'DROPPED'
-        WHERE StudentID = ? AND CRN = ? AND SemesterID = ?
+        UPDATE StudentEnrollment 
+        SET Status = 'DROPPED'
+        WHERE StudentID = ? 
+          AND CRN = ? 
+          AND SemesterID = ? 
+          AND Status IN ('ENROLLED','IN-PROGRESS')
     ");
     $drop->bind_param('iis', $userId, $crn, $semester);
-
     $drop->execute();
     $drop->close();
 
-    // Increment available seats in the course section
+    // Only increment seats if someone was actually enrolled
     $update = $mysqli->prepare("
         UPDATE CourseSection
         SET AvailableSeats = AvailableSeats + 1
-        WHERE CRN = ?
+        WHERE CRN = ? 
     ");
     $update->bind_param('i', $crn);
     $update->execute();

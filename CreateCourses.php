@@ -15,6 +15,7 @@ $userId = $_SESSION['user_id'];
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
+#Fetch section from database
 $usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
         FROM Users WHERE UserID = ? LIMIT 1";
 $userstmt = $mysqli->prepare($usersql);
@@ -33,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $CourseType = $_POST['courseType'] ?? '';
 
 $mysqli->begin_transaction();
-
+#inserts data into database
   $sql = "INSERT INTO Course (CourseID, CourseName, DeptID, Course_Desc, Credits, CourseType) VALUES (?, ?, (SELECT DeptID FROM Department WHERE DeptName = ?), ?, ?, ?)";
   $stmt = $mysqli->prepare($sql);
   $stmt->bind_param("ssssis", $CourseId, $CourseName, $DeptId, $CourseDesc, $Credits, $CourseType);

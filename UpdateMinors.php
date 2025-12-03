@@ -30,22 +30,21 @@ if ($adminType !== 'UPDATE') {
     die("<h2 style='color:red;'>Access Denied: You are not an UpdateAdmin.</h2>");
 }
 
-$loadedDepartments = null;
+$loadedProgram = null;
 
-if (isset($_POST['searchDepartments'])) {
+if (isset($_POST['searchPrograms'])) {
     $searchId = $_POST['searchID'];
 
     // Load Dept table
     $stmt = $mysqli->prepare("
         SELECT * 
-        FROM Department
-        WHERE DeptName LIKE CONCAT('%', ?, '%')
-           OR DeptID   LIKE CONCAT('%', ?, '%')
-        LIMIT 1
+        FROM Minor
+        WHERE MinorName LIKE CONCAT('%', ?, '%')
+           OR MinorID   LIKE CONCAT('%', ?, '%')
     ");
-    $stmt->bind_param("ss", $searchId, $searchId);
+    $stmt->bind_param("si", $searchId, $searchId);
     $stmt->execute();
-    $loadedDepartments = $stmt->get_result()->fetch_assoc();
+    $loadedProgram = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 }
 
@@ -61,28 +60,29 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
-if (isset($_POST['UpdateDepartment'])) {
-    $DeptID = $_POST['deptID'] ?? '';
-    $DeptName = $_POST['deptName'] ?? '';
-    $DeptEmail = $_POST['deptEmail'] ?? '';
-    $DeptPhone = $_POST['deptPhone'] ?? '';
-    $RoomID = $_POST['roomID'] ?? '';
-    $ChairID = $_POST['chairID'] ?? '';
+if (isset($_POST['UpdateProgram'])) {
 
-    $mysqli->begin_transaction();
+    $ID = $_POST['ID'];
+    $DeptId = $_POST['deptID'];
+    $name = $_POST['name'];
+    $creditsNeeded = $_POST['creditsNeeded'];
 
-    $sql = "UPDATE Department SET DeptName = ?, Email = ?, Phone = ?, RoomID = ?, ChairID = ? WHERE DeptID = ?";
+    $stmt = $mysqli->prepare("
+        UPDATE Minor 
+        SET DeptID = ?, MinorName = ?, CreditsNeeded = ?
+        WHERE MinorID = ?
+    ");
+    $stmt->bind_param("isii", $DeptId, $name, $creditsNeeded, $ID);
 
-    $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param("ssssss", $DeptName, $DeptEmail, $DeptPhone, $RoomID, $ChairID, $DeptID);
     if ($stmt->execute()) {
-        echo "<script>alert('$DeptName updated ✅');</script>";
-    } else {
-        echo "<script>alert('Could not create department');</script>";
-    }
+    $_SESSION['update_success'] = true;
+    header("Location: UpdateMinors.php");
+    exit;
+}
 
-    $mysqli->commit();
-} 
+    $_SESSION['update_success'] = true;
+}
+
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
@@ -153,7 +153,7 @@ input[type=text], input[type=date], select {
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Update Departments</title>
+<title>Update Minor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -164,7 +164,7 @@ input[type=text], input[type=date], select {
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Update Departments</span>
+      <span class="pill">Update Minor</span>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -194,49 +194,42 @@ input[type=text], input[type=date], select {
         <section class="hero card">
             <div class="card-head between">
                 <div>
-                  <h1 class="card-title">Update Department</h1>
+                  <h1 class="card-title">Update Minor</h1>
                 </div>
             </div>
 
             <section class="hero card">
-                <h2>Search Department</h2>
+                <h2>Search Minor </h2>
 
                 <form method="POST" style="margin-top: 10px;">
-                    <label>Search by Dept Name or Dept ID</label>
+                    <label>Search by Name or ID</label>
                     <input type="text" name="searchID" required placeholder="ex. MATH or Mathematics">
-                    <button type="submit" name="searchDepartments">Search</button>
+                    <button type="submit" name="searchPrograms">Search</button>
                 </form>
             </section>
 
-            <!-- IF Course LOADED, DISPLAY FORM -->
-            <?php if (!empty($loadedDepartments)) : ?>
+            <!-- IF Minor LOADED, DISPLAY FORM -->
+            <?php if (!empty($loadedProgram)) : ?>
                 <div id = "update-section-department">
-                    <form id = "UpdateDepartment" method = "POST" action = "">
-                      <label for = "deptID" hidden></label>
-                            <input type = "hidden" id = "deptID" name="deptID" placeholder="ex. MATH"><br>
+                    <form id = "UpdateProgram" method = "POST" action = "">
+                      <label for = "ID" readonly>Minor ID (read only):</label>
+                            <input type = "text" id = "ID" name="ID" readonly placeholder="ex. 1"><br>
+
                         <div class = "field-block">
-                            <label for="deptName">Department Name: </label>
-                                 <input type = "text" id="deptName" name="deptName" placeholder="ex. Mathematics"><br>
+                            <label for="name">Program Name: </label>
+                            <input type = "text" id="name" name="name" placeholder="ex. Mathematics"><br>
                         </div>
 
-                            <label for="deptEmail">Department Email: </label>
-                                 <input type = "email" id="deptEmail" name="deptEmail" placeholder="ex. math@university.edu"><br>
+                        <label for ="deptID">Dept Name: </label>
+                            <select name="deptID" id="deptID">
+                                <option value="">-- Select Department --</option>
+                            </select><br>
 
-                            <label for="deptPhone">Department Phone: </label>
-                                 <input type = "tel" id="deptPhone" name="deptPhone" placeholder="ex. (555) 123-4567"><br>
-
-                            <label for ="roomID">Room ID: </label>
-                                <select name="roomID" id="roomID">
-                                    <option value="">-- Select Office --</option>
-                                </select><br>
-
-                            <label for = "chairID">Chair:</label>
-                                <select name="chairID" id="chairID">
-                                    <option value="">-- Select Chair --</option>
-                                </select><br>
+                            <label for="creditsNeeded">Credits Needed: </label>
+                                 <input type = "number" id="creditsNeeded" name="creditsNeeded" placeholder="96"><br>
 
                             <div style="margin-top: 20px;">
-                                <button type="submit" name="UpdateDepartment">Save Changes</button>
+                                <button type="submit" name="UpdateProgram">Save Changes</button>
                             </div>
                     </form>
                 </div>
@@ -244,21 +237,19 @@ input[type=text], input[type=date], select {
         <?php endif; ?>
     </main>
 
-    <?php if (!empty($loadedDepartments)): ?>
+    <footer class="footer">© <span id="year"></span> Northport University</footer>
+    <div id="toast" class="toast hidden"></div>
+
+<?php if (!empty($loadedProgram)): ?>
     <script>
     document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("deptID").value = "<?php echo $loadedDepartments['DeptID']; ?>";
-        document.getElementById("deptName").value = "<?php echo $loadedDepartments['DeptName']; ?>";
-        document.getElementById("deptEmail").value = "<?php echo $loadedDepartments['Email']; ?>";
-        document.getElementById("deptPhone").value = "<?php echo $loadedDepartments['Phone']; ?>";
-        document.getElementById("roomID").value = "<?php echo $loadedDepartments['RoomID']; ?>";
-        document.getElementById("chairID").value = "<?php echo $loadedDepartments['ChairID']; ?>";
+        document.getElementById("ID").value = "<?php echo $loadedProgram['MinorID'] ?? ''; ?>";
+        document.getElementById("deptID").value = "<?php echo $loadedProgram['DeptID'] ?? ''; ?>";
+        document.getElementById("name").value = "<?php echo $loadedProgram['MinorName'] ?? ''; ?>";;
+        document.getElementById("creditsNeeded").value = "<?php echo $loadedProgram['CreditsNeeded'] ?? ''; ?>";
     });
     </script>
     <?php endif; ?>
-
-    <footer class="footer">© <span id="year"></span> Northport University</footer>
-    <div id="toast" class="toast hidden"></div>
 
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -280,43 +271,25 @@ input[type=text], input[type=date], select {
       lucide.createIcons();
     });
 
+// Fetch dept from get_departments.php
+    const currentDept = "<?php echo $loadedProgram['DeptID']; ?>";
 
-    // Fetch offices from get_offices.php
-    fetch('get_offices.php')
+    fetch(`get_departments.php?current=${currentDept}`)
     .then(response => response.json())
     .then(data => {
-        const officeSelect = document.getElementById('roomID');
-        const selectedOffice = new URLSearchParams(window.location.search).get('roomID');
+        const deptSelect = document.getElementById('deptID');
 
-    data.forEach(office => {
+    data.forEach(dept => {
         const opt = document.createElement('option');
-        opt.value = office.id;
-        opt.textContent = office.id;
-        officeSelect.appendChild(opt);
+        opt.value = dept.id;
+        opt.textContent = dept.name;
+
+        if (dept.id == currentDept) opt.selected = true;
+        
+        deptSelect.appendChild(opt);
         });
     })
-    .catch(err => console.error('Error loading offices:', err));
-
-    // Fetch faculty from get_faculty.php
-    fetch('get_faculty.php')
-    .then(response => response.json())
-    .then(data => {
-        const officeSelect = document.getElementById('chairID');
-        const selectedOffice = new URLSearchParams(window.location.search).get('chairID');
-
-    data.forEach(faculty => {
-        const opt = document.createElement('option');
-        opt.value = faculty.FacultyID;
-        opt.textContent = faculty.FacultyName + ' - ' + faculty.DeptNames;
-        officeSelect.appendChild(opt);
-        });
-    })
-    .catch(err => console.error('Error loading faculty:', err));
-
-
-    document.getElementById("UpdateDepartment").addEventListener("submit", (e) => {
-    console.log("Form submitted");
-});
+    .catch(err => console.error('Error loading departments:', err));
 
 function showToast(message) {
     const toast = document.getElementById("toast");
@@ -339,7 +312,7 @@ function showToast(message) {
 <?php if (!empty($_SESSION['update_success'])): ?>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    showToast("Course Section updated successfully!");
+    showToast("Minorupdated successfully!");
 });
 </script>
 <?php unset($_SESSION['update_success']); ?>

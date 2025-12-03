@@ -66,7 +66,8 @@ $updateLinks = [
     ['label' => 'Update Courses',      'href' => 'UpdateCourses.php',           'icon' => 'book'],
     ['label' => 'Update Sections',   'href' => 'UpdateCourseSections.php',                      'icon' => 'book-open'],
     ['label' => 'Update Departments',     'href' => 'UpdateDepartments.php',                      'icon' => 'mail'],
-    ['label' => 'Update Majors/Minors',      'href' => 'UpdateMajorsMinors.php',                      'icon' => 'check'],
+    ['label' => 'Update Majors',      'href' => 'UpdateMajors.php',                      'icon' => 'check'],
+    ['label' => 'Update Minors',      'href' => 'UpdateMinors.php',                      'icon' => 'check'],
     ['label' => 'Update Programs',      'href' => 'UpdatePrograms.php',                      'icon' => 'brain'],
     ['label' => 'Update Requirements',      'href' => 'UpdateRequirements.php',                      'icon' => 'list']
 

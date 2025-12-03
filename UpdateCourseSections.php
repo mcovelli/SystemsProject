@@ -26,16 +26,16 @@ if ($adminType !== 'UPDATE') {
     die("<h2 style='color:red;'>Access Denied: You are not an UpdateAdmin.</h2>");
 }
 
-$loadedCourse = null;
+$loadedCourseSection = null;
 
-if (isset($_POST['searchCourse'])) {
+if (isset($_POST['searchCourseSection'])) {
     $searchId = $_POST['searchID'];
 
     // Load Course table
-    $stmt = $mysqli->prepare("SELECT * FROM CourseSection cs JOIN Department d ON cs.DeptID = d.DeptID WHERE CRN = ?");
-    $stmt->bind_param("s", $searchId);
+    $stmt = $mysqli->prepare("SELECT * FROM CourseSection WHERE CRN = ?");
+    $stmt->bind_param("i", $searchId);
     $stmt->execute();
-    $loadedCourse = $stmt->get_result()->fetch_assoc();
+    $loadedCourseSection = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 }
 
@@ -50,29 +50,39 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
-if (isset($_POST['updateCourse'])) {
-    $CourseId   = $_POST['courseID'];
-    $CourseName = $_POST['courseName'];
-    $DeptId     = $_POST['deptID'];
-    $CourseDesc = $_POST['courseDesc'];
-    $Credits    = $_POST['credits'];
-    $CourseType = $_POST['courseType'];
+if (isset($_POST['updateCourseSection'])) {
 
+    $CRN        = $_POST['crn'];
+    $CourseId   = $_POST['courseID'];
+    $sectionNo  = $_POST['sectionNo'];
+    $FacultyID  = $_POST['facultyID'];
+    $TimeSlotID = $_POST['timeSlotID'];
+    $RoomID     = $_POST['roomID'];
+    $Year       = $_POST['year'];
+    $Semester   = $_POST['semester'];
+    $Status     = $_POST['status'];
+
+    
     $mysqli->begin_transaction();
 
-    $sql = "UPDATE Course 
-            SET CourseID = ?, CourseName = ?, DeptID = ?, Course_Desc = ?, Credits = ?, CourseType = ?
-            WHERE CourseID = ?";
+    $sql = "UPDATE CourseSection
+            SET CourseID = ?, CourseSectionNo = ?, FacultyID = ?, TimeSlotID = ?, RoomID = ?, 
+                Year = ?, SemesterID = ?, Status = ?
+            WHERE CRN = ?";
 
     $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param("ssssiss",
+
+    $stmt->bind_param(
+        "siiisissi",
         $CourseId,
-        $CourseName,
-        $DeptId,
-        $CourseDesc,
-        $Credits,
-        $CourseType,
-        $CourseId
+        $sectionNo,
+        $FacultyID,
+        $TimeSlotID,
+        $RoomID,
+        $Year,
+        $Semester,
+        $Status,
+        $CRN
     );
 
     $stmt->execute();
@@ -221,66 +231,91 @@ input[type=text], input[type=date], select {
 
     <form method="POST" style="margin-top: 10px;">
         <div class="field-block">
-            <label>CourseID</label>
-            <input type="text" name="searchID" required placeholder="Enter CourseID...">
+            <label>CRN</label>
+            <input type="text" name="searchID" required placeholder="Enter CRN...">
         </div>
 
-        <button type="submit" name="searchCourse" class="btn">Search</button>
+        <button type="submit" name="searchCourseSection" class="btn">Search</button>
     </form>
 </section>
 
 
 <!-- IF Course LOADED, DISPLAY FORM -->
-<?php if (!empty($loadedCourse)) : ?>
+<?php if (!empty($loadedCourseSection)) : ?>
 
 <section class="hero card" style="margin-top: 20px;">
-    <h2>Update Course: <?php echo htmlspecialchars($loadedCourse['CourseName'] . " - " . $loadedCourse['CourseID']); ?></h2>
+    <h2>Update Course: <?php echo htmlspecialchars($loadedCourseSection['CRN'] . " - " . $loadedCourseSection['CourseID']); ?></h2>
 
     <form method="POST">
 
-        <input type="hidden" name="CourseID" value="<?php echo $loadedCourse['CourseID']; ?>">
-        <input type="hidden" name="CourseType" value="<?php echo $loadedCourse['CourseType']; ?>">
+        <input type="hidden" name="CourseID" value="<?php echo $loadedCourseSection['CourseID']; ?>">
+        <input type="hidden" name="CourseType" value="<?php echo $loadedCourseSection['CRN']; ?>">
 
         <!-- COURSE TABLE FIELDS -->
         <div class="section-card">
             <h3>Basic Information</h3>
 
             <div class="field-block">
+                <label>CRN</label>
+                <input type="number" name="crn" value="<?php echo $loadedCourseSection['CRN']; ?>" readonly>
+            </div>
+
+            <div class="field-block">
                 <label>CourseID</label>
-                <input type="text" name="courseID" value="<?php echo $loadedCourse['CourseID']; ?>">
+                <input type="text" name="courseID" value="<?php echo $loadedCourseSection['CourseID']; ?>">
             </div>
 
             <div class="field-block">
-                <label>Course Name</label>
-                <input type="text" name="courseName" value="<?php echo $loadedCourse['CourseName']; ?>" >
+                <label>Course Section No.</label>
+                <input type="text" name="sectionNo" value="<?php echo $loadedCourseSection['CourseSectionNo']; ?>">
             </div>
 
             <div class="field-block">
-                <label for ="deptID">Department: </label>
-                                <select name="deptID" id="deptID">
-                                    <option value="<?php echo $loadedCourse['DeptID']; ?>"><?php echo $loadedCourse['DeptName']; ?></option>
+                <label>Faculty</label>
+                <select name="facultyID" id="facultyID">
+                                    <option value="<?php echo $loadedCourseSection['FacultyID']?>"><?php echo $loadedCourseSection['FacultyID']; ?></option>
                                 </select><br>
             </div>
 
             <div class="field-block">
-                <label>Course_Desc</label>
-                <input type="textarea" name="courseDesc" value="<?php echo $loadedCourse['Course_Desc']; ?>">
+                <label>Time Slot</label>
+                <select name="timeSlotID" id="timeSlotID">
+                                    <option value="<?php echo $loadedCourseSection['TimeSlotID']; ?>"><?php echo $loadedCourseSection['TimeSlotID']; ?></option>
+                                </select><br>
             </div>
 
             <div class="field-block">
-                <label>Credits</label>
-                <input type="number" name="credits" value="<?php echo $loadedCourse['Credits']; ?>">
+                <label>Room</label>
+                <select name="roomID" id="roomID">
+                                    <option value="<?php echo $loadedCourseSection['RoomID']; ?>"><?php echo $loadedCourseSection['RoomID']; ?></option>
+                                </select><br>
             </div>
 
             <div class="field-block">
-                <label for="courseType">Course Type:</label>
-                  <select name="courseType" id="courseType">
-                    <option value="<?php echo $loadedCourse['CourseType']; ?>"><?php echo $loadedCourse['CourseType']; ?></option>
-                  </select>
+                <label>Year</label>
+                <input type="number" name="year" value="<?php echo $loadedCourseSection['Year']; ?>">
+            </div>
+
+            <div class="field-block">
+                <label>Semester</label>
+                <select name="semester" id="semester">
+                                    <option value="<?php echo $loadedCourseSection['SemesterID']; ?>"><?php echo $loadedCourseSection['SemesterID']; ?></option>
+                                </select><br>
+            </div>
+
+            <div class="field-block">
+                <label>Status</label>
+                <select name="status" id="status">
+                                    <option value="<?php echo $loadedCourseSection['Status']; ?>"><?php echo $loadedCourseSection['Status']; ?></option>
+                                    <option value="PLANNED">PLANNED</option>
+                                    <option value="IN-PROGRESS">IN-PROGRESS</option>
+                                    <option value="COMPLETED">COMPLETED</option>
+                                    <option value="CANCELED">CANCELED</option>
+                                </select><br>
             </div>
 
             <div style="margin-top: 20px;">
-                <button type="submit" name="updateCourse">Save Changes</button>
+                <button type="submit" name="updateCourseSection">Save Changes</button>
             </div>
 
     </form>
@@ -315,7 +350,7 @@ themeToggle.addEventListener('click', () => {
     lucide.createIcons();
 });
 
-// Fetch faculty from get_departments.php
+// Fetch dept from get_departments.php
     fetch('get_departments.php')
     .then(response => response.json())
     .then(data => {
@@ -348,6 +383,84 @@ themeToggle.addEventListener('click', () => {
         })
         .catch(err => console.error('Error loading course types:', err));
 
+        // Fetch semesters from get_semesters.php
+      fetch('get_semesters.php')
+        .then(response => response.json())
+        .then(data => {
+          const semesterSelect = document.getElementById('semester');
+          const selectedSemester = new URLSearchParams(window.location.search).get('semester');
+
+          data.forEach(semester => {
+            const opt = document.createElement('option');
+            opt.value = semester.SemesterID;
+            opt.textContent = semester.SemesterID;
+            if (semester === selectedSemester) opt.selected = true;
+            semesterSelect.appendChild(opt);
+          });
+        })
+        .catch(err => console.error('Error loading semesters:', err));
+
+      // Fetch faculty from get_faculty.php
+    const timeSlotID = "<?php echo $loadedCourseSection['TimeSlotID']; ?>";
+    const semester   = "<?php echo $loadedCourseSection['SemesterID']; ?>";
+    const year       = "<?php echo $loadedCourseSection['Year']; ?>";
+    const currentFac = "<?php echo $loadedCourseSection['FacultyID']; ?>";
+
+    fetch(`get_available_faculty.php?timeSlotID=${timeSlotID}&semester=${semester}&year=${year}&current=${currentFac}`)
+        .then(response => response.json())
+        .then(data => {
+            const facultySelect = document.getElementById('facultyID');
+            facultySelect.innerHTML = ""; // clear current
+
+            data.forEach(faculty => {
+                const opt = document.createElement('option');
+                opt.value = faculty.FacultyID;
+                opt.textContent = `${faculty.FacultyID} — ${faculty.FacultyName} — ${faculty.DeptNames}`;
+                if (String(faculty.FacultyID) === currentFac) opt.selected = true;
+                facultySelect.appendChild(opt);
+            });
+        })
+        .catch(err => console.error('Error loading available faculty:', err));
+
+        // Fetch timeslots from get_timeslots.php
+    fetch('get_timeslots.php')
+    .then(response => response.json())
+    .then(data => {
+        const timeSelect = document.getElementById('timeSlotID');
+        const selectedTime = new URLSearchParams(window.location.search).get('timeSlotID');
+
+    data.forEach(time => {
+        const opt = document.createElement('option');
+        opt.value = time.id;
+        opt.textContent = time.label;
+        timeSelect.appendChild(opt);
+        });
+    })
+    .catch(err => console.error('Error loading times:', err));
+
+    // Fetch classrooms from get_classrooms.php
+
+    const room_timeSlotID = "<?php echo $loadedCourseSection['TimeSlotID']; ?>";
+    const room_semester   = "<?php echo $loadedCourseSection['SemesterID']; ?>";
+    const room_year       = "<?php echo $loadedCourseSection['Year']; ?>";
+    const room_currentRoom= "<?php echo $loadedCourseSection['RoomID']; ?>";
+
+    fetch(`get_classrooms.php?timeSlotID=${room_timeSlotID}&semester=${room_semester}&year=${room_year}&current=${room_currentRoom}`)
+    .then(response => response.json())
+    .then(data => {
+        const roomSelect = document.getElementById('roomID');
+        const selectedRoom = new URLSearchParams(window.location.search).get('roomID');
+
+    data.forEach(room => {
+        const opt = document.createElement('option');
+        opt.value = room.id;
+        opt.textContent = `${room.id} — ${room.type}`;
+        if (String(room.id) === selectedRoom) opt.selected = true;
+        roomSelect.appendChild(opt);
+        });
+    })
+    .catch(err => console.error('Error loading Rooms:', err));
+
 
 function showToast(message) {
     const toast = document.getElementById("toast");
@@ -370,7 +483,7 @@ function showToast(message) {
 <?php if (!empty($_SESSION['update_success'])): ?>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    showToast("Course updated successfully!");
+    showToast("Course Section updated successfully!");
 });
 </script>
 <?php unset($_SESSION['update_success']); ?>

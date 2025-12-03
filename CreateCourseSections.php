@@ -136,6 +136,11 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                              <select name="courseID" id="courseID">
                                 </select><br>
 
+                        <label for="timeSlotID">Time Slot: </label>
+                             <select name="timeSlotID" id="timeSlotID">
+                                <option><-- Unassigned --></option>
+                                </select><br>
+
                         <label for="facultyID">Faculty: </label>
                              <select name="facultyID" id="facultyID">
                                 <option><-- Unassigned --></option>
@@ -144,10 +149,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                         <label for="roomID">Room: </label>
                              <select name="roomID" id="roomID">
                                 <option><-- Unassigned --></option>
-                                </select><br>
-
-                        <label for="timeSlotID">Time Slot: </label>
-                             <select name="timeSlotID" id="timeSlotID">
                                 </select><br>
 
                         <label for="semesterID">Semester: </label>
@@ -197,22 +198,35 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     .catch(err => console.error('Error loading faculty:', err));
 
 
-// Fetch classrooms from get_classrooms.php
-    fetch('get_classrooms.php')
-    .then(response => response.json())
-    .then(data => {
-        const roomSelect = document.getElementById('roomID');
-        const selectedRoom = new URLSearchParams(window.location.search).get('roomID');
+const ts = document.getElementById('timeSlotID');
+const sem = document.getElementById('semesterID');
+const yr = () => document.getElementById('semesterID').value.slice(-4);
 
-    data.forEach(room => {
-        const opt = document.createElement('option');
-        opt.value = room.id;
-        opt.textContent = `${room.id} — ${room.type}`;
-        if (String(room.id) === selectedRoom) opt.selectedRoom = true;
-        roomSelect.appendChild(opt);
+// Load rooms when timeslot or semester changes
+function loadRooms() {
+    const timeSlotID = ts.value;
+    const semesterID = sem.value;
+    const year = yr();
+
+    if (!timeSlotID || !semesterID) return;
+
+    fetch(`get_classrooms.php?timeSlotID=${timeSlotID}&semester=${semesterID}&year=${year}`)
+        .then(r => r.json())
+        .then(data => {
+            const roomSelect = document.getElementById('roomID');
+            roomSelect.innerHTML = "<option><-- Unassigned --></option>";
+
+            data.forEach(room => {
+                const opt = document.createElement('option');
+                opt.value = room.id;
+                opt.textContent = `${room.id} — ${room.type}`;
+                roomSelect.appendChild(opt);
+            });
         });
-    })
-    .catch(err => console.error('Error loading Rooms:', err));
+}
+
+ts.addEventListener("change", loadRooms);
+sem.addEventListener("change", loadRooms);
 
     // Fetch courses from get_course.php
     fetch('get_courses.php')

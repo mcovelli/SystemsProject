@@ -13,7 +13,7 @@ JOIN Users u ON f.FacultyID = u.UserID
 LEFT JOIN Faculty_Dept fd ON f.FacultyID = fd.FacultyID
 LEFT JOIN Department d ON fd.DeptID = d.DeptID
 GROUP BY f.FacultyID, u.FirstName, u.LastName
-ORDER BY u.LastName ASC, u.FirstName ASC
+ORDER BY FacultyID ASC
 ";
 
 $result = $mysqli->query($sql);

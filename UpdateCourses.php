@@ -263,8 +263,8 @@ input[type=text], input[type=date], select {
             </div>
 
             <div class="field-block">
-                <label>Course_Desc</label>
-                <input type="textarea" name="courseDesc" value="<?php echo $loadedCourse['Course_Desc']; ?>">
+                <label>Course Description</label>
+                <textarea name="courseDesc" rows="4" cols="50"><?php echo $loadedCourse['Course_Desc']; ?></textarea>
             </div>
 
             <div class="field-block">

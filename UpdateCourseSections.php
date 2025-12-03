@@ -4,16 +4,42 @@ require_once __DIR__ . '/config.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-if (!isset($_SESSION['user_id']) || 
-  ($_SESSION['role'] ?? '') !== 'admin' ||
-($_SESSION['admin_type'] ?? '') !== 'update') {
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     redirect(PROJECT_ROOT . "/login.html");
 }
 
-$userId = $_SESSION['user_id'];
-
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
+
+// Fetch admin security type
+$adminCheck = $mysqli->prepare("
+    SELECT SecurityType 
+    FROM Admin 
+    WHERE AdminID = ? LIMIT 1
+");
+$adminCheck->bind_param("i", $_SESSION['user_id']);
+$adminCheck->execute();
+$adminType = $adminCheck->get_result()->fetch_assoc()['SecurityType'] ?? null;
+$adminCheck->close();
+
+if ($adminType !== 'UPDATE') {
+    die("<h2 style='color:red;'>Access Denied: You are not an UpdateAdmin.</h2>");
+}
+
+$loadedCourse = null;
+
+if (isset($_POST['searchCourse'])) {
+    $searchId = $_POST['searchID'];
+
+    // Load Course table
+    $stmt = $mysqli->prepare("SELECT * FROM CourseSection cs JOIN Department d ON cs.DeptID = d.DeptID WHERE CRN = ?");
+    $stmt->bind_param("s", $searchId);
+    $stmt->execute();
+    $loadedCourse = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+}
+
+$userId = $_SESSION['user_id'];
 
 $usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
         FROM Users WHERE UserID = ? LIMIT 1";
@@ -24,77 +50,134 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
+if (isset($_POST['updateCourse'])) {
+    $CourseId   = $_POST['courseID'];
+    $CourseName = $_POST['courseName'];
+    $DeptId     = $_POST['deptID'];
+    $CourseDesc = $_POST['courseDesc'];
+    $Credits    = $_POST['credits'];
+    $CourseType = $_POST['courseType'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $CourseId = $_POST['courseID'] ?? '';
-    $CourseSectionNo = $_POST['courseSectionNo'] ?? '';
-    $FacultyId = $_POST['facultyID'] ?? '';
-    $TimeSlotId = $_POST['timeSlotID'] ?? '';
-    $SemesterId = $_POST['semesterID'] ?? '';
-    $RoomId = $_POST['roomID'] ?? '';
+    $mysqli->begin_transaction();
 
-        $sql = "
-            SELECT 
-                CASE 
-                    WHEN r.RoomType = 'Lecture' THEN l.NumSeats
-                    WHEN r.RoomType = 'Lab' THEN b.NumWorkStations
-                    ELSE 0
-                END AS AvailableSeats
-            FROM Room r
-            LEFT JOIN Lecture l ON r.RoomID = l.LectureID
-            LEFT JOIN Lab b ON r.RoomID = b.LabID
-            WHERE r.RoomID = ?
-        ";
+    $sql = "UPDATE Course 
+            SET CourseID = ?, CourseName = ?, DeptID = ?, Course_Desc = ?, Credits = ?, CourseType = ?
+            WHERE CourseID = ?";
 
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param("i", $RoomId);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        $row = $res->fetch_assoc();
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param("ssssiss",
+        $CourseId,
+        $CourseName,
+        $DeptId,
+        $CourseDesc,
+        $Credits,
+        $CourseType,
+        $CourseId
+    );
 
-    $AvailableSeats = $row['AvailableSeats'] ?? 0;
-    $Year = substr($SemesterId, -4);
-    $Status = $_POST['status'] ?? 'PLANNED';
+    $stmt->execute();
+    $mysqli->commit();
 
-$mysqli->begin_transaction();
+    $_SESSION['update_success'] = true;
+}
 
-  $sql = "UPDATE CourseSection SET CourseID = ?, CourseSectionNo = ?, FacultyID = ?, TimeSlotID = ?, RoomID = ?, Year = ?, SemesterID = ?, AvailableSeats = ?, Status = 'PLANNED' WHERE CourseID = ? AND CourseSectionNo = ?";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("siiisssi", $CourseId, $CourseSectionNo, $FacultyId, $TimeSlotId, $RoomId, $Year, $SemesterId, $AvailableSeats);
-        
-  if ($stmt->execute()) {
-    echo "alert('$CourseId. created ✅');";
-  } else {
-    echo "alert('Could not create course section');";
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'admin':
+        // if you have update/view admin types:
+        if (($_SESSION['admin_type'] ?? '') === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        } else {
+            $dashboard = 'view_admin_dashboard.php';
+            $profile = 'admin_profile.php';
         }
-  
-$mysqli->commit();
+        break;
+    default:
+        $dashboard = 'login.html'; // fallback
+        $profile = 'login.html';
 }
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="light">
 <head>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Update Course Sections</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Update Courses • Northport University</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="./stylesGrade.css" />
+<style>
+/* Inline enhancements */
+.field-block {
+    margin-bottom: 12px;
+}
+label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 3px;
+}
+input[type=text], input[type=date], select {
+    width: 280px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+.multiselect {
+    height: 120px;
+    width: 300px;
+    padding: 6px;
+}
+.section-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    background: var(--card-bg);
+}
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-15px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.hidden {
+    display: none;
+}
+</style>
 </head>
+
 <body>
-  <header class="topbar">
+
+<header class="topbar">
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Update Course Sections</span>
+      <span class="pill">Update Courses</span>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -120,150 +203,177 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     </div>
   </header>
 
-    <main class="page">
-        <section class="hero card">
-            <div class="card-head between">
-                <div>
-                  <h1 class="card-title">Update Course Section</h1>
-                </div>
+<div id="toast" class="toast hidden">Course updated successfully!</div>
+
+<?php if (!empty($successMsg)): ?>
+    <script>
+        showToast("✅ Course updated successfully!");
+    </script>
+<?php endif; ?>
+
+<main class="page">
+
+<!-- SEARCH Course CARD -->
+<section class="hero card">
+    <div class="card-head">
+        <h2>Search for Course to Update</h2>
+    </div>
+
+    <form method="POST" style="margin-top: 10px;">
+        <div class="field-block">
+            <label>CourseID</label>
+            <input type="text" name="searchID" required placeholder="Enter CourseID...">
+        </div>
+
+        <button type="submit" name="searchCourse" class="btn">Search</button>
+    </form>
+</section>
+
+
+<!-- IF Course LOADED, DISPLAY FORM -->
+<?php if (!empty($loadedCourse)) : ?>
+
+<section class="hero card" style="margin-top: 20px;">
+    <h2>Update Course: <?php echo htmlspecialchars($loadedCourse['CourseName'] . " - " . $loadedCourse['CourseID']); ?></h2>
+
+    <form method="POST">
+
+        <input type="hidden" name="CourseID" value="<?php echo $loadedCourse['CourseID']; ?>">
+        <input type="hidden" name="CourseType" value="<?php echo $loadedCourse['CourseType']; ?>">
+
+        <!-- COURSE TABLE FIELDS -->
+        <div class="section-card">
+            <h3>Basic Information</h3>
+
+            <div class="field-block">
+                <label>CourseID</label>
+                <input type="text" name="courseID" value="<?php echo $loadedCourse['CourseID']; ?>">
             </div>
-                <div id = "update-section-course">
-                    <form id = "UpdateCourseSection" method = "POST" action = "">
-                      <label for="courseSectionNo" hidden>Course Section No.: </label>
-                      <input type = "hidden" id="courseSectionNo" name="courseSectionNo" required placeholder="ex. 1"><br>
 
-                        <label for="courseID">Course ID: </label>
-                             <select name="courseID" id="courseID">
+            <div class="field-block">
+                <label>Course Name</label>
+                <input type="text" name="courseName" value="<?php echo $loadedCourse['CourseName']; ?>" >
+            </div>
+
+            <div class="field-block">
+                <label for ="deptID">Department: </label>
+                                <select name="deptID" id="deptID">
+                                    <option value="<?php echo $loadedCourse['DeptID']; ?>"><?php echo $loadedCourse['DeptName']; ?></option>
                                 </select><br>
+            </div>
 
-                        <label for="facultyID">Faculty: </label>
-                             <select name="facultyID" id="facultyID">
-                                <option><-- Unassigned --></option>
-                                </select><br>
+            <div class="field-block">
+                <label>Course_Desc</label>
+                <input type="textarea" name="courseDesc" value="<?php echo $loadedCourse['Course_Desc']; ?>">
+            </div>
 
-                        <label for="roomID">Room: </label>
-                             <select name="roomID" id="roomID">
-                                <option><-- Unassigned --></option>
-                                </select><br>
+            <div class="field-block">
+                <label>Credits</label>
+                <input type="number" name="credits" value="<?php echo $loadedCourse['Credits']; ?>">
+            </div>
 
-                        <label for="timeSlotID">Time Slot: </label>
-                             <select name="timeSlotID" id="timeSlotID">
-                                </select><br>
+            <div class="field-block">
+                <label for="courseType">Course Type:</label>
+                  <select name="courseType" id="courseType">
+                    <option value="<?php echo $loadedCourse['CourseType']; ?>"><?php echo $loadedCourse['CourseType']; ?></option>
+                  </select>
+            </div>
 
-                        <label for="semesterID">Semester: </label>
-                             <select name="semesterID" id="semesterID">
-                                </select><br>
+            <div style="margin-top: 20px;">
+                <button type="submit" name="updateCourse">Save Changes</button>
+            </div>
 
-                        <button type="submit" id = "submit">Submit</button>
-                    </form>
-                </div>
-        </section>
-    </main>
-    <footer class="footer">© <span id="year"></span> Northport University</footer>
-</body>
+    </form>
+
+</section>
+
+<?php endif; ?>
+
+
+</main>
+
+<footer class="footer">
+    © <span id="year"></span> Northport University • All rights reserved
+</footer>
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <script>
-    // Immediately create Lucide icons
+<script>
+lucide.createIcons();
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+<script>
+/* ============================================================================
+   THEME TOGGLE
+============================================================================ */
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.addEventListener('click', () => {
+    const root = document.documentElement;
+    const cur = root.getAttribute('data-theme') || 'light';
+    root.setAttribute('data-theme', cur === 'light' ? 'dark' : 'light');
+    themeToggle.querySelector('i').setAttribute('data-lucide', cur === 'light' ? 'sun' : 'moon');
     lucide.createIcons();
+});
 
-    // Populate the year in the footer
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      // Swap the icon
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      lucide.createIcons();
-    });
-
-    // Fetch faculty from get_faculty.php
-    fetch('get_faculty.php')
+// Fetch faculty from get_departments.php
+    fetch('get_departments.php')
     .then(response => response.json())
     .then(data => {
-        const facultySelect = document.getElementById('facultyID');
-        const selectedFaculty = new URLSearchParams(window.location.search).get('facultyID');
+        const deptSelect = document.getElementById('deptID');
+        const selectedDept = new URLSearchParams(window.location.search).get('deptID');
 
-    data.forEach(faculty => {
+    data.forEach(dept => {
         const opt = document.createElement('option');
-        opt.value = faculty.FacultyID;
-        opt.textContent = faculty.FacultyID + ' - ' + faculty.FacultyName + ' - ' + faculty.DeptNames;
-        facultySelect.appendChild(opt);
+        opt.value = dept.id;
+        opt.textContent = dept.name;
+        deptSelect.appendChild(opt);
         });
     })
     .catch(err => console.error('Error loading faculty:', err));
 
+ // Fetch cousetypes from get_coursetype.php
+      fetch('get_coursetype.php')
+        .then(response => response.json())
+        .then(data => {
+          const courseTypeSelect = document.getElementById('courseType');
+          const selectedType = new URLSearchParams(window.location.search).get('courseType');
 
-// Fetch classrooms from get_classrooms.php
-    fetch('get_classrooms.php')
-    .then(response => response.json())
-    .then(data => {
-        const roomSelect = document.getElementById('roomID');
-        const selectedRoom = new URLSearchParams(window.location.search).get('roomID');
+          data.forEach(type => {
+            const opt = document.createElement('option');
+            opt.value = type.type;
+            opt.textContent = type.type;
+            if (type === selectedType) opt.selected = true;
+            courseTypeSelect.appendChild(opt);
+          });
+        })
+        .catch(err => console.error('Error loading course types:', err));
 
-    data.forEach(room => {
-        const opt = document.createElement('option');
-        opt.value = room.id;
-        opt.textContent = `${room.id} — ${room.type}`;
-        if (String(room.id) === selectedRoom) opt.selectedRoom = true;
-        roomSelect.appendChild(opt);
-        });
-    })
-    .catch(err => console.error('Error loading Rooms:', err));
 
-    // Fetch courses from get_course.php
-    fetch('get_courses.php')
-    .then(response => response.json())
-    .then(data => {
-        const courseSelect = document.getElementById('courseID');
-        const selectedCourse = new URLSearchParams(window.location.search).get('courseID');
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.remove("hidden");
 
-    data.forEach(course => {
-        const opt = document.createElement('option');
-        opt.value = course.id;
-        opt.textContent = course.id;
-        courseSelect.appendChild(opt);
-        });
-    })
-    .catch(err => console.error('Error loading courses:', err));
+    // Trigger animation
+    setTimeout(() => {
+        toast.classList.add("show");
+    }, 100);
 
-    // Fetch timeslots from get_timeslots.php
-    fetch('get_timeslots.php')
-    .then(response => response.json())
-    .then(data => {
-        const timeSelect = document.getElementById('timeSlotID');
-        const selectedTime = new URLSearchParams(window.location.search).get('timeSlotID');
+    // Hide after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.classList.add("hidden"), 300);
+    }, 3000);
+}
+</script>
 
-    data.forEach(time => {
-        const opt = document.createElement('option');
-        opt.value = time.id;
-        opt.textContent = time.label;
-        timeSelect.appendChild(opt);
-        });
-    })
-    .catch(err => console.error('Error loading times:', err));
-
-    // Fetch semesters from get_semesters.php
-    fetch('get_semesters.php')
-    .then(response => response.json())
-    .then(data => {
-        const semesterSelect = document.getElementById('semesterID');
-        const selectedSemester = new URLSearchParams(window.location.search).get('semesterID');
-
-    data.forEach(semester => {
-        const opt = document.createElement('option');
-        opt.value = semester.SemesterID;
-        opt.textContent = semester.SemesterName + ' ' + semester.Year;
-        semesterSelect.appendChild(opt);
-        });
-    })
-    .catch(err => console.error('Error loading semesters:', err));
-
-    document.getElementById("UpdateCourseSection").addEventListener("submit", (e) => {
-    console.log("Form submitted");
+<?php if (!empty($_SESSION['update_success'])): ?>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    showToast("Course updated successfully!");
 });
 </script>
+<?php unset($_SESSION['update_success']); ?>
+<?php endif; ?>
+</body>
+</html>

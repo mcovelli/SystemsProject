@@ -4,10 +4,6 @@ require_once __DIR__ . '/config.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-/* --------------------------------------------------------------------------
-   1. SECURITY CHECK — ONLY UpdateAdmin CAN ACCESS THIS PAGE
---------------------------------------------------------------------------- */
-
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     redirect(PROJECT_ROOT . "/login.html");
 }
@@ -30,10 +26,6 @@ if ($adminType !== 'UPDATE') {
     die("<h2 style='color:red;'>Access Denied: You are not an UpdateAdmin.</h2>");
 }
 
-/* --------------------------------------------------------------------------
-   2. LOAD STATIC LOOKUP DATA
---------------------------------------------------------------------------- */
-
 function loadMajors($mysqli) {
     $res = $mysqli->query("SELECT MajorID, MajorName FROM Major ORDER BY MajorName");
     return $res->fetch_all(MYSQLI_ASSOC);
@@ -55,13 +47,9 @@ function loadDepartments($mysqli) {
 }
 
 function loadOffices($mysqli) {
-    $res = $mysqli->query("SELECT RoomID FROM Room ORDER BY RoomID");
+    $res = $mysqli->query("SELECT RoomID FROM Room WHERE RoomType = 'Office' ORDER BY RoomID ");
     return $res->fetch_all(MYSQLI_ASSOC);
 }
-
-/* --------------------------------------------------------------------------
-   3. INITIALIZE VARIABLES
---------------------------------------------------------------------------- */
 
 $loadedUser = null;
 $studentData = null;
@@ -69,10 +57,6 @@ $facultyData = null;
 $adminData = null;
 $statData = null;
 $facultyDepartments = [];
-
-/* --------------------------------------------------------------------------
-   4. SEARCH HANDLER
---------------------------------------------------------------------------- */
 
 if (isset($_POST['searchUser'])) {
     $searchId = intval($_POST['searchID']);
@@ -148,10 +132,6 @@ if (isset($_POST['searchUser'])) {
         }
     }
 }
-
-/* --------------------------------------------------------------------------
-   5. UPDATE HANDLER
---------------------------------------------------------------------------- */
 
 if (isset($_POST['updateUser'])) {
 
@@ -329,6 +309,36 @@ if (isset($_POST['updateUser'])) {
         die("Error updating user: " . $e->getMessage());
     }
 }
+
+$userId = $_SESSION['user_id'];
+
+$usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
+        FROM Users WHERE UserID = ? LIMIT 1";
+$userstmt = $mysqli->prepare($usersql);
+$userstmt->bind_param("i", $userId);
+$userstmt->execute();
+$userres = $userstmt->get_result();
+$user = $userres->fetch_assoc();
+$userstmt->close();
+
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'admin':
+        // if you have update/view admin types:
+        if (($_SESSION['admin_type'] ?? '') === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        } else {
+            $dashboard = 'view_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        }
+        break;
+    default:
+        $dashboard = 'login.html'; // fallback
+        $profile = 'login.html';
+}
+
+$initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
 <!doctype html>
@@ -404,30 +414,33 @@ input[type=text], input[type=date], select {
 
 <header class="topbar">
     <div class="brand">
-        <div class="logo"><i data-lucide="graduation-cap"></i></div>
-        <h1>Northport University</h1>
-        <span class="pill">Update Users Portal</span>
+      <div class="logo"><i data-lucide="graduation-cap"></i></div>
+      <h1>Northport University</h1>
+      <span class="pill">Update Courses</span>
     </div>
-
     <div class="top-actions">
-        <button id="themeToggle" class="icon-btn"><i data-lucide="moon"></i></button>
-
-        <div class="divider"></div>
-
-        <div class="header-left">
-            <div class="menu">
-                <button>☰ Menu</button>
-                <div class="menu-content">
-                    <a href="admin_profile.php">Profile</a>
-                    <a href="update_admin_dashboard.php">Dashboard</a>
-                    <a href="viewDirectory.php">View Directory</a>
-                    <a href="createDirectory.php">Create User</a>
-                    <a href="logout.php">Logout</a>
-                </div>
-            </div>
-        </div>
+      <div class="search">
+        <i class="search-icon" data-lucide="search"></i>
+        <input type="text" placeholder="Search courses, people, anything…" />
+      </div>
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
+      <div class="divider"></div>
+      <div class="crumb"><a href="createDirectory.php" aria-label="Back to Directory">← Back to Directory</a></div>
     </div>
-</header>
+
+    <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
+        <div class="user-meta"><div class="name"><?php echo htmlspecialchars($user['UserType']) ?></div></div>
+        <div class="menu">
+          <button>☰ Menu</button>
+          <div class="menu-content">
+            <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
+            <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
+            <a href="logout.php">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
 
 <div id="toast" class="toast hidden">User updated successfully!</div>
 

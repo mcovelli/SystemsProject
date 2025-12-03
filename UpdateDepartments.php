@@ -94,6 +94,63 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+/* Inline enhancements */
+.field-block {
+    margin-bottom: 12px;
+}
+label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 3px;
+}
+input[type=text], input[type=date], select {
+    width: 280px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+.multiselect {
+    height: 120px;
+    width: 300px;
+    padding: 6px;
+}
+.section-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    background: var(--card-bg);
+}
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-15px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.hidden {
+    display: none;
+}
+</style>
+
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Update Departments</title>
@@ -150,35 +207,41 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <button type="submit" name="searchDepartments">Search</button>
                 </form>
             </section>
+
+            <!-- IF Course LOADED, DISPLAY FORM -->
+            <?php if (!empty($loadedDepartments)) : ?>
                 <div id = "update-section-department">
                     <form id = "UpdateDepartment" method = "POST" action = "">
-                      <label for = "deptID" hidden>Department ID: </label>
+                      <label for = "deptID" hidden></label>
                             <input type = "hidden" id = "deptID" name="deptID" placeholder="ex. MATH"><br>
-                        <label for="deptName">Department Name: </label>
-                             <input type = "text" id="deptName" name="deptName" placeholder="ex. Mathematics"><br>
-
-                        <label for="deptEmail">Department Email: </label>
-                             <input type = "email" id="deptEmail" name="deptEmail" placeholder="ex. math@university.edu"><br>
-
-                        <label for="deptPhone">Department Phone: </label>
-                             <input type = "tel" id="deptPhone" name="deptPhone" placeholder="ex. (555) 123-4567"><br>
-
-                        <label for ="roomID">Room ID: </label>
-                            <select name="roomID" id="roomID">
-                                <option value="">-- Select Office --</option>
-                            </select><br>
-
-                        <label for = "chairID">Chair:</label>
-                            <select name="chairID" id="chairID">
-                                <option value="">-- Select Chair --</option>
-                            </select><br>
-
-                        <div style="margin-top: 20px;">
-                            <button type="submit" name="UpdateDepartment">Save Changes</button>
+                        <div class = "field-block">
+                            <label for="deptName">Department Name: </label>
+                                 <input type = "text" id="deptName" name="deptName" placeholder="ex. Mathematics"><br>
                         </div>
+
+                            <label for="deptEmail">Department Email: </label>
+                                 <input type = "email" id="deptEmail" name="deptEmail" placeholder="ex. math@university.edu"><br>
+
+                            <label for="deptPhone">Department Phone: </label>
+                                 <input type = "tel" id="deptPhone" name="deptPhone" placeholder="ex. (555) 123-4567"><br>
+
+                            <label for ="roomID">Room ID: </label>
+                                <select name="roomID" id="roomID">
+                                    <option value="">-- Select Office --</option>
+                                </select><br>
+
+                            <label for = "chairID">Chair:</label>
+                                <select name="chairID" id="chairID">
+                                    <option value="">-- Select Chair --</option>
+                                </select><br>
+
+                            <div style="margin-top: 20px;">
+                                <button type="submit" name="UpdateDepartment">Save Changes</button>
+                            </div>
                     </form>
                 </div>
         </section>
+        <?php endif; ?>
     </main>
 
     <?php if (!empty($loadedDepartments)): ?>

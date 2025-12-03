@@ -15,6 +15,43 @@ $userId = $_SESSION['user_id'];
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
+// Fetch admin security type
+$adminCheck = $mysqli->prepare("
+    SELECT SecurityType 
+    FROM Admin 
+    WHERE AdminID = ? LIMIT 1
+");
+$adminCheck->bind_param("i", $_SESSION['user_id']);
+$adminCheck->execute();
+$adminType = $adminCheck->get_result()->fetch_assoc()['SecurityType'] ?? null;
+$adminCheck->close();
+
+if ($adminType !== 'UPDATE') {
+    die("<h2 style='color:red;'>Access Denied: You are not an UpdateAdmin.</h2>");
+}
+
+$loadedDepartments = null;
+
+if (isset($_POST['searchDepartments'])) {
+    $searchId = $_POST['searchID'];
+
+    // Load Dept table
+    $stmt = $mysqli->prepare("
+        SELECT * 
+        FROM Department
+        WHERE DeptName LIKE CONCAT('%', ?, '%')
+           OR DeptID   LIKE CONCAT('%', ?, '%')
+        LIMIT 1
+    ");
+    $stmt->bind_param("ss", $searchId, $searchId);
+    $stmt->execute();
+    $loadedDepartments = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+}
+
+$userId = $_SESSION['user_id'];
+
+
 $usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
         FROM Users WHERE UserID = ? LIMIT 1";
 $userstmt = $mysqli->prepare($usersql);
@@ -24,7 +61,7 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (isset($_POST['UpdateDepartment'])) {
     $DeptID = $_POST['deptID'] ?? '';
     $DeptName = $_POST['deptName'] ?? '';
     $DeptEmail = $_POST['deptEmail'] ?? '';
@@ -34,12 +71,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $mysqli->begin_transaction();
 
-    $sql = "UPDATE Department SET DeptName = ?, DeptEmail = ?, DeptPhone = ?, RoomID = ?, ChairID = ? WHERE DeptID = ?";
+    $sql = "UPDATE Department SET DeptName = ?, Email = ?, Phone = ?, RoomID = ?, ChairID = ? WHERE DeptID = ?";
 
     $stmt = $mysqli->prepare($sql);
     $stmt->bind_param("ssssss", $DeptName, $DeptEmail, $DeptPhone, $RoomID, $ChairID, $DeptID);
     if ($stmt->execute()) {
-        echo "<script>alert('$DeptName created ✅');</script>";
+        echo "<script>alert('$DeptName updated ✅');</script>";
     } else {
         echo "<script>alert('Could not create department');</script>";
     }
@@ -59,7 +96,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Create Departments</title>
+<title>Update Departments</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -70,7 +107,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Create Departments</span>
+      <span class="pill">Update Departments</span>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -103,6 +140,16 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                   <h1 class="card-title">Update Department</h1>
                 </div>
             </div>
+
+            <section class="hero card">
+                <h2>Search Department</h2>
+
+                <form method="POST" style="margin-top: 10px;">
+                    <label>Search by Dept Name or Dept ID</label>
+                    <input type="text" name="searchID" required placeholder="ex. MATH or Mathematics">
+                    <button type="submit" name="searchDepartments">Search</button>
+                </form>
+            </section>
                 <div id = "update-section-department">
                     <form id = "UpdateDepartment" method = "POST" action = "">
                       <label for = "deptID" hidden>Department ID: </label>
@@ -126,11 +173,27 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                                 <option value="">-- Select Chair --</option>
                             </select><br>
 
-                        <button type="submit" id = "submit">Submit</button>
+                        <div style="margin-top: 20px;">
+                            <button type="submit" name="UpdateDepartment">Save Changes</button>
+                        </div>
                     </form>
                 </div>
         </section>
     </main>
+
+    <?php if (!empty($loadedDepartments)): ?>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("deptID").value = "<?php echo $loadedDepartments['DeptID']; ?>";
+        document.getElementById("deptName").value = "<?php echo $loadedDepartments['DeptName']; ?>";
+        document.getElementById("deptEmail").value = "<?php echo $loadedDepartments['Email']; ?>";
+        document.getElementById("deptPhone").value = "<?php echo $loadedDepartments['Phone']; ?>";
+        document.getElementById("roomID").value = "<?php echo $loadedDepartments['RoomID']; ?>";
+        document.getElementById("chairID").value = "<?php echo $loadedDepartments['ChairID']; ?>";
+    });
+    </script>
+    <?php endif; ?>
+
     <footer class="footer">© <span id="year"></span> Northport University</footer>
 </body>
 

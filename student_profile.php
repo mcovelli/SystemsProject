@@ -405,6 +405,8 @@ $initials = substr($student['FirstName'], 0, 1) . substr($student['LastName'], 0
     $student['FirstName'] . ' ' . $student['LastName']); ?></div>
         <div class="muted" id="studentID">Student ID: <?php echo htmlspecialchars(
     $student['UserID']); ?></div>
+    <div class="muted" id="studentBirthDate">Birth Date: <?php echo htmlspecialchars(
+    $student['DOB']); ?></div>
         <div class="chips">
           <span class="chip" id="majorChip"><?= htmlspecialchars($majorName ?? 'Undeclared') ?></span>
           <span class="chip" id="classYearChip">Class of <?= htmlspecialchars($gradYear) ?></span>

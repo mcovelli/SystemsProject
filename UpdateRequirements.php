@@ -44,10 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $notes = $_POST['notes'] ?? '';
 
     $mysqli -> begin_transaction();
-    $createReqAction = $_POST['create_req_action'] ?? '';
+    $updateReqAction = $_POST['update_req_action'] ?? '';
 
-    switch ($createReqAction){
-    case "CreateMajorRequirement":
+    switch ($updateReqAction){
+    case "updateMajorRequirement":
     if ($stmt -> num_rows > 0 ){
     $sql = "UPDATE MajorRequirement
             SET MajorID = ?, CourseID = (SELECT CourseID FROM Courses WHERE CourseID = ?), RequirementDescription = ?, RequirementType = ?, CreditsRequired = ?, SemesterLevel = ?
@@ -58,14 +58,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $majorID, $majorCourseID, $majorRequirementDescription, $majorRequirementType, $majorCreditsRequired, $majorSemesterLevel, $requirementID
         );
         if ($stmt->execute()) {
-            echo "alert('Major requirement created ✅');";
+            echo "alert('Major requirement updated ✅');";
         } else {
-            echo "alert('Could not create Major Requirement');";
+            echo "alert('Could not update Major Requirement');";
         }
     }
     break;
 
-    case "CreateMinorRequirement":
+    case "updateMinorRequirement":
     if ($stmt -> num_rows > 0 ){
     $sql = "UPDATE MinorRequirement
             SET MinorID = ?, CourseID = (SELECT CourseID FROM Courses WHERE CourseID = ?), RequirementDescription = ?, RequirementType = ?, CreditsRequired = ?, SemesterLevel = ?
@@ -76,14 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $minorID, $minorCourseID, $minorRequirementDescription, $minorRequirementType, $minorCreditsRequired, $minorSemesterLevel, $requirementID
         );
         if ($stmt->execute()) {
-            echo "alert('Minor requirement created ✅');";
+            echo "alert('Minor requirement updated ✅');";
         } else {
-            echo "alert('Could not create Minor Requirement');";
+            echo "alert('Could not update Minor Requirement');";
         }
     }
     break;
 
-    case 'createProgramReq':
+    case 'updateProgramReq':
         if ($stmt -> num_rows > 0 ){
         $sql = "UPDATE ProgramRequirement
             SET ProgramID = ?, CourseID = (SELECT CourseID FROM Courses WHERE CourseID = ?), RequirementType = ?, Notes = ?
@@ -94,9 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $programID, $programCourseID, $requirementType, $notes, $requirementID
         );
         if ($stmt->execute()) {
-            echo "alert('Program requirement created ✅');";
+            echo "alert('Program requirement updated ✅');";
         } else {
-            echo "alert('Could not create Program Requirement');";
+            echo "alert('Could not update Program Requirement');";
         }
     }
     break;
@@ -136,7 +136,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       </div>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
-      <div class="crumb"><a href="createDirectory.php" aria-label="Back to Directory">← Back to Directory</a></div>
+      <div class="crumb"><a href="updateDirectory.php" aria-label="Back to Directory">← Back to Directory</a></div>
     </div>
 
     <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
@@ -267,8 +267,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script>
-    // Immediately create Lucide icons
-    lucide.createIcons();
+    // Immediately update Lucide icons
+    lucide.updateIcons();
 
     // Populate the year in the footer
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -281,7 +281,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
       // Swap the icon
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      lucide.createIcons();
+      lucide.updateIcons();
     });
 
     const majorReq = document.getElementById("major-req-menu");
@@ -302,7 +302,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
               const selectedMajorRequirement = new URLSearchParams(window.location.search).get('majorID');
               
               data.forEach(major => {
-                const opt = document.createElement('option');
+                const opt = document.updateElement('option');
                 opt.value = major.majorid;
                 opt.textContent = major.majorid;
                 if (major.majorid === selectedMajorRequirement) opt.selected = true;
@@ -325,7 +325,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
               const selectedMinorRequirement = new URLSearchParams(window.location.search).get('minorID');
 
               data.forEach(minor => {
-                const opt = document.createElement('option');
+                const opt = document.updateElement('option');
                 opt.value = minor.minorid;
                 opt.textContent = minor.minorid;
                 if (minor.minorid === selectedMinorRequirement) opt.selected = true;
@@ -348,7 +348,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
               const selectedProgramRequirement = new URLSearchParams(window.location.search).get('programID');
 
               data.forEach(program => {
-                const opt = document.createElement('option');
+                const opt = document.updateElement('option');
                 opt.value = program.programid;
                 opt.textContent = program.requirementid + "-" + program.courseid;
                 if (program.programid === selectedProgramRequirement) opt.selected = true;

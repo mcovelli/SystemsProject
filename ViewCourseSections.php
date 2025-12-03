@@ -61,7 +61,7 @@ if (!empty($conditions)) {
     $sql .= " WHERE " . implode(" AND ", $conditions);
 }
 
-$sql .= " ORDER BY cs.SemesterID, cs.CourseID";
+$sql .= " ORDER BY cs.SemesterID, cs.CourseID, cs.CRN";
 
 $stmt = $mysqli->prepare($sql);
 if (!empty($params)) {

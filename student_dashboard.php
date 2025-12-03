@@ -115,13 +115,13 @@ $progress_stmt->execute();
 $progress = $progress_stmt->get_result()->fetch_assoc();
 $progress_stmt->close();
 
-$gpa           = $progress['CumulativeGPA'] ?? 0.00;
+$cumulativeGPA           = $progress['CumulativeGPA'] ?? 0.00;
 $creditsEarned = $progress['Credits_Completed'] ?? 0;
 $creditsRemaining = max($totalCreditsNeeded - $creditsEarned, 0);
 $percentComplete = $totalCreditsNeeded > 0 ? round(($creditsEarned / $totalCreditsNeeded) * 100, 1) : 0;
 
 // Determine academic standing based on GPA
-$standing = ($gpa >= 3.0) ? 'Good Standing' : 'Needs Improvement';
+$standing = ($cumulativeGPA >= 3.0) ? 'Good Standing' : 'Needs Improvement';
 
 // Compute credits currently registered (in‑progress)
 $credits_sql = "
@@ -155,6 +155,60 @@ if ($selectedSemester === null) {
     if ($auto_row = $auto_res->fetch_assoc()) {
         $selectedSemester = $auto_row['SemesterID'];
     }
+}
+
+//Semester GPA
+$sem_gpa_sql = "
+SELECT 
+    ROUND(SUM(gs.GradeValue * c.Credits) / SUM(c.Credits), 3) AS SemesterGPA
+FROM StudentHistory sh
+JOIN GradingScale gs ON sh.Grade = gs.GradeLetter
+JOIN Course c ON sh.CourseID = c.CourseID
+WHERE sh.StudentID = ?
+  AND sh.SemesterID = ?
+";
+
+$sem_gpa_stmt = $mysqli->prepare($sem_gpa_sql);
+$sem_gpa_stmt->bind_param("is", $userId, $selectedSemester);
+$sem_gpa_stmt->execute();
+$sem_gpa_result = $sem_gpa_stmt->get_result()->fetch_assoc();
+
+$semesterGPA = $sem_gpa_result['SemesterGPA'] ?? null;
+
+// --- Fetch last 3 semester GPAs ---
+$gpa_history_sql = "
+    SELECT 
+        sh.SemesterID,
+        ROUND(SUM(gs.GradeValue * c.Credits) / SUM(c.Credits), 3) AS GPA
+    FROM StudentHistory sh
+    JOIN GradingScale gs ON sh.Grade = gs.GradeLetter
+    JOIN Course c ON sh.CourseID = c.CourseID
+    WHERE sh.StudentID = ?
+      AND sh.Grade IS NOT NULL
+    GROUP BY sh.SemesterID
+    ORDER BY sh.SemesterID DESC
+    LIMIT 3
+";
+
+$gpa_stmt = $mysqli->prepare($gpa_history_sql);
+$gpa_stmt->bind_param("i", $userId);
+$gpa_stmt->execute();
+$gpa_results = $gpa_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+// Reverse so oldest → newest
+$gpa_results = array_reverse($gpa_results);
+
+$gpa_labels = [];
+$gpa_values = [];
+
+foreach ($gpa_results as $row) {
+    $gpa_labels[] = $row['SemesterID'];
+    $gpa_values[] = (float)$row['GPA'];
+}
+
+if (empty($gpa_labels)) {
+    $gpa_labels = ['No Data'];
+    $gpa_values = [0];
 }
 
 // Fetch schedule entries for the selected semester
@@ -281,7 +335,7 @@ $messages = [
             <div class="muted">Cumulative GPA</div>
             <i data-lucide="line-chart"></i>
           </div>
-          <div class="stat-value"><?php echo number_format($gpa, 2); ?></div>
+          <div class="stat-value"><?php echo number_format($cumulativeGPA, 2); ?></div>
           <div class="sub muted">Standing: <?php echo htmlspecialchars($standing); ?></div>
         </div>
 
@@ -312,6 +366,11 @@ $messages = [
         <div class="card">
           <div class="card-title">Recent Messages</div>
               <?php
+
+              $userEmail = $student['Email'];
+              $folder = $_GET['folder'] ?? 'inbox';
+              $folderSQL = strtoupper($folder) === 'SENT' ? 'SENT' : 'INBOX';
+
               $list = $mysqli->prepare("
                   SELECT 
                       c.CopyID,
@@ -338,7 +397,7 @@ $messages = [
                   <?php while ($m = $list_res->fetch_assoc()): ?>
                     <li style="border-bottom:1px solid var(--line); padding:10px 0;">
                       <strong><?= htmlspecialchars($m['Title']) ?></strong>
-                      <span style="color:var(--muted);"> — <?= htmlspecialchars($m['Email']) ?></span>
+                      <span style="color:var(--muted);"> — <?= htmlspecialchars($m['SenderEmail']) ?></span>
                       <div style="margin-top:4px;"><?= nl2br(htmlspecialchars($m['Message'])) ?></div>
                       <small style="color:var(--muted);">Posted <?= htmlspecialchars($m['DatePosted']) ?></small>
                     </li>
@@ -378,7 +437,7 @@ $messages = [
           <div class="badges">
             <span class="badge">Credits Earned: <?php echo $creditsEarned; ?></span>
             <span class="badge">Credits Remaining: <?php echo $creditsRemaining; ?></span>
-            <span class="badge">GPA: <?php echo number_format($gpa, 2); ?></span>
+            <span class="badge">GPA: <?php echo number_format($cumulativeGPA, 2); ?></span>
           </div>
           <div class="row gap">
             <button onclick="location.href='degree_audit.php'" class="btn">View Degree Plan</button>
@@ -397,13 +456,12 @@ $messages = [
       <div class="card">
         <div class="card-head between">
           <div class="card-title">Semester Schedule</div>
-          <div class="row gap">
-            <button class="btn outline"><i data-lucide="calendar-days"></i> Open Calendar</button>
-            <button class="btn">Add Event</button>
-          </div>
         </div>
         <div class="table-wrap">
           <form method="get" class="semester-selector" style="margin-bottom:10px">
+            <div class="row gap">
+              <div>Semester GPA: <?php echo htmlspecialchars($semesterGPA ? $semesterGPA : '0.0') ?></div>
+            </div>
             <label for="semester" style="margin-right:6px">View Semester:</label>
             <select name="semester" id="semester" onchange="this.form.submit()">
               <option value="">Current Semester</option>
@@ -617,6 +675,35 @@ $messages = [
       taskList.appendChild(item);
     });
 
+    // GPA Trend Chart
+    const gpaLabels = <?= json_encode($gpa_labels); ?>;
+    const gpaValues = <?= json_encode($gpa_values); ?>;
+
+    const ctx = document.getElementById('gpaChart').getContext('2d');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: gpaLabels.length ? gpaLabels : ['No Data'],
+        datasets: [{
+          label: 'Semester GPA',
+          data: gpaValues.length ? gpaValues : [0],
+          borderColor: '#4f46e5',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.3
+        }]
+      },
+      options: {
+        scales: {
+          y: { min: 0, max: 4.0 }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+});
+
 
     // Messages
     const messages = <?php echo json_encode($messages); ?>;
@@ -626,35 +713,6 @@ $messages = [
       item.className = 'row between small';
       item.innerHTML = '<span><strong>' + msg.from + ':</strong> ' + msg.subject + '</span><span class="muted">' + msg.time + '</span>';
       msgList.appendChild(item);
-    });
-
-    // GPA Trend Chart
-    const ctx = document.getElementById('gpaChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Term 1','Term 2','Current'],
-        datasets: [{
-          label: 'GPA',
-          data: [3.2, 3.4, <?php echo json_encode($gpa); ?>],
-          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary') || '#4f46e5',
-          borderWidth: 2,
-          fill: false,
-          tension: 0.3
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            min: 0,
-            max: 4.0,
-            ticks: { stepSize: 0.5 }
-          }
-        },
-        plugins: {
-          legend: { display: false }
-        }
-      }
     });
   </script>
 </body>

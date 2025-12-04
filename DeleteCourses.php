@@ -104,7 +104,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                         <input type = "text" id="courseID" name="courseID" required placeholder = "ex. BIOL 100">
                         <br>
 
-                        <button type="submit" id = "submit">Submit</button>
+                        <button type="submit" id = "submit">Delete</button>
                     </form>
                 </div>
         </section>

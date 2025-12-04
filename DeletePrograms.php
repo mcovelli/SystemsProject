@@ -116,7 +116,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             <label for="program_code">Program Code:</label>
             <input type = "text" select id="program_code" name="program_code" required><br>
 
-            <button type="submit" id = "submit">Create Program</button>
+            <button type="submit" id = "submit">Delete</button>
          </form>
       </div>
         </section>

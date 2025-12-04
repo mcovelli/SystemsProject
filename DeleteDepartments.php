@@ -105,7 +105,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                               <option>--SELECT--</option>
                                 </select><br>
                         
-                        <button type="submit" id = "submit">Submit</button>
+                        <button type="submit" id = "submit">Delete</button>
                     </form>
                 </div>
         </section>

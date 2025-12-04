@@ -139,7 +139,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                         <label for = "major_credits_needed">Credits Needed:</label>
                             <input type = "number" id = "major_credits_needed" name = "major_credits_needed" required><br>
 
-                        <button type="submit" id = "submit">Submit</button>
+                        <button type="submit" id = "submit">Delete</button>
                     </form>
                 </div>
         </section>

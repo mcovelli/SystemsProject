@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $SemesterId = $_POST['semesterID'] ?? '';
     $RoomId = $_POST['roomID'] ?? '';
 
-        $sql = "
+        $roomSql = "
             SELECT 
                 CASE 
                     WHEN r.RoomType = 'Lecture' THEN l.NumSeats
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             WHERE r.RoomID = ?
         ";
 
-        $stmt = $mysqli->prepare($sql);
+        $stmt = $mysqli->prepare($roomSql);
         $stmt->bind_param("i", $RoomId);
         $stmt->execute();
         $res = $stmt->get_result();

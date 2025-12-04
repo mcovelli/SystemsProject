@@ -14,6 +14,7 @@ $userId = $_SESSION['user_id'];
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
+
 $sql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
         FROM Users WHERE UserID = ? LIMIT 1";
 $stmt = $mysqli->prepare($sql);
@@ -23,6 +24,7 @@ $res = $stmt->get_result();
 $user = $res->fetch_assoc();
 $stmt->close();
 
+## pulls data from database for advisee
 $student_sql = "SELECT 
                   a.StudentID, 
                   CONCAT(u.FirstName, ' ', u.LastName) AS StudentName, 

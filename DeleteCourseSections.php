@@ -103,6 +103,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <form id = "DeleteCourseSection" method = "POST" action = "">
                         <label for="crn">CRN: </label>
                              <select name="crn" id="crn">
+                              <option>--SELECT--</option>
                                 </select><br>
 
                         <button type="submit" id = "submit">Delete</button>

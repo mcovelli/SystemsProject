@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $mysqli->begin_transaction();
 #inserts data into database
-  $sql = "INSERT INTO Course (CourseID, CourseName, DeptID, Course_Desc, Credits, CourseType) VALUES (?, ?, (SELECT DeptID FROM Department WHERE DeptName = ?), ?, ?, ?)";
+  $sql = "INSERT INTO Course (CourseID, CourseName, DeptID, Course_Desc, Credits, CourseType) VALUES (?, ?, ?, ?, ?, ?)";
   $stmt = $mysqli->prepare($sql);
   $stmt->bind_param("ssssis", $CourseId, $CourseName, $DeptId, $CourseDesc, $Credits, $CourseType);
         

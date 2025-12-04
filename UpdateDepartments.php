@@ -227,12 +227,12 @@ input[type=text], input[type=date], select {
 
                             <label for ="roomID">Room ID: </label>
                                 <select name="roomID" id="roomID">
-                                    <option value="">-- Select Office --</option>
+                                    <option value="<?php echo $loadedDepartments['RoomID']; ?>"><?php echo $loadedDepartments['RoomID']; ?></option>
                                 </select><br>
 
                             <label for = "chairID">Chair:</label>
                                 <select name="chairID" id="chairID">
-                                    <option value="">-- Select Chair --</option>
+                                    <option value="<?php echo $loadedDepartments['ChairID']; ?>"><?php echo $loadedDepartments['ChairID']; ?></option>
                                 </select><br>
 
                             <div style="margin-top: 20px;">

@@ -99,14 +99,10 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <main>
 
         <h3>Delete Program</h3>
-
-        <div class="top-actions">
-          <a href="javascript:history.back()" title="Back to Dashboard">← Back to Dashboard</a>
-        </div>
         
         <section>
           
-          <!-- CREATE Program FORM -->
+          <!-- DELETE Program FORM -->
           <div id = "delete-program">
           <form id="DeleteProgram" method="POST" action="">
             

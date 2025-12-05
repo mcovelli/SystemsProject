@@ -59,14 +59,6 @@ $quickLinks = [
     ['label' => 'View Minors',      'href' => 'ViewMinors.php',                      'icon' => 'brain']
 ];
 
-$otherLinks = [
-  ['label' => 'Assign Advisor', 'href' => 'assign_advisor.php',       'icon' => 'file-text'],
-    ['label' => 'Declare Major',      'href' => 'DeclareMajor.php',           'icon' => 'book'],
-    ['label' => 'Declare Minor',   'href' => 'DeclareMinor.php',                      'icon' => 'book-open'],
-    ['label' => 'Declare Program',     'href' => 'DeclareProgram.php',                      'icon' => 'mail']
-
-];
-
 if ($userRole === 'admin') {
     $quickLinks[] = [
         'label' => 'View Students',
@@ -135,6 +127,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <div class="quick-grid" id="adminQuickLinks"></div>
       </div>
   </main>
+
+  
 
 <footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
 

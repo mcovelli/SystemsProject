@@ -59,6 +59,13 @@ $quickLinks = [
     ['label' => 'View Minors',      'href' => 'ViewMinors.php',                      'icon' => 'brain']
 ];
 
+$otherLinks = [
+  ['label' => 'Assign Advisor', 'href' => 'assign_advisor.php',       'icon' => 'file-text'],
+    ['label' => 'Declare Major',      'href' => 'DeclareMajor.php',           'icon' => 'book'],
+    ['label' => 'Declare Minor',   'href' => 'DeclareMinor.php',                      'icon' => 'book-open'],
+    ['label' => 'Declare Program',     'href' => 'DeclareProgram.php',                      'icon' => 'mail']
+
+];
 
 if ($userRole === 'admin') {
     $quickLinks[] = [
@@ -182,6 +189,24 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     });
     lucide.createIcons();
 
+    // Insert other links
+    const otherLinks = <?php echo json_encode($otherLinks); ?>;
+    const olContainer = document.getElementById('adminOtherLinks');
+    otherLinks.forEach(link => {
+      const div = document.createElement('div');
+      div.className = 'ol';
+      div.addEventListener('click', () => {
+        if (link.href) window.location.href = link.href;
+      });
+      const icon = document.createElement('i');
+      icon.setAttribute('data-lucide', link.icon);
+      const span = document.createElement('span');
+      span.textContent = link.label;
+      div.appendChild(icon);
+      div.appendChild(span);
+      olContainer.appendChild(div);
+    });
+    lucide.createIcons();
   </script>
 </body>
 </html>

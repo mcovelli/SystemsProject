@@ -104,7 +104,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <form id = "DeleteUser" method = "POST" action = "">
                         <label for="userID">User ID: </label>
                         <input type = "text" id="userID" name="userID" required placeholder = "ex. 12345">
-                        <button type="submit" id = "userDeleteSubmit" name = "userDeleteSubmit">Submit</button>
+                        <button type="submit" id = "userDeleteSubmit" name = "userDeleteSubmit">Delete</button>
                     </form>
                 </div>
         </section>

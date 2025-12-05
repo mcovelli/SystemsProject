@@ -66,6 +66,12 @@ if ($userRole === 'admin') {
         'href'  => 'ViewStudents.php',
         'icon'  => 'brain',
     ];
+
+    $quickLinks[] = [
+        'label' => 'View All Users',
+        'href'  => 'ViewUsers.php',
+        'icon'  => 'brain',
+    ];
 }
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);

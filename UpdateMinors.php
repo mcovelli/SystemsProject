@@ -67,22 +67,25 @@ if (isset($_POST['UpdateProgram'])) {
     $name = $_POST['name'];
     $creditsNeeded = $_POST['creditsNeeded'];
 
+    $mysqli->begin_transaction();
+
     $stmt = $mysqli->prepare("
-        UPDATE Minor 
-        SET DeptID = ?, MinorName = ?, CreditsNeeded = ?
-        WHERE MinorID = ?
+        UPDATE Major 
+        SET DeptID = ?, MajorName = ?, CreditsNeeded = ?
+        WHERE MajorID = ?
     ");
     $stmt->bind_param("isii", $DeptId, $name, $creditsNeeded, $ID);
 
     if ($stmt->execute()) {
-    $_SESSION['update_success'] = true;
-    header("Location: UpdateMinors.php");
-    exit;
+        $mysqli->commit();
+        $_SESSION['update_success'] = true;
+        header("Location: updateMajors.php");
+        exit;
+    } else {
+        $mysqli->rollback();
+        $_SESSION['update_success'] = false;
+    }
 }
-
-    $_SESSION['update_success'] = true;
-}
-
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>

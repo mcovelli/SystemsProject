@@ -85,16 +85,17 @@ if (isset($_POST['updateCourseSection'])) {
         $CRN
     );
 
-    if ($stmt->execute()) {
+if ($stmt->execute()) {
+    $mysqli->commit();
     $_SESSION['update_success'] = true;
     header("Location: UpdateCourseSections.php");
     exit;
+} else {
+    $mysqli->rollback();
+    $_SESSION['update_success'] = false;
 }
 
-    $_SESSION['update_success'] = true;
 }
-
-    $mysqli->commit();
 
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {

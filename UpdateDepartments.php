@@ -76,16 +76,17 @@ if (isset($_POST['UpdateDepartment'])) {
 
     $stmt = $mysqli->prepare($sql);
     $stmt->bind_param("ssssss", $DeptName, $DeptEmail, $DeptPhone, $RoomID, $ChairID, $DeptID);
-        if ($stmt->execute()) {
+ 
+if ($stmt->execute()) {
+    $mysqli->commit();
     $_SESSION['update_success'] = true;
     header("Location: UpdateDepartments.php");
     exit;
+} else {
+    $mysqli->rollback();
+    $_SESSION['update_success'] = false;
 }
-
-    $_SESSION['update_success'] = true;
 }
-
-    $mysqli->commit();
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>

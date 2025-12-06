@@ -337,6 +337,7 @@ themeToggle.addEventListener('click', () => {
         .then(data => {
           const courseTypeSelect = document.getElementById('courseType');
           const selectedType = new URLSearchParams(window.location.search).get('courseType');
+          courseTypeSelect.innerHTML = "";
 
           data.forEach(type => {
             const opt = document.createElement('option');

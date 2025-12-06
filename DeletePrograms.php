@@ -26,11 +26,11 @@ $userstmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $programID = $_POST['programID'] ?? '';
-    $programCode = $_POST['program_code'] ?? '';
+
     $mysqli->begin_transaction();
 
    
-       $sql= "DELETE FROM Program WHERE ProgramID = ? && ProgramCode = ?";
+       $sql= "DELETE FROM Program WHERE ProgramID = ?";
 
           $stmt = $mysqli->prepare($sql);
           $stmt->bind_param(
@@ -46,6 +46,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<script>alert('Could not delete Program');</script>";
         }
       }
+
+$userRole = strtolower($_SESSION['role'] ?? '');
+$adminType = $_SESSION['admin_type'] ?? '';
+
+switch ($userRole) {
+
+    case 'admin':
+        if ($adminType === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+            $profile   = 'admin_profile.php';
+        } else {
+            $dashboard = 'login.html';
+            $profile   = 'login.html';
+        }
+        break;
+
+    default:
+        $dashboard = 'login.html';
+        $profile   = 'login.html';
+        break;
+}
         
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
@@ -59,7 +80,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Create Programs</title>
+<title>Delete Programs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -102,17 +123,17 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         
         <section>
           
-          <!-- DELETE Program FORM -->
+          <!-- CREATE Program FORM -->
           <div id = "delete-program">
           <form id="DeleteProgram" method="POST" action="">
             
-            <label for="program_id">Program ID:</label>
-            <input type = "text" select id="program_id" name="program_id" required><br>
+            <form id = "DeleteProgram" method = "POST" action = "">
+                      <label for="programID">Department: </label>
+                             <select name="programID" id="programID" required>
+                              <option>--SELECT--</option>
+                                </select><br>
 
-            <label for="program_code">Program Code:</label>
-            <input type = "text" select id="program_code" name="program_code" required><br>
-
-            <button type="submit" id = "submit">Delete</button>
+            <button type="submit" id = "submit">Delete Program</button>
          </form>
       </div>
         </section>
@@ -137,6 +158,22 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       if (window.lucide) lucide.createIcons();
     });
+
+     // Fetch programs from get_programs.php
+    fetch('get_programs.php')
+    .then(response => response.json())
+    .then(data => {
+        const programSelect = document.getElementById('programID');
+        const selectedProgram = new URLSearchParams(window.location.search).get('programID');
+
+    data.forEach(program => {
+        const opt = document.createElement('option');
+        opt.value = program.id;
+        opt.textContent = program.name;
+        programSelect.appendChild(opt);
+        });
+    })
+    .catch(err => console.error('Error loading programs:', err));
 
     // Delete programs
     document.getElementById("DeleteProgram").addEventListener("submit", (e) => {

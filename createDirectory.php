@@ -79,8 +79,7 @@ $deleteLinks = [
     ['label' => 'Delete Sections',   'href' => 'DeleteCourseSections.php',                      'icon' => 'book-open'],
     ['label' => 'Delete Departments',     'href' => 'DeleteDepartments.php',                      'icon' => 'mail'],
     ['label' => 'Delete Majors/Minors',      'href' => 'DeleteMajorsMinors.php',                      'icon' => 'check'],
-    ['label' => 'Delete Programs',      'href' => 'DeletePrograms.php',                      'icon' => 'brain'],
-    ['label' => 'Delete Requirements',      'href' => 'DeleteRequirements.php',                      'icon' => 'list']
+    ['label' => 'Delete Programs',      'href' => 'DeletePrograms.php',                      'icon' => 'brain']
 
 ];
 

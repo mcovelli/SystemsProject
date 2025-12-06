@@ -25,11 +25,7 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $DeptId = $_POST['deptID'] ?? '';
-    $majorName = $_POST['major_name'] ?? '';
-    $majorCreditsNeeded = $_POST['major_credits_needed'] ?? '';
-    $minorName = $_POST['minor_name'] ?? '';
-    $minorCreditsNeeded = $_POST['minor_credits_needed'] ?? '';
+    $ID = $_POST['id'] ?? '';
 }
 
 $mysqli->begin_transaction();
@@ -38,31 +34,53 @@ $majorOrMinor = $_POST['majorOrMinor'] ?? '';
 
 switch ($majorOrMinor){
     case 'major':
-        $sql = "DELETE FROM Major WHERE DeptID = (SELECT DeptID FROM Department WHERE DeptName = ? ) AND MajorName = ?";
+        $sql = "DELETE FROM Major WHERE MajorID = ?";
         $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param("ss", $DeptId, $majorName);
+        $stmt->bind_param("i",$ID);
         
         if ($stmt->execute()) {
-            echo "alert('$majorName deleted ✅');";
+            echo "alert('Major deleted ✅');";
         } else {
             echo "alert('Could not delete Major');";
         }
     break;
 
     case("minor"):
-        $sql = "DELETE FROM Minor WHERE DeptID = (SELECT DeptID FROM Department WHERE DeptName = ? ) AND MinorName = ?";
+        $sql = "DELETE FROM Minor WHERE MinorID = ?";
             $stmt = $mysqli->prepare($sql);
-            $stmt->bind_param("ss", $DeptId, $minorName);
+            $stmt->bind_param("i", $ID);
 
             if ($stmt->execute()) {
                 $mysqli->commit();
-                echo "alert('Minor $minorName deleted ✅');";
+                echo "alert('Minor $name deleted ✅');";
             } else {
                 $mysqli->rollback();
                 echo "alert('Could not delete Minor');";
             }
         break;
 }
+
+$userRole = strtolower($_SESSION['role'] ?? '');
+$adminType = $_SESSION['admin_type'] ?? '';
+
+switch ($userRole) {
+
+    case 'admin':
+        if ($adminType === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+            $profile   = 'admin_profile.php';
+        } else {
+            $dashboard = 'login.html';
+            $profile   = 'login.html';
+        }
+        break;
+
+    default:
+        $dashboard = 'login.html';
+        $profile   = 'login.html';
+        break;
+}
+
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
@@ -122,23 +140,18 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                 <div id = "delete-section-majorminor">
                     <form id = "DeleteMajorMinor" method = "POST" action = "">
                         <label for="majorOrMinor">Select Major/Minor: </label>
-                        <select id="majorOrMinor" name="majorOrMinor" required>
-                            <option value="">-- Select --</option>
-                            <option value="major">Major</option>
-                            <option value="minor">Minor</option>
-                        </select>
-                        <br>
-                        <label for="dept">Department: </label>
-                             <select name="deptID" id="deptID">
-                                <option value="">-- All Departments --</option>
-                                </select><br>
-                        <?php $type = $_POST['majorOrMinor'] ?? ''; ?>
-                        <label id="typeLabel" for ="major_name"><?php echo htmlspecialchars($type) ?></label>
-                        <?= $type === 'major' ? 'Major ' : ($type === 'minor' ? 'Minor ' : 'Name:') ?>
-                            <input type = "text" id="major_name" name="major_name" required><br>
-                        <label for = "major_credits_needed">Credits Needed:</label>
-                            <input type = "number" id = "major_credits_needed" name = "major_credits_needed" required><br>
+                            <select id="majorOrMinor" name="majorOrMinor" required>
+                                <option value="">-- Select --</option>
+                                <option value="major">Major</option>
+                                <option value="minor">Minor</option>
+                            </select>
 
+                            <br>
+
+                            <label id="typeLabel" for="id">Name:</label>
+                            <select id="id" name="id" required>
+                                <option value="">-- Select --</option>
+                            </select>
                         <button type="submit" id = "submit">Delete</button>
                     </form>
                 </div>
@@ -165,19 +178,33 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       if (window.lucide) lucide.createIcons();
     });
 
-    document.getElementById('majorOrMinor').addEventListener('change', function() {
-    const type = this.value; // 'major' or 'minor'
-    const typeLabel = document.getElementById('typeLabel');
+    document.getElementById("majorOrMinor").addEventListener("change", function () {
+        const type = this.value; 
+        const select = document.getElementById("id");
+        const label = document.getElementById("typeLabel");
 
-        if (type === 'major') {
-            typeLabel.textContent = "Major ";
-        } else if (type === 'minor') {
-            typeLabel.textContent = "Minor ";
-        } else {
-            typeLabel.textContent = "";
-        }
+        label.textContent = type === "major" ? "Major:" :
+                            type === "minor" ? "Minor:" :
+                            "Name:";
+
+        select.innerHTML = '<option value="">-- Select --</option>';
+
+        if (!type) return;
+
+        const url = type === "major" ? "get_majors.php" : "get_minors.php";
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.id;
+                    opt.textContent = item.name;
+                    select.appendChild(opt);
+                });
+            })
+            .catch(err => console.error(`Error loading ${type}s:`, err));
     });
-
     
 
     // Fetch departments from get_departments.php

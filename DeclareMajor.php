@@ -2,16 +2,16 @@
 session_start();
 require_once __DIR__ . '/config.php';
 
-$role = $_SESSION['role'] ?? '';
-$studentRole = $_SESSION['student_role'] ?? '';
-$adminRole = $_SESSION['admin_role'] ?? '';
+$role         = $_SESSION['role'] ?? '';
+$studentType  = $_SESSION['student_type'] ?? '';
+$adminType    = $_SESSION['admin_type'] ?? '';
 
 if (
     !isset($_SESSION['user_id']) ||
     !(
         $role === 'student' ||
-        $studentRole === 'undergrad' ||
-        ($role === 'admin' && $adminRole === 'update')
+        $studentType === 'undergrad' ||
+        ($role === 'admin' && $adminType === 'update')
     )
 ) {
     redirect(PROJECT_ROOT . "/login.html");

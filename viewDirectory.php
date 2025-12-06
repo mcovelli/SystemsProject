@@ -45,7 +45,8 @@ switch ($userRole) {
         $profile = 'statstaff_profile.php';
         break;
     default:
-        $dashboard = 'login.html'; // fallback
+        $dashboard = 'login.html';
+        $profile = 'login.html';
 }
 
 // Placeholder quick links, tasks, announcements and messages
@@ -59,17 +60,19 @@ $quickLinks = [
     ['label' => 'View Minors',      'href' => 'ViewMinors.php',                      'icon' => 'brain']
 ];
 
+
 if ($userRole === 'admin') {
+
     $quickLinks[] = [
         'label' => 'View Students',
         'href'  => 'ViewStudents.php',
-        'icon'  => 'brain',
+        'icon'  => 'brain'
     ];
 
     $quickLinks[] = [
         'label' => 'View All Users',
         'href'  => 'ViewUsers.php',
-        'icon'  => 'brain',
+        'icon'  => 'brain'
     ];
 }
 
@@ -128,8 +131,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       </div>
   </main>
 
-  
-
 <footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -183,24 +184,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     });
     lucide.createIcons();
 
-    // Insert other links
-    const otherLinks = <?php echo json_encode($otherLinks); ?>;
-    const olContainer = document.getElementById('adminOtherLinks');
-    otherLinks.forEach(link => {
-      const div = document.createElement('div');
-      div.className = 'ol';
-      div.addEventListener('click', () => {
-        if (link.href) window.location.href = link.href;
-      });
-      const icon = document.createElement('i');
-      icon.setAttribute('data-lucide', link.icon);
-      const span = document.createElement('span');
-      span.textContent = link.label;
-      div.appendChild(icon);
-      div.appendChild(span);
-      olContainer.appendChild(div);
-    });
-    lucide.createIcons();
   </script>
 </body>
 </html>

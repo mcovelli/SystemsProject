@@ -523,34 +523,24 @@ themeToggle.addEventListener('click', () => {
 
 document.addEventListener("DOMContentLoaded", () => {
     const RequirementSelection = document.getElementById("requirementSelection");
-    const semesterLevelContainer = document.getElementById("semesterLevelContainer");
-    const SemesterLevel = document.getElementById("semester_level");
     const ProgramID = document.getElementById("programID");
     const deptFilter = document.getElementById("deptFilter");
     const courseTableBody = document.querySelector("#courseTable tbody");
 
     let ALL_COURSES = [];
 
-    semesterLevelContainer.style.display = "none";
-    SemesterLevel.required = false;
     ProgramID.style.display = "block";
 
-   RequirementSelection.addEventListener("change", function () {
+    RequirementSelection.addEventListener("change", function () {
         const value = this.value;
 
         // RESET
-        semesterLevelContainer.style.display = "none";
-        SemesterLevel.required = false;
-        SemesterLevel.value = "";
         ProgramID.innerHTML = '<option value="">-- Select --</option>';
 
         if (!value) return;
 
-        // PROGRAM — NO semester level
+        // PROGRAM
         if (value === "program") {
-            semesterLevelContainer.style.display = "none";
-            SemesterLevel.required = false;
-
             fetch('get_programs.php')
                 .then(r => r.json())
                 .then(programs => {
@@ -564,11 +554,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // MAJOR — NEED semester level
+        // MAJOR
         if (value === "major") {
-            semesterLevelContainer.style.display = "block";
-            SemesterLevel.required = true;
-
             fetch('get_majors.php')
                 .then(r => r.json())
                 .then(majors => {
@@ -582,11 +569,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // MINOR — NEED semester level
+        // MINOR
         if (value === "minor") {
-            semesterLevelContainer.style.display = "block";
-            SemesterLevel.required = true;
-
             fetch('get_minors.php')
                 .then(r => r.json())
                 .then(minors => {
@@ -626,7 +610,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Update course table immediately to show all courses
             updateCourseTable();
-        });
+        })
+        .catch(err => console.error('Error loading courses:', err));
 
     function updateCourseTable() {
         const selectedRequirement = RequirementSelection.value;

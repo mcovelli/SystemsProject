@@ -10,7 +10,7 @@ if (
     !isset($_SESSION['user_id']) ||
     !(
         $role === 'student' ||
-        $studentRole === 'undergrad' ||
+        $studentRole === 'grad' ||
         ($role === 'admin' && $adminRole === 'update')
     )
 ) {

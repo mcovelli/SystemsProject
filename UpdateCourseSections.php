@@ -292,8 +292,8 @@ input[type=text], input[type=date], select {
             </div>
 
             <div class="field-block">
-                <label>Year</label>
-                <input type="number" name="year" value="<?php echo $loadedCourseSection['Year']; ?>">
+                <label for ="year"></label>
+                <input type="hidden" name="year" value="<?php echo $loadedCourseSection['Year']; ?>">
             </div>
 
             <div class="field-block">
@@ -350,55 +350,35 @@ themeToggle.addEventListener('click', () => {
     lucide.createIcons();
 });
 
-// Fetch dept from get_departments.php
-    fetch('get_departments.php')
+// Fetch semesters from get_semesters.php
+fetch('get_semesters.php')
     .then(response => response.json())
     .then(data => {
-        const deptSelect = document.getElementById('deptID');
-        const selectedDept = new URLSearchParams(window.location.search).get('deptID');
+        const semesterSelect = document.getElementById('semester');
+        semesterSelect.innerHTML = "";
 
-    data.forEach(dept => {
-        const opt = document.createElement('option');
-        opt.value = dept.id;
-        opt.textContent = dept.name;
-        deptSelect.appendChild(opt);
-        });
-    })
-    .catch(err => console.error('Error loading faculty:', err));
-
- // Fetch cousetypes from get_coursetype.php
-      fetch('get_coursetype.php')
-        .then(response => response.json())
-        .then(data => {
-          const courseTypeSelect = document.getElementById('courseType');
-          const selectedType = new URLSearchParams(window.location.search).get('courseType');
-
-          data.forEach(type => {
-            const opt = document.createElement('option');
-            opt.value = type.type;
-            opt.textContent = type.type;
-            if (type === selectedType) opt.selected = true;
-            courseTypeSelect.appendChild(opt);
-          });
-        })
-        .catch(err => console.error('Error loading course types:', err));
-
-        // Fetch semesters from get_semesters.php
-      fetch('get_semesters.php')
-        .then(response => response.json())
-        .then(data => {
-          const semesterSelect = document.getElementById('semester');
-          const selectedSemester = new URLSearchParams(window.location.search).get('semester');
-
-          data.forEach(semester => {
+        data.forEach(semester => {
             const opt = document.createElement('option');
             opt.value = semester.SemesterID;
-            opt.textContent = semester.SemesterID;
-            if (semester === selectedSemester) opt.selected = true;
+            opt.textContent = semester.SemesterName + ' ' + semester.Year;
+            // Store the year as a data attribute
+            opt.setAttribute('data-year', semester.Year);
+            if (String(semester.SemesterID) === "<?php echo $loadedCourseSection['SemesterID']; ?>") {
+                opt.selected = true;
+            }
             semesterSelect.appendChild(opt);
-          });
-        })
-        .catch(err => console.error('Error loading semesters:', err));
+        });
+
+        semesterSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const year = selectedOption.getAttribute('data-year');
+            const yearInput = document.querySelector('input[name="year"]');
+            if (year && yearInput) {
+                yearInput.value = year;
+            }
+        });
+    })
+    .catch(err => console.error('Error loading semesters:', err));
 
       // Fetch faculty from get_faculty.php
     const timeSlotID = "<?php echo $loadedCourseSection['TimeSlotID']; ?>";
@@ -407,39 +387,41 @@ themeToggle.addEventListener('click', () => {
     const currentFac = "<?php echo $loadedCourseSection['FacultyID']; ?>";
 
     fetch(`get_available_faculty.php?timeSlotID=${timeSlotID}&semester=${semester}&year=${year}&current=${currentFac}`)
-        .then(response => response.json())
-        .then(data => {
-            const facultySelect = document.getElementById('facultyID');
-            facultySelect.innerHTML = ""; // clear current
+    .then(response => response.json())
+    .then(data => {
+        const facultySelect = document.getElementById('facultyID');
+        facultySelect.innerHTML = "";
 
-            data.forEach(faculty => {
-                const opt = document.createElement('option');
-                opt.value = faculty.FacultyID;
-                opt.textContent = `${faculty.FacultyID} — ${faculty.FacultyName} — ${faculty.DeptNames}`;
-                if (String(faculty.FacultyID) === currentFac) opt.selected = true;
-                facultySelect.appendChild(opt);
-            });
-        })
-        .catch(err => console.error('Error loading available faculty:', err));
+        data.forEach(faculty => {
+            const opt = document.createElement('option');
+            opt.value = faculty.FacultyID;
+            opt.textContent = `${faculty.FacultyID} — ${faculty.FacultyName} — ${faculty.DeptNames}`;
+            if (String(faculty.FacultyID) === currentFac) opt.selected = true;
+            facultySelect.appendChild(opt);
+        });
+    })
+    .catch(err => console.error('Error loading available faculty:', err));
+
 
         // Fetch timeslots from get_timeslots.php
     fetch('get_timeslots.php')
     .then(response => response.json())
     .then(data => {
         const timeSelect = document.getElementById('timeSlotID');
-        const selectedTime = new URLSearchParams(window.location.search).get('timeSlotID');
+        const currentTime = "<?php echo $loadedCourseSection['TimeSlotID']; ?>";
+        timeSelect.innerHTML = "";
 
     data.forEach(time => {
         const opt = document.createElement('option');
         opt.value = time.id;
         opt.textContent = time.label;
+        if (String(time.id) === currentTime) opt.selected = true;
         timeSelect.appendChild(opt);
         });
     })
     .catch(err => console.error('Error loading times:', err));
 
     // Fetch classrooms from get_classrooms.php
-
     const room_timeSlotID = "<?php echo $loadedCourseSection['TimeSlotID']; ?>";
     const room_semester   = "<?php echo $loadedCourseSection['SemesterID']; ?>";
     const room_year       = "<?php echo $loadedCourseSection['Year']; ?>";
@@ -449,14 +431,15 @@ themeToggle.addEventListener('click', () => {
     .then(response => response.json())
     .then(data => {
         const roomSelect = document.getElementById('roomID');
-        const selectedRoom = new URLSearchParams(window.location.search).get('roomID');
+        const selectedRoom = "<?php echo $loadedCourseSection['RoomID']; ?>";
+        roomSelect.innerHTML = "";
 
-    data.forEach(room => {
-        const opt = document.createElement('option');
-        opt.value = room.id;
-        opt.textContent = `${room.id} — ${room.type}`;
-        if (String(room.id) === selectedRoom) opt.selected = true;
-        roomSelect.appendChild(opt);
+        data.forEach(room => {
+            const opt = document.createElement('option');
+            opt.value = room.id;
+            opt.textContent = `${room.id} — ${room.type}`;
+            if (String(room.id) === String(room_currentRoom)) opt.selected = true;  // ← FIXED
+            roomSelect.appendChild(opt);
         });
     })
     .catch(err => console.error('Error loading Rooms:', err));

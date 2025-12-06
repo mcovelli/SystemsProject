@@ -37,8 +37,9 @@ if (isset($_POST['searchDepartments'])) {
 
     // Load Dept table
     $stmt = $mysqli->prepare("
-        SELECT * 
-        FROM Department
+        SELECT d.DeptID, d.DeptName, d.ChairID, CONCAT(fu.FirstName, ' ', substr(fu.MiddleName, 1, 1), '. ', fu.LastName) AS ChairName, d.RoomID, d.Phone, d.Email
+        FROM Department d
+        JOIN Users fu ON d.ChairID = fu.UserID
         WHERE DeptName LIKE CONCAT('%', ?, '%')
            OR DeptID   LIKE CONCAT('%', ?, '%')
         LIMIT 1
@@ -232,7 +233,7 @@ input[type=text], input[type=date], select {
 
                             <label for = "chairID">Chair:</label>
                                 <select name="chairID" id="chairID">
-                                    <option value="<?php echo $loadedDepartments['ChairID']; ?>"><?php echo $loadedDepartments['ChairID']; ?></option>
+                                    <option value="<?php echo $loadedDepartments['ChairID']; ?>"><?php echo $loadedDepartments['ChairName']; ?></option>
                                 </select><br>
 
                             <div style="margin-top: 20px;">
@@ -281,37 +282,44 @@ input[type=text], input[type=date], select {
     });
 
 
-    // Fetch offices from get_offices.php
-    fetch('get_offices.php')
+     // Fetch offices from get_offices.php
+    const currentRoom = "<?php echo isset($loadedDepartments['RoomID']) ? $loadedDepartments['RoomID'] : ''; ?>";
+
+    fetch(`get_offices.php?current=${currentRoom}`)
     .then(response => response.json())
     .then(data => {
-        const officeSelect = document.getElementById('roomID');
-        const selectedOffice = new URLSearchParams(window.location.search).get('roomID');
+        const roomSelect = document.getElementById('roomID');
+        const selectedRoom = new URLSearchParams(window.location.search).get('roomID');
+        roomSelect.innerHTML = "";
 
-    data.forEach(office => {
+    data.forEach(room => {
         const opt = document.createElement('option');
-        opt.value = office.id;
-        opt.textContent = office.id;
-        officeSelect.appendChild(opt);
+        opt.value = room.id;
+        opt.textContent = `${room.id}`;
+        if (String(room.id) === String(currentRoom)) opt.selected = true;
+        roomSelect.appendChild(opt);
         });
     })
-    .catch(err => console.error('Error loading offices:', err));
+    .catch(err => console.error('Error loading Rooms:', err));
 
-    // Fetch faculty from get_faculty.php
-    fetch('get_faculty.php')
-    .then(response => response.json())
-    .then(data => {
-        const officeSelect = document.getElementById('chairID');
-        const selectedOffice = new URLSearchParams(window.location.search).get('chairID');
+      // Fetch faculty from get_faculty.php
+    const currentFac = "<?php echo isset($loadedDepartments['ChairID']) ? $loadedDepartments['ChairID'] : ''; ?>";
 
-    data.forEach(faculty => {
-        const opt = document.createElement('option');
-        opt.value = faculty.FacultyID;
-        opt.textContent = faculty.FacultyName + ' - ' + faculty.DeptNames;
-        officeSelect.appendChild(opt);
-        });
-    })
-    .catch(err => console.error('Error loading faculty:', err));
+    fetch(`get_faculty.php?current=${currentFac}`)
+        .then(response => response.json())
+        .then(data => {
+            const facultySelect = document.getElementById('chairID');
+            facultySelect.innerHTML = "";
+
+            data.forEach(faculty => {
+                const opt = document.createElement('option');
+                opt.value = faculty.FacultyID;
+                opt.textContent = `${faculty.FacultyID} — ${faculty.FacultyName} — ${faculty.DeptNames}`;
+                if (String(faculty.FacultyID) == currentFac) opt.selected = true;
+                facultySelect.appendChild(opt);
+            });
+        })
+        .catch(err => console.error('Error loading available faculty:', err));
 
 
     document.getElementById("UpdateDepartment").addEventListener("submit", (e) => {

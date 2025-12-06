@@ -32,22 +32,19 @@ if (!$role) {
 
 if ($role === 'admin') {
 
-    // Admin with ?facultyId=  → view that faculty's profile
-    if (isset($_GET['facultyID'])) {
+    if (isset($_GET['facultyID']) && !empty($_GET['facultyID'])) {
         $facultyId = intval($_GET['facultyID']);
+    } else {
+        $facultyId = $_SESSION['user_id'];
     }
-    else {
-        redirect('login.php');
-    }
-}
 
-elseif ($role === 'faculty') {
+} elseif ($role === 'faculty') {
 
-    // Faculty can only access their own profile
+    // Faculty can ONLY view their own
     $facultyId = $_SESSION['user_id'];
-}
 
-else {
+} else {
+
     redirect($dashboard);
 }
 
@@ -299,7 +296,7 @@ $adv_stmt->close();
         </div>
         <div class="table-wrap">
           <form method="get" class="semester-selector" style="margin-bottom:10px">
-            <?php if (isset($_GET['studentID'])): ?>
+            <?php if ($role === 'admin' && isset($_GET['facultyID'])): ?>
                 <input type="hidden" name="facultyID" value="<?= htmlspecialchars($_GET['facultyID']) ?>">
             <?php endif; ?>
 

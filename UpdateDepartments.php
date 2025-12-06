@@ -76,14 +76,16 @@ if (isset($_POST['UpdateDepartment'])) {
 
     $stmt = $mysqli->prepare($sql);
     $stmt->bind_param("ssssss", $DeptName, $DeptEmail, $DeptPhone, $RoomID, $ChairID, $DeptID);
-    if ($stmt->execute()) {
-        echo "<script>alert('$DeptName updated ✅');</script>";
-    } else {
-        echo "<script>alert('Could not create department');</script>";
-    }
+        if ($stmt->execute()) {
+    $_SESSION['update_success'] = true;
+    header("Location: UpdateDepartments.php");
+    exit;
+}
+
+    $_SESSION['update_success'] = true;
+}
 
     $mysqli->commit();
-} 
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
@@ -259,7 +261,7 @@ input[type=text], input[type=date], select {
     <?php endif; ?>
 
     <footer class="footer">© <span id="year"></span> Northport University</footer>
-    <div id="toast" class="toast hidden"></div>
+    <div id="toast" class="toast hidden">Department Updated Successfully!</div>
 
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -342,15 +344,12 @@ function showToast(message) {
         setTimeout(() => toast.classList.add("hidden"), 300);
     }, 3000);
 }
-</script>
 
+// Show success toast if update was successful
 <?php if (!empty($_SESSION['update_success'])): ?>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    showToast("Course Section updated successfully!");
-});
-</script>
-<?php unset($_SESSION['update_success']); ?>
+    showToast("✅ Department updated successfully!");
+    <?php unset($_SESSION['update_success']); ?>
 <?php endif; ?>
+</script>
 </body>
 </html>

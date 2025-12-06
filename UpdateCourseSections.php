@@ -85,11 +85,16 @@ if (isset($_POST['updateCourseSection'])) {
         $CRN
     );
 
-    $stmt->execute();
-    $mysqli->commit();
+    if ($stmt->execute()) {
+    $_SESSION['update_success'] = true;
+    header("Location: UpdateCourseSections.php");
+    exit;
+}
 
     $_SESSION['update_success'] = true;
 }
+
+    $mysqli->commit();
 
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
@@ -213,13 +218,7 @@ input[type=text], input[type=date], select {
     </div>
   </header>
 
-<div id="toast" class="toast hidden">Course updated successfully!</div>
-
-<?php if (!empty($successMsg)): ?>
-    <script>
-        showToast("✅ Course updated successfully!");
-    </script>
-<?php endif; ?>
+<div id="toast" class="toast hidden">Course Section Updated Successfully!</div>
 
 <main class="page">
 
@@ -461,15 +460,12 @@ function showToast(message) {
         setTimeout(() => toast.classList.add("hidden"), 300);
     }, 3000);
 }
-</script>
 
+// Show success toast if update was successful
 <?php if (!empty($_SESSION['update_success'])): ?>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    showToast("Course Section updated successfully!");
-});
-</script>
-<?php unset($_SESSION['update_success']); ?>
+    showToast("✅ Course Section updated successfully!");
+    <?php unset($_SESSION['update_success']); ?>
 <?php endif; ?>
+</script>
 </body>
 </html>

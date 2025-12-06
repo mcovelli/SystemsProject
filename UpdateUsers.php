@@ -823,15 +823,12 @@ function showToast(message) {
         setTimeout(() => toast.classList.add("hidden"), 300);
     }, 3000);
 }
-</script>
 
+// Show success toast if update was successful
 <?php if (!empty($_SESSION['update_success'])): ?>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    showToast("User updated successfully!");
-});
-</script>
-<?php unset($_SESSION['update_success']); ?>
+    showToast("✅ User updated successfully!");
+    <?php unset($_SESSION['update_success']); ?>
 <?php endif; ?>
+</script>
 </body>
 </html>

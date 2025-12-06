@@ -268,11 +268,6 @@ input[type=text], input[type=date], select {
     <footer class="footer">© <span id="year"></span> Northport University</footer>
     <div id="toast" class="toast hidden"></div>
 
-    <?php if (!empty($successMsg)): ?>
-    <script>
-        showToast("✅ Course updated successfully!");
-    </script>
-<?php endif; ?>
 
 <?php if (!empty($loadedProgram)): ?>
     <script>
@@ -367,15 +362,12 @@ function showToast(message) {
         setTimeout(() => toast.classList.add("hidden"), 300);
     }, 3000);
 }
-</script>
 
+// Show success toast if update was successful
 <?php if (!empty($_SESSION['update_success'])): ?>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    showToast("Program updated successfully!");
-});
-</script>
-<?php unset($_SESSION['update_success']); ?>
+    showToast("✅ Program updated successfully!");
+    <?php unset($_SESSION['update_success']); ?>
 <?php endif; ?>
+</script>
 </body>
 </html>

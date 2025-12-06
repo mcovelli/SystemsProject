@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UpdateRequirements'])
     $type = $_POST['requirementSelection'] ?? '';
     $programID = $_POST['programID'] ?? '';
     $selectedCourses = $_POST['courseID'] ?? [];
-    $reqType = $_POST['req_type'] ?? '';
+    $reqType = 'Core';
     $semesterLevel = $_POST['semester_level'] ?? null;
 
     if (empty($type) || empty($programID)) {
@@ -135,19 +135,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UpdateRequirements'])
             case "major":
                 $table = "MajorRequirement";
                 $idCol = "MajorID";
-                $cols = "RequirementType=?, SemesterLevel=?";
                 break;
 
             case "minor":
                 $table = "MinorRequirement";
                 $idCol = "MinorID";
-                $cols = "RequirementType=?, SemesterLevel=?";
                 break;
 
             case "program":
                 $table = "ProgramRequirement";
                 $idCol = "ProgramID";
-                $cols = "RequirementType=?";
                 break;
         }
 
@@ -204,6 +201,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UpdateRequirements'])
                     $insert->execute();
                 }
             }
+            
+            $insert->close();
+            $update->close();
         }
 
         else {
@@ -242,11 +242,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UpdateRequirements'])
                     $insert->execute();
                 }
             }
+            
+            $insert->close();
+            $update->close();
         }
 
-        $mysqli->commit();
+        $check->close();
 
-        echo "<script>alert('Requirements successfully updated and synchronized!');</script>";
+        // Commit and set success flag
+        $mysqli->commit();
+        $_SESSION['update_success'] = true;
+        
+        // Redirect back to the same page
+        header("Location: " . $_SERVER['PHP_SELF'] . "?updated=1");
+        exit();
 
     } catch (Exception $e) {
 
@@ -306,6 +315,32 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     #requirementSelection {
         display: none;
     }
+
+    .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-15px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.hidden {
+    display: none;
+}
 </style>
 </head>
 <body>
@@ -313,7 +348,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Update Requirements</span>
+      <span class="pill">Add/Delete Requirements</span>
     </div>
     <div class="top-actions">
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
@@ -367,8 +402,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <?php foreach ($loadedRequirements as $req): ?>
                         <li>
                             <?= $req['CourseID'] ?> – <?= $req['CourseName'] ?>
-                            (<?= $req['RequirementType'] ?>
-                             <?= isset($req['SemesterLevel']) ? " – Semester {$req['SemesterLevel']}" : "" ?>)
                         </li>
                     <?php endforeach; ?>
                 </ul>
@@ -399,8 +432,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
         <section class="hero card">
           <div class="card-head between">
             <div>
-              <h2 class="card-title">Update Requirements</h2>
-              <h4 class = "card-title">Update by semester level</h4>
+              <h2 class="card-title">Add/Delete Requirements</h2>
             </div>
           </div>
        </section>
@@ -422,17 +454,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
                         </select>
                     </div>
 
-                    <label for="req_type">Requirement Type: </label>
-                    <select id="req_type" name="req_type" required>
-                      <option value="">-- Select Requirement Type --</option>
-                      <option value="Core">Core</option>
-                      <option value="Elective">Elective</option>
-                    </select>
-
-                    <div class="form-row" id="semesterLevelContainer">
-                        <label for="semester_level">Semester Level:</label>
-                        <input type="number" id="semester_level" name="semester_level">
-                    </div>
+                    <input type="hidden" name="req_type" value="Core">
 
                     <!-- Department Filter -->
                     <div id="departmentFilterContainer" style="margin-top: 20px;">
@@ -467,6 +489,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
     </div>
 
 <footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
+
+<div id="toast" class="toast hidden">Requirements updated successfully!</div>
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
@@ -641,6 +665,29 @@ document.addEventListener("DOMContentLoaded", () => {
     RequirementSelection.addEventListener("change", updateCourseTable);
     deptFilter.addEventListener("change", updateCourseTable);
 });
+
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+
+    // Trigger animation
+    setTimeout(() => {
+        toast.classList.add("show");
+    }, 100);
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.classList.add("hidden"), 300);
+    }, 3000);
+}
+
+// Show success toast if update was successful
+<?php if (!empty($_SESSION['update_success'])): ?>
+    showToast("✅ Program updated successfully!");
+    <?php unset($_SESSION['update_success']); ?>
+<?php endif; ?>
 </script>
 </body>
 </main>

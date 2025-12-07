@@ -227,7 +227,7 @@ switch ($userRole) {
             <div class="field-block">
                 <label for = "MinorID" required>Minor: </label>
                   <select name="MinorID" id ="MinorID">
-                    <option value="">-- Select Minor--</option>
+                    <option value="">-- Undeclared --</option>
                   </select>
             </div>
 

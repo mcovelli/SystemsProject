@@ -66,7 +66,7 @@ body{
 
 /* Layout */
 .container{
-  max-width:1120px; margin:0 auto; padding:24px;
+  max-width:1120px; margin:0 auto; padding:24px; 
   display:grid; grid-template-columns: 1fr; gap:24px;
 }
 @media (min-width:1024px){
@@ -83,8 +83,8 @@ body{
   border-radius:16px; box-shadow: var(--shadow); padding:16px;
 }
 .card-title{font-weight:600; margin-bottom:8px}
-.card-head{display:flex; align-items:center; justify-content:space-between}
-.muted{color: var(--muted)}
+.card-head{display:flex; align-items:center; justify-content:space-between;}
+.muted{color: var(--muted);}
 .sub{margin-top:4px; font-size:12px}
 .stat-value{font-size:26px; font-weight:600; margin-top:4px}
 .grid-two{display:grid; grid-template-columns:1fr; gap:16px}

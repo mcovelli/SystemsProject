@@ -56,10 +56,6 @@ $quickLinks = [
       <span class="pill">Admin Portal</span>
     </div>
     <div class="top-actions">
-      <div class="search">
-        <i class="search-icon" data-lucide="search"></i>
-        <input type="text" placeholder="Search courses, people, anything…" />
-      </div>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
       <div class="user">
@@ -172,8 +168,6 @@ $quickLinks = [
                   LIMIT 3
               ");
               
-              // The CourseAnnouncements part still needs the StudentID to filter by enrollment
-              // If you want *all* Faculty announcements (not just enrolled courses), remove the last JOIN/WHERE clauses and the bind_param.
               $recent->bind_param('i', $userId); 
               $recent->execute();
               $res = $recent->get_result();

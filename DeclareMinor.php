@@ -81,33 +81,43 @@ if (isset($_POST['declareMinor'])) {
     $StudentID = $_POST['studentID'] ?? '';
     $DateOfDeclaration = date('Y-m-d');
 
-$mysqli->begin_transaction();
+    $mysqli->begin_transaction();
 
-  $sql = "
-    INSERT INTO StudentMinor (StudentID, MinorID, DateOfDeclaration)
-    VALUES (?, ?, CURRENT_DATE())
-    ON DUPLICATE KEY UPDATE
-        MinorID = VALUES(MinorID),
-        DateOfDeclaration = CURRENT_DATE()
-    ";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("ii", $StudentID, $MinorID);
-  $stmt->execute();
+    if($MinorID === ""){
+        $sql = "
+        DELETE FROM StudentMinor WHERE StudentID = ?;
+        ";
+      $stmt = $mysqli->prepare($sql);
+      $stmt->bind_param("i", $StudentID);
 
-  $sql = "UPDATE Student SET MinorID = ? WHERE StudentID = ?";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("ii", $MinorID, $StudentID);
-  $stmt->execute();
+      if ($stmt->execute()) {
+            $mysqli->commit();
+            echo "<script>alert('Minor Removed ✅');</script>";
+        } else {
+            $mysqli->rollback();
+            echo "<script>alert('Could Not Remove Minor');</script>";
+        }
 
-if ($stmt->execute()) {
-    $mysqli->commit();
-    echo "<script>alert('Minor Declared ✅');</script>";
-} else {
-    $mysqli->rollback();
-    echo "<script>alert('Could Not Declare Minor');</script>";
+    } else {
+      $sql = "
+        INSERT INTO StudentMinor (StudentID, MinorID, DateOfDeclaration)
+        VALUES (?, ?, CURRENT_DATE())
+        ON DUPLICATE KEY UPDATE
+            MinorID = VALUES(MinorID),
+            DateOfDeclaration = CURRENT_DATE()
+        ";
+      $stmt = $mysqli->prepare($sql);
+      $stmt->bind_param("ii", $StudentID, $MinorID);
+
+        if ($stmt->execute()) {
+            $mysqli->commit();
+            echo "<script>alert('Minor Declared ✅');</script>";
+        } else {
+            $mysqli->rollback();
+            echo "<script>alert('Could Not Declare Minor');</script>";
+        }
+    }
 }
-}
-
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
     case 'student':

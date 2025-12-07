@@ -31,40 +31,51 @@ if ($isStudent) {
 
     $searchId = $_SESSION['user_id'];
 
-    $stmt = $mysqli->prepare("SELECT 
-          s.StudentID, 
-          CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
-          sm.MajorID
+    $stmt = $mysqli->prepare("
+        SELECT 
+            s.StudentID,
+            CONCAT(u.FirstName, ' ', u.LastName) AS StudentName
         FROM Student s
         JOIN Users u ON s.StudentID = u.UserID
-        LEFT JOIN StudentMajor sm ON s.StudentID = sm.StudentID
-        LEFT JOIN Major m ON sm.MajorID = m.MajorID
         WHERE s.StudentID = ?
-        ORDER BY s.StudentID ASC");
-
+    ");
     $stmt->bind_param("i", $searchId);
     $stmt->execute();
     $loadedStudent = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 } else if (isset($_POST['searchStudent'])) {
+
     $searchId = $_POST['searchID'];
 
-    // Load Student table
-    $stmt = $mysqli->prepare("SELECT 
-          s.StudentID, 
-          CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
-          sm.MajorID
+    $stmt = $mysqli->prepare("
+        SELECT 
+            s.StudentID,
+            CONCAT(u.FirstName, ' ', u.LastName) AS StudentName
         FROM Student s
         JOIN Users u ON s.StudentID = u.UserID
-        LEFT JOIN StudentMajor sm ON s.StudentID = sm.StudentID
-        LEFT JOIN Major m ON sm.MajorID = m.MajorID
         WHERE s.StudentID = ?
-        ORDER BY s.StudentID ASC");
+    ");
     $stmt->bind_param("i", $searchId);
     $stmt->execute();
     $loadedStudent = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 }
+
+if (empty($loadedStudent)) {
+    $studentMajorIDs = [];
+} else {
+    $m_stmt = $mysqli->prepare("SELECT MajorID FROM StudentMajor WHERE StudentID = ?");
+    $m_stmt->bind_param("i", $loadedStudent['StudentID']);
+    $m_stmt->execute();
+    $studentMajorIDs = array_column($m_stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'MajorID');
+    $m_stmt->close();
+}
+
+// Fetch all available majors
+$maj_stmt = $mysqli->prepare("SELECT MajorID, MajorName FROM Major ORDER BY MajorName ASC");
+$maj_stmt->execute();
+$availableMajors = $maj_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$maj_stmt->close();
 
 $userId = $_SESSION['user_id'];
 
@@ -78,37 +89,56 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 if (isset($_POST['declareMajor'])) {
-    $MajorID = $_POST['majorID'] ?? '';
     $StudentID = $_POST['studentID'] ?? '';
-    $DateOfDeclaration = date('Y-m-d');
+    $selectedMajors = $_POST['majorIDs'] ?? [];
+    $selectedMajors = array_slice($selectedMajors, 0, 2);
 
-$mysqli->begin_transaction();
+    $mysqli->begin_transaction();
+    $ok = true;
 
-  $sql = "
-    INSERT INTO StudentMajor (StudentID, MajorID, DateOfDeclaration)
-    VALUES (?, ?, CURRENT_DATE())
-    ON DUPLICATE KEY UPDATE
-        MajorID = VALUES(MajorID),
-        DateOfDeclaration = CURRENT_DATE()
-    ";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("ii", $StudentID, $MajorID);
-  $stmt->execute();
+    $stmt = $mysqli->prepare("SELECT MajorID FROM StudentMajor WHERE StudentID = ?");
+    $stmt->bind_param("i", $StudentID);
+    $stmt->execute();
+    $existingMajors = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'MajorID');
+    $stmt->close();
 
-  $sql = "UPDATE Student SET MajorID = ? WHERE StudentID = ?";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("ii", $MajorID, $StudentID);
-  $stmt->execute();
+    $toDelete = array_diff($existingMajors, $selectedMajors);
 
-if ($stmt->execute()) {
-    $mysqli->commit();
-    echo "<script>alert('Major Declared ✅');</script>";
-} else {
-    $mysqli->rollback();
-    echo "<script>alert('Could Not Declare Major');</script>";
+    if (!empty($toDelete)) {
+        $del = $mysqli->prepare("DELETE FROM StudentMajor WHERE StudentID = ? AND MajorID = ?");
+        foreach ($toDelete as $mid) {
+            if (!$del->bind_param("ii", $StudentID, $mid) ||
+                !$del->execute()) {
+                $ok = false;
+            }
+        }
+        $del->close();
+    }
+
+    $toInsert = array_diff($selectedMajors, $existingMajors);
+
+    if (!empty($toInsert)) {
+        $ins = $mysqli->prepare(
+            "INSERT INTO StudentMajor (StudentID, MajorID, DateOfDeclaration)
+             VALUES (?, ?, CURRENT_DATE())"
+        );
+        foreach ($toInsert as $mid) {
+            if (!$ins->bind_param("ii", $StudentID, $mid) ||
+                !$ins->execute()) {
+                $ok = false;
+            }
+        }
+        $ins->close();
+    }
+
+    if ($ok) {
+        $mysqli->commit();
+        echo "<script>alert('Major Declared ✅');</script>";
+    } else {
+        $mysqli->rollback();
+        echo "<script>alert('Could Not Declare Major');</script>";
+    }
 }
-}
-
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
     case 'student':
@@ -202,12 +232,15 @@ switch ($userRole) {
                 <input type="text" name="studentID" readonly value="<?php echo $loadedStudent['StudentID']; ?>">
             </div>
 
-            <div class="field-block">
-                <label for = "majorID" required>Major: </label>
-                  <select name="majorID" id ="majorID">
-                    <option value="">-- Select Major--</option>
-                  </select>
-            </div>
+            <label>Select Major(s) (0–2 allowed):</label><br>
+
+            <?php foreach ($availableMajors as $m): ?>
+                <label>
+                    <input type="checkbox" name="majorIDs[]" value="<?= $m['MajorID'] ?>"
+                           <?= in_array($m['MajorID'], $studentMajorIDs) ? 'checked' : '' ?>>
+                    <?= htmlspecialchars($m['MajorName']) ?>
+                </label><br>
+            <?php endforeach; ?>
 
             <div class="field-block">
                 <label>Date of Declaration</label>
@@ -247,10 +280,7 @@ switch ($userRole) {
       if (window.lucide) lucide.createIcons();
     });
 
-    // Fetch majors from get_majors.php
-    const currentMajor = "<?php echo $loadedStudent['MajorID']; ?>";
-
-    fetch(`get_majors.php?current=${currentMajor}`)
+    fetch(`get_majors.php`)
     .then(response => response.json())
     .then(data => {
         const majorSelect = document.getElementById('majorID');

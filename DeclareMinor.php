@@ -33,11 +33,11 @@ if ($isStudent) {
     $stmt = $mysqli->prepare("SELECT 
           s.StudentID, 
           CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
-          sm.MajorID
+          sm.MinorID
         FROM Student s
         JOIN Users u ON s.StudentID = u.UserID
-        LEFT JOIN StudentMajor sm ON s.StudentID = sm.StudentID
-        LEFT JOIN Major m ON sm.MajorID = m.MajorID
+        LEFT JOIN StudentMinor sm ON s.StudentID = sm.StudentID
+        LEFT JOIN Minor m ON sm.MajorID = m.MajorID
         WHERE s.StudentID = ?
         ORDER BY s.StudentID ASC");
 
@@ -272,7 +272,7 @@ switch ($userRole) {
     // Fetch Minors from get_Minors.php
     const currentMinor = "<?php echo $loadedStudent['MinorID']; ?>";
 
-    fetch(`get_ninors.php?current=${currentMinor}`)
+    fetch(`get_minors.php?current=${currentMinor}`)
     .then(response => response.json())
     .then(data => {
         const MinorSelect = document.getElementById('MinorID');

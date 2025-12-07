@@ -272,7 +272,7 @@ switch ($userRole) {
     // Fetch Minors from get_Minors.php
     const currentMinor = "<?php echo $loadedStudent['MinorID']; ?>";
 
-    fetch(`get_Minors.php?current=${currentMinor}`)
+    fetch(`get_ninors.php?current=${currentMinor}`)
     .then(response => response.json())
     .then(data => {
         const MinorSelect = document.getElementById('MinorID');

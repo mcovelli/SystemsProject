@@ -130,6 +130,36 @@ if (isset($_POST['declareMajor'])) {
         }
         $ins->close();
     }
+$primaryMajor = $selectedMajors[0] ?? null;
+
+if ($primaryMajor !== null) {
+
+    // Get DeptID for this major
+    $dept_stmt = $mysqli->prepare("
+        SELECT DeptID FROM Major WHERE MajorID = ? LIMIT 1
+    ");
+    $dept_stmt->bind_param("i", $primaryMajor);
+    $dept_stmt->execute();
+    $dept_res = $dept_stmt->get_result()->fetch_assoc();
+    $dept_stmt->close();
+
+    $deptID = $dept_res['DeptID'] ?? null;
+
+    if ($deptID !== null) {
+        // Update Undergraduate record
+        $ug_stmt = $mysqli->prepare("
+            UPDATE Undergraduate SET DeptID = ?
+            WHERE StudentID = ?
+        ");
+        $ug_stmt->bind_param("ii", $deptID, $StudentID);
+
+        if (!$ug_stmt->execute()) {
+            $ok = false;
+        }
+
+        $ug_stmt->close();
+    }
+}
 
     if ($ok) {
         $mysqli->commit();
@@ -139,6 +169,7 @@ if (isset($_POST['declareMajor'])) {
         echo "<script>alert('Could Not Declare Major');</script>";
     }
 }
+
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
     case 'student':

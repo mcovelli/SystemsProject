@@ -54,7 +54,8 @@ if ($isStudent) {
           CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
           g.ProgramID
         FROM Users u
-        LEFT JOIN Student s ON u.UserID = s.StudentID
+        JOIN Student s ON u.UserID = s.StudentID
+        LEFT JOIN Graduate g ON s.StudentID = g.StudentID
         WHERE s.StudentID = ?
         ORDER BY s.StudentID ASC");
     $stmt->bind_param("i", $searchId);
@@ -79,58 +80,68 @@ if (isset($_POST['declareProgram'])) {
     $StudentID = $_POST['studentID'] ?? '';
     $DateOfDeclaration = date('Y-m-d');
 
-$mysqli->begin_transaction();
+    $ok = true;
+    $mysqli->begin_transaction();
 
-  $sql = "
-    UPDATE Graduate SET ProgramID = ? WHERE StudentID = ?
-    ";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("ii", $StudentID, $ProgramID);
-  $stmt->execute();
+    if ($ProgramID === "") {
 
-  $sql = "
-    UPDATE Student SET MajorID = ? WHERE StudentID = ?
-    ";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("ii", $StudentID, $ProgramID);
-  $stmt->execute();
+        // Remove grad program
+        $stmt = $mysqli->prepare("UPDATE Graduate SET ProgramID = NULL WHERE StudentID = ?");
+        $stmt->bind_param("i", $StudentID);
+        if (!$stmt->execute()) $ok = false;
+        $stmt->close();
 
-if ($stmt->execute()) {
-    $mysqli->commit();
-    echo "<script>alert('Program Declared ✅');</script>";
-} else {
-    $mysqli->rollback();
-    echo "<script>alert('Could Not Declare Program');</script>";
-}
-}
+        // Remove major from Student table
+        $stmt = $mysqli->prepare("UPDATE Student SET MajorID = NULL WHERE StudentID = ?");
+        $stmt->bind_param("i", $StudentID);
+        if (!$stmt->execute()) $ok = false;
+        $stmt->close();
 
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-    case 'student':
-        $dashboard = 'student_dashboard.php';
-        $profile = 'student_profile.php';
-        break;
-    case 'faculty':
-        $dashboard = 'faculty_dashboard.php';
-        $profile = 'faculty_profile.php';
-        break;
-    case 'admin':
-        // if you have update/view admin types:
-        if (($_SESSION['admin_type'] ?? '') === 'update') {
-            $dashboard = 'update_admin_dashboard.php';
-            $profile = 'admin_profile.php';
+        if ($ok) {
+            $mysqli->commit();
+            echo "<script>alert('Program Removed ✅');</script>";
         } else {
-            $dashboard = 'view_admin_dashboard.php';
-            $profile = 'admin_profile.php';
+            $mysqli->rollback();
+            echo "<script>alert('Could Not Remove Program');</script>";
         }
-        break;
-    case 'statstaff':
-        $dashboard = 'statstaff_dashboard.php';
-        $profile = 'staff_profile.php';
-        break;
-    default:
-        $dashboard = 'login.html';
-        $profile = 'login.html';
+
+        return;
+    }
+
+    // Update Graduate table
+    $stmt = $mysqli->prepare("UPDATE Graduate SET ProgramID = ? WHERE StudentID = ?");
+    $stmt->bind_param("ii", $ProgramID, $StudentID);
+    if (!$stmt->execute()) $ok = false;
+    $stmt->close();
+
+    // Update Student table (MajorID mirrors ProgramID)
+    $stmt = $mysqli->prepare("UPDATE Student SET MajorID = ? WHERE StudentID = ?");
+    $stmt->bind_param("ii", $ProgramID, $StudentID);
+    if (!$stmt->execute()) $ok = false;
+    $stmt->close();
+
+    $dept_stmt = $mysqli->prepare("SELECT DeptID FROM Program WHERE ProgramID = ? LIMIT 1");
+    $dept_stmt->bind_param("i", $ProgramID);
+    $dept_stmt->execute();
+    $dept_res = $dept_stmt->get_result()->fetch_assoc();
+    $dept_stmt->close();
+
+    if (!empty($dept_res['DeptID'])) {
+        $deptID = $dept_res['DeptID'];
+
+        $g_stmt = $mysqli->prepare("UPDATE Graduate SET DeptID = ? WHERE StudentID = ?");
+        $g_stmt->bind_param("ii", $deptID, $StudentID);
+        if (!$g_stmt->execute()) $ok = false;
+        $g_stmt->close();
+    }
+
+    if ($ok) {
+        $mysqli->commit();
+        echo "<script>alert('Program Declared ✅');</script>";
+    } else {
+        $mysqli->rollback();
+        echo "<script>alert('Could Not Declare Program');</script>";
+    }
 }
 
 ?>
@@ -211,7 +222,7 @@ switch ($userRole) {
             <div class="field-block">
                 <label for = "programID" required>Program: </label>
                   <select name="programID" id ="programID">
-                    <option value="">-- Select Program--</option>
+                    <option value="">-- Undeclared --</option>
                   </select>
             </div>
 

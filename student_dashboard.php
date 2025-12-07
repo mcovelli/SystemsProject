@@ -1,5 +1,5 @@
 <?php
-// Student Dashboard: display a rich portal using Northport dashboard design.
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -271,15 +271,26 @@ $quickLinks = [
     ['label' => 'View Directory',      'href' => 'viewDirectory.php',                      'icon' => 'credit-card'],
 ];
 
-$tasks = [
-];
+if ($isGrad) {
 
+    $quickLinks[] = [
+        'label' => 'Declare Program',
+        'href'  => 'DeclareProgram.php',
+        'icon'  => 'brain'
+    ];
+} else {
+    $quickLinks[] = [
+        'label' => 'Declare Major',
+        'href'  => 'DeclareMajor.php',
+        'icon'  => 'brain'
+    ];
 
-$messages = [
-    ['from' => 'Dr. Lee',    'subject' => 'Project Update',      'time' => 'Oct 10', 'preview' => 'Please send me your latest project status by Friday.'],
-    ['from' => 'Bursar',     'subject' => 'Payment Reminder',    'time' => 'Oct 08', 'preview' => 'Your tuition payment is due Oct 25.'],
-];
-
+    $quickLinks[] = [
+        'label' => 'Declare Minor',
+        'href'  => 'DeclareMinor.php',
+        'icon'  => 'brain'
+    ];
+}
 
 ?><!doctype html>
 <html lang="en" data-theme="light">
@@ -665,15 +676,6 @@ $messages = [
     });
     lucide.createIcons();
 
-    // Insert tasks
-    const tasks = <?php echo json_encode($tasks); ?>;
-    const taskList = document.getElementById('studentTasksList');
-    tasks.forEach(task => {
-      const item = document.createElement('div');
-      item.className = 'row between small';
-      item.innerHTML = '<span>' + task.title + '</span><span class="muted">' + task.due + '</span>';
-      taskList.appendChild(item);
-    });
 
     // GPA Trend Chart
     const gpaLabels = <?= json_encode($gpa_labels); ?>;
@@ -704,16 +706,6 @@ $messages = [
       }
 });
 
-
-    // Messages
-    const messages = <?php echo json_encode($messages); ?>;
-    const msgList = document.getElementById('studentMsgList');
-    messages.forEach(msg => {
-      const item = document.createElement('div');
-      item.className = 'row between small';
-      item.innerHTML = '<span><strong>' + msg.from + ':</strong> ' + msg.subject + '</span><span class="muted">' + msg.time + '</span>';
-      msgList.appendChild(item);
-    });
   </script>
 </body>
 </html>

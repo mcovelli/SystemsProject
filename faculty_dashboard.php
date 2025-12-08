@@ -289,7 +289,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             </thead>
             <tbody>
               <?php if (empty($schedule)): ?>
-                <tr><td colspan="5">No schedule available.</td></tr>
+                <tr><td colspan="5">Professor Out On Leave</td></tr>
               <?php else: ?>
                 <?php foreach ($schedule as $row): ?>
                   <tr>

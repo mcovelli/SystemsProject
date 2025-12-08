@@ -102,7 +102,10 @@ switch ($userRole) {
         $profile = 'login.html';
 }
 
-$initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
+$first = $user['FirstName'] ?? '';
+$last  = $user['LastName'] ?? '';
+$initials = ($first !== '' ? $first[0] : '') . ($last !== '' ? $last[0] : '');
+if ($initials === '') { $initials = 'NU'; }
 ?>
 
 

@@ -14,11 +14,22 @@ if (
     exit;
 }
 
-$userId = $_SESSION['user_id'];
-
-
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
+
+$userId = $_SESSION['user_id'];
+$selectedCRN = $_GET['crn'] ?? null;
+$selectedCourseID = null;
+
+if ($selectedCRN) {
+    $cid_sql = "SELECT CourseID FROM CourseSection WHERE CRN = ? LIMIT 1";
+    $cid_stmt = $mysqli->prepare($cid_sql);
+    $cid_stmt->bind_param("i", $selectedCRN);
+    $cid_stmt->execute();
+    $cid_result = $cid_stmt->get_result()->fetch_assoc();
+    $selectedCourseID = $cid_result['CourseID'] ?? null;
+    $cid_stmt->close();
+}
 
 // Fetch user and faculty info
 $user_stmt = $mysqli->prepare("SELECT FirstName, LastName, Email, DOB FROM Users WHERE UserID = ? LIMIT 1");
@@ -64,11 +75,11 @@ if ($selectedSemester !== null) {
         FROM CourseSection cs
         JOIN Course c ON cs.CourseID = c.CourseID
         JOIN Semester s ON cs.SemesterID = s.SemesterID
-        JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
-        JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
-        JOIN Day d ON tsd.DayID = d.DayID
-        JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
-        JOIN Period p ON tsp.PeriodID = p.PeriodID
+        LEFT JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
+        LEFT JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
+        LEFT JOIN Day d ON tsd.DayID = d.DayID
+        LEFT JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
+        LEFT JOIN Period p ON tsp.PeriodID = p.PeriodID
         WHERE cs.FacultyID = ?
           AND cs.SemesterID = ?
         GROUP BY cs.CRN, c.CourseName, cs.RoomID
@@ -85,31 +96,25 @@ if ($selectedSemester !== null) {
 
 // Fetch roster (students enrolled in faculty's sections)
 $roster = [];
-if ($selectedSemester) {
-      $roster_sql = "
-          SELECT 
-        se.StudentID,
-        se.CRN,
-        CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
-        c.CourseName,
-        cs.CourseID
-      FROM StudentEnrollment se
-      JOIN Users u ON se.StudentID = u.UserID
-      JOIN CourseSection cs ON se.CRN = cs.CRN
-      JOIN Course c ON cs.CourseID = c.CourseID
-      JOIN Semester s ON cs.SemesterID = s.SemesterID
-      JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
-      JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
-      JOIN Day d ON tsd.DayID = d.DayID
-      JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
-      JOIN Period p ON tsp.PeriodID = p.PeriodID
-      WHERE cs.FacultyID = ?
-        AND cs.SemesterID = ?
-      GROUP BY se.StudentID, cs.CRN, c.CourseName, cs.RoomID
-      ORDER BY c.CourseName, u.LastName, u.FirstName;
+    if ($selectedSemester) {
+          $roster_sql = "
+        SELECT 
+            se.StudentID,
+            se.CRN,
+            CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
+            c.CourseName,
+            cs.CourseID
+        FROM StudentEnrollment se
+        JOIN Users u ON se.StudentID = u.UserID
+        JOIN CourseSection cs ON se.CRN = cs.CRN
+        JOIN Course c ON cs.CourseID = c.CourseID
+        WHERE cs.FacultyID = ?
+          AND cs.SemesterID = ?
+          AND cs.CRN = ?
+        ORDER BY u.LastName, u.FirstName;
     ";
     $roster_stmt = $mysqli->prepare($roster_sql);
-    $roster_stmt->bind_param('is', $userId, $selectedSemester);
+    $roster_stmt->bind_param("iss", $userId, $selectedSemester, $selectedCRN);
     $roster_stmt->execute();
     $roster_result = $roster_stmt->get_result();
     $roster = $roster_result->fetch_all(MYSQLI_ASSOC);
@@ -223,10 +228,10 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             <label for ="teacher-courses">
               <form method="GET">
               <div>Select Course:</div>
-              <select name= "courseID">
+              <select name= "crn">
                 <option value = "">---</option>
                   <?php foreach ($schedule as $row): ?>
-                  <option value="<?= $row['CourseID'] ?>"> <?= htmlspecialchars($row['CourseID'] . ' - ' . $row['CRN'])?>
+                  <option value="<?= $row['CRN'] ?>"> <?= htmlspecialchars($row['CourseID'] . ' - ' . $row['CRN']) ?>
                   </option>
                 <?php endforeach; ?>
             </select>
@@ -242,7 +247,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       </div>
 
       <div id = "attendance-chart" class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
-      <div class="card-head"><div>Attendance Chart</div></div>
+      <div class="card-head"><div>Attendance Chart: <?= $selectedCourseID . ' - ' . $selectedCRN ?> </div></div>
         <div class="card-body">
         <div class = "table-wrap">
           <form method="POST">

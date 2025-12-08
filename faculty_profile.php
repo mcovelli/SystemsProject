@@ -320,7 +320,7 @@ $adv_stmt->close();
             </thead>
             <tbody id="facultyScheduleBody">
               <?php if (empty($courses)): ?>
-                <tr><td colspan="4">No courses scheduled for this semester.</td></tr>
+                <tr><td colspan="4">Professor Out On Leave</td></tr>
               <?php else: ?>
                 <?php foreach ($courses as $row): ?>
                   <tr>

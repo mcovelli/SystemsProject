@@ -99,22 +99,26 @@ if (isset($stmt)) {
     $stmt->close();
 }
 
-// Determine dashboard link for the "Back" button
-$dashboardLink = 'dashboard.php'; // Default fallback
-if ($userRole === 'student') {
-    $dashboardLink = 'student_dashboard.php';
-} elseif ($userRole === 'faculty') {
-    $dashboardLink = 'faculty_dashboard.php';
-} elseif ($userRole === 'admin') {
-    // ADMIN ROLE: Check for specific admin permission levels
-    if ($adminPermission === 'UpdateAdmin') {
-        $dashboardLink = 'update_admin_dashboard.php';
-    } elseif ($adminPermission === 'ViewAdmin') {
-        $dashboardLink = 'view_admin_dashboard.php';
-    } else {
-        $dashboardLink = 'login.html';
-    }
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'faculty':
+        $dashboard = 'faculty_dashboard.php';
+        $profile = 'faculty_profile.php';
+        break;
+    case 'admin':
+        if (($_SESSION['admin_type'] ?? '') === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        } else {
+            $dashboard = 'view_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        }
+        break;
+    default:
+        $dashboard = 'login.html'; // fallback
+        $profile = 'login.html';
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -155,7 +159,7 @@ if ($userRole === 'student') {
       <p>No announcements available.</p>
     <?php endif; ?>
     
-    <a href='<?= $dashboardLink ?>' class='btn outline'>← Back to Dashboard</a>
+    <a href='<?= $dashboard ?>' class='btn outline'>← Back to Dashboard</a>
   </div>
   
   <footer class="footer">© <span id="year"></span> Northport University</footer>

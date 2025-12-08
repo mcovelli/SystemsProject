@@ -175,8 +175,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <td><?= htmlspecialchars($a['Year']) ?></td>
                     <td><?= htmlspecialchars($a['StudentType']) ?></td>
                     <td><a href="mailto:<?= htmlspecialchars($a['Email']) ?>"><?= htmlspecialchars($a['Email']) ?></a></td>
-                    <td><?= htmlspecialchars($a['MajorName']) ?? 'Undeclared' ?></td>
-                    <td><?= htmlspecialchars($a['MinorName']) ?? 'Undeclared' ?></td>
+                    <td><?= htmlspecialchars($a['MajorName'] ?? 'Undeclared' )?></td>
+                    <td><?= htmlspecialchars($a['MinorName'] ?? 'Undeclared' )?></td>
                   </tr>
                 <?php endforeach; ?>
               <?php else: ?>

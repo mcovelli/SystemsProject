@@ -94,10 +94,22 @@ if ($selectedSemester !== null) {
     $courses_stmt->close();
 }
 
+// Generate the week dates BEFORE using them
+$startOfWeek = strtotime('monday this week');
+$days = [];
+for ($i = 0; $i < 5; $i++) {
+    $timestamp = strtotime("+$i day", $startOfWeek);
+    $days[] = [
+        'label'   => date('D', $timestamp),       // Mon
+        'display' => date('M j', $timestamp),     // Jan 27
+        'mysql'   => date('Y-m-d', $timestamp)    // 2025-01-27
+    ];
+}
+
 // Fetch roster (students enrolled in faculty's sections)
 $roster = [];
-    if ($selectedSemester) {
-          $roster_sql = "
+if ($selectedSemester && $selectedCRN) {
+    $roster_sql = "
         SELECT 
             se.StudentID,
             se.CRN,
@@ -114,7 +126,7 @@ $roster = [];
         ORDER BY u.LastName, u.FirstName;
     ";
     $roster_stmt = $mysqli->prepare($roster_sql);
-    $roster_stmt->bind_param("iss", $userId, $selectedSemester, $selectedCRN);
+    $roster_stmt->bind_param("isi", $userId, $selectedSemester, $selectedCRN);
     $roster_stmt->execute();
     $roster_result = $roster_stmt->get_result();
     $roster = $roster_result->fetch_all(MYSQLI_ASSOC);
@@ -124,7 +136,7 @@ $roster = [];
 // Fetch existing attendance for this CRN for all students for this week
 $existingAttendance = [];
 
-if (!empty($roster)) {
+if (!empty($roster) && !empty($days)) {
 
     // Build list of StudentIDs
     $studentIds = array_column($roster, 'StudentID');
@@ -183,9 +195,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $sql = "INSERT INTO CourseSectionAttendance
             (StudentID, CRN, CourseID, AttendanceDate, PresentAbsent)
-            VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
-        PresentAbsent = VALUES(PresentAbsent),
-        AttendanceDate = VALUES(AttendanceDate)";
+            VALUES (?, ?, ?, ?, ?) 
+            ON DUPLICATE KEY UPDATE
+            PresentAbsent = VALUES(PresentAbsent)";
 
     $stmt = $mysqli->prepare($sql);
 
@@ -262,104 +274,93 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   </header>
 
     
-       <div class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
-        <div class="card-head"><div>Track Attendance</div></div>
-        <div class = "card-body">
-          <div class="controls" style="margin-bottom:16px; margin-left:10px; margin-right:10px">
-            <div class = "label">
-            <label for ="teacher-courses">
-              <form method="GET">
+  <div class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
+    <div class="card-head"><div>Track Attendance</div></div>
+    <div class="card-body">
+      <div class="controls" style="margin-bottom:16px; margin-left:10px; margin-right:10px">
+        <form method="GET">
+          <div class="label">
+            <label for="teacher-courses">
               <div>Select Course:</div>
-              <select name= "crn">
-                <option value = "">---</option>
-                  <?php foreach ($schedule as $row): ?>
-                  <option value="<?= $row['CRN'] ?>"> <?= htmlspecialchars($row['CourseID'] . ' - ' . $row['CRN']) ?>
+              <select name="crn">
+                <option value="">---</option>
+                <?php foreach ($schedule as $row): ?>
+                  <option value="<?= $row['CRN'] ?>" <?= ($selectedCRN == $row['CRN']) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($row['CourseID'] . ' - ' . $row['CRN']) ?>
                   </option>
                 <?php endforeach; ?>
-            </select>
-              </label>
-            </div>
-              <div class = "label" style="margin-top:16px">
-            <button id = "selectButton">Choose Course</button>
+              </select>
+            </label>
+          </div>
+          <div class="label" style="margin-top:16px">
+            <button type="submit" id="selectButton">Choose Course</button>
+          </div>
         </form>
-            </div>
-           </div>
-          </div>
-        </div>
       </div>
-
-      <div id = "attendance-chart" class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
-      <div class="card-head"><div>Attendance Chart: <?= $selectedCourseID . ' - ' . $selectedCRN ?> </div></div>
-        <div class="card-body">
-        <div class = "table-wrap">
-          <form method="POST">
-          <table id = "daily-schedule">
-              <?php
-                $startOfWeek = strtotime('monday this week');
-
-                  $days = [];
-                  for ($i = 0; $i < 5; $i++) {
-                      $timestamp = strtotime("+$i day", $startOfWeek);
-                      $days[] = [
-                          'label'        => date('D', $timestamp),       // Mon
-                          'display'      => date('M j', $timestamp),     // Jan 27
-                          'mysql'        => date('Y-m-d', $timestamp)    // 2025-01-27
-                      ];
-                  }
-                ?>
-
-                <thead>
-                    <tr>
-                        <th>Student Name</th>
-                        <?php foreach ($days as $d): ?>
-                            <th><?= $d['label'] ?> (<?= $d['display'] ?>)</th>
-                        <?php endforeach; ?>
-                    </tr>
-                </thead>
-
-                <tbody>
-                  <?php foreach ($roster as $r): ?>
-                      <tr>
-                          <td>
-                              <?= htmlspecialchars($r['StudentName']) ?>
-                              <input type="hidden" name="studentID[]" value="<?= $r['StudentID'] ?>">
-                              <input type="hidden" name="crn[]" value="<?= $r['CRN'] ?>">
-                              <input type="hidden" name="courseID[]" value="<?= $r['CourseID'] ?>">
-                          </td>
-
-                          <?php foreach ($days as $d): ?>
-                              <td>
-                                  <?php
-                                    $val = $existingAttendance[$r['StudentID']][$d['mysql']] ?? "";
-                                    ?>
-                                    <select name="status[]">
-                                        <option value="" <?= $val === "" ? "selected" : "" ?>>---</option>
-                                        <option value="Present" <?= $val === "Present" ? "selected" : "" ?>>Present</option>
-                                        <option value="Absent" <?= $val === "Absent" ? "selected" : "" ?>>Absent</option>
-                                    </select>
-
-                                    <input type="hidden" name="attendanceDate[]" value="<?= $d['mysql'] ?>">
-
-                                  <input type="hidden" name="attendanceDate[]" value="<?= $d['mysql'] ?>">
-                              </td>
-                          <?php endforeach; ?>
-
-                      </tr>
-                  <?php endforeach; ?>
-                  </tbody>
-              </table>
-                <button type="submit" class="btn" style="margin-top:16px;">
-                  Submit Attendance
-                </button>
-            </form>
-          </div>
-        </div>
-      </div>  
-      </div>
-    </main>
+    </div>
   </div>
 
-    <footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
+  <?php if ($selectedCRN && !empty($roster)): ?>
+  <div id="attendance-chart" class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
+    <div class="card-head">
+      <div>Attendance Chart: <?= htmlspecialchars($selectedCourseID . ' - CRN: ' . $selectedCRN) ?></div>
+    </div>
+    <div class="card-body">
+      <div class="table-wrap">
+        <form method="POST">
+          <table id="daily-schedule">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <?php foreach ($days as $d): ?>
+                  <th><?= $d['label'] ?> (<?= $d['display'] ?>)</th>
+                <?php endforeach; ?>
+              </tr>
+            </thead>
+
+            <tbody>
+              <?php foreach ($roster as $r): ?>
+                <tr>
+                  <td>
+                    <?= htmlspecialchars($r['StudentName']) ?>
+                    <input type="hidden" name="studentID[]" value="<?= $r['StudentID'] ?>">
+                    <input type="hidden" name="crn[]" value="<?= $r['CRN'] ?>">
+                    <input type="hidden" name="courseID[]" value="<?= $r['CourseID'] ?>">
+                  </td>
+
+                  <?php foreach ($days as $d): ?>
+                    <td>
+                      <?php
+                        $val = $existingAttendance[$r['StudentID']][$d['mysql']] ?? "";
+                      ?>
+                      <select name="status[]">
+                        <option value="" <?= $val === "" ? "selected" : "" ?>>---</option>
+                        <option value="PRESENT" <?= $val === "PRESENT" ? "selected" : "" ?>>Present</option>
+                        <option value="ABSENT" <?= $val === "ABSENT" ? "selected" : "" ?>>Absent</option>
+                      </select>
+                      <input type="hidden" name="attendanceDate[]" value="<?= $d['mysql'] ?>">
+                    </td>
+                  <?php endforeach; ?>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+          <button type="submit" class="btn" style="margin-top:16px;">
+            Submit Attendance
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <?php elseif ($selectedCRN && empty($roster)): ?>
+  <div class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
+    <div class="card-body">
+      <p>No students enrolled in this course section.</p>
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script>

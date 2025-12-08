@@ -30,7 +30,27 @@ if ($userRole === 'faculty') {
     $sections = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 }
-// Note: Admin doesn't need to fetch any specific sections, their options are static.
+
+$userRole = strtolower($_SESSION['role'] ?? '');
+switch ($userRole) {
+    case 'faculty':
+        $dashboard = 'faculty_dashboard.php';
+        $profile = 'faculty_profile.php';
+        break;
+    case 'admin':
+        if (($_SESSION['admin_type'] ?? '') === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        } else {
+            $dashboard = 'view_admin_dashboard.php';
+            $profile = 'admin_profile.php';
+        }
+        break;
+    default:
+        $dashboard = 'login.html'; // fallback
+        $profile = 'login.html';
+}
+
 ?>
 <!doctype html>
 <html lang="en" data-theme="light">
@@ -51,7 +71,7 @@ if ($userRole === 'faculty') {
     <div class="top-actions">
         <button class="btn outline" id="themeToggle" title="Toggle theme">🌙</button>
         <div class="top-actions">
-            <a href="<?= ($userRole === 'admin' ? 'admin_dashboard.php' : 'faculty_dashboard.php') ?>" title="Back to Dashboard">← Back to Dashboard</a>
+            <a href='<?= $dashboard ?>' class='btn outline'>← Back to Dashboard</a>
         </div>
     </div>
 </header>

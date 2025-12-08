@@ -121,6 +121,48 @@ $roster = [];
     $roster_stmt->close();
 }
 
+// Fetch existing attendance for this CRN for all students for this week
+$existingAttendance = [];
+
+if (!empty($roster)) {
+
+    // Build list of StudentIDs
+    $studentIds = array_column($roster, 'StudentID');
+
+    // Build list of dates for the week
+    $weekDates = array_column($days, 'mysql'); // ["2025-01-27", "2025-01-28", ...]
+
+    // Turn into placeholders (?, ?, ?, ...)
+    $placeholdersStud = implode(',', array_fill(0, count($studentIds), '?'));
+    $placeholdersDates = implode(',', array_fill(0, count($weekDates), '?'));
+
+    $sql_att = "
+        SELECT StudentID, AttendanceDate, PresentAbsent
+        FROM CourseSectionAttendance
+        WHERE CRN = ?
+          AND StudentID IN ($placeholdersStud)
+          AND AttendanceDate IN ($placeholdersDates)
+    ";
+
+    $types = str_repeat('i', count($studentIds)) . str_repeat('s', count($weekDates));
+    $bindTypes = "i" . $types;
+
+    $stmt_att = $mysqli->prepare($sql_att);
+
+    $bindValues = array_merge([$selectedCRN], $studentIds, $weekDates);
+
+    $stmt_att->bind_param($bindTypes, ...$bindValues);
+    $stmt_att->execute();
+
+    $result_att = $stmt_att->get_result();
+
+    while ($row = $result_att->fetch_assoc()) {
+        $existingAttendance[$row['StudentID']][$row['AttendanceDate']] = $row['PresentAbsent'];
+    }
+
+    $stmt_att->close();
+}
+
 $fac_stmt = $mysqli->prepare("SELECT OfficeID, Ranking FROM Faculty WHERE FacultyID = ? LIMIT 1");
 $fac_stmt->bind_param('i', $userId);
 $fac_stmt->execute();
@@ -287,11 +329,16 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
                           <?php foreach ($days as $d): ?>
                               <td>
-                                  <select name="status[]">
-                                      <option value="">---</option>
-                                      <option value="Present">Present</option>
-                                      <option value="Absent">Absent</option>
-                                  </select>
+                                  <?php
+                                    $val = $existingAttendance[$r['StudentID']][$d['mysql']] ?? "";
+                                    ?>
+                                    <select name="status[]">
+                                        <option value="" <?= $val === "" ? "selected" : "" ?>>---</option>
+                                        <option value="Present" <?= $val === "Present" ? "selected" : "" ?>>Present</option>
+                                        <option value="Absent" <?= $val === "Absent" ? "selected" : "" ?>>Absent</option>
+                                    </select>
+
+                                    <input type="hidden" name="attendanceDate[]" value="<?= $d['mysql'] ?>">
 
                                   <input type="hidden" name="attendanceDate[]" value="<?= $d['mysql'] ?>">
                               </td>

@@ -28,6 +28,7 @@ $selectedDept = $_GET['dept'] ?? '';
 $selectedMajor = $_GET['major'] ?? '';
 $selectedMinor = $_GET['minor'] ?? '';
 
+#Pulls data from database for student info
 $sql = "SELECT CONCAT(su.FirstName, ' ', su.LastName) AS StudentName,
               s.StudentType,
               s.StudentID,

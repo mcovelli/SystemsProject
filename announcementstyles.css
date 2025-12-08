@@ -1,0 +1,156 @@
+/* ---------------------------------------------------
+   Northport University — Announcement Stylesheet
+   --------------------------------------------------- */
+
+:root {
+  --bg: #f7f7f9;
+  --panel: #ffffff;
+  --text: #1a1a1a;
+  --subtext: #555;
+  --border: #e5e5e8;
+  --shadow: rgba(0, 0, 0, 0.06);
+
+  --system-color: #6a5acd;   /* SYSTEM (Admin) announcements */
+  --course-color: #2a7ae2;   /* COURSE announcements */
+
+  --radius: 14px;
+  --transition: 0.2s ease;
+}
+
+[data-theme="dark"] {
+  --bg: #0f1114;
+  --panel: #161a1d;
+  --text: #eaeaea;
+  --subtext: #9a9a9a;
+  --border: #262a2d;
+  --shadow: rgba(0, 0, 0, 0.45);
+
+  --system-color: #a895ff;
+  --course-color: #72a8ff;
+}
+
+/* ---------------------------------------------------
+   PAGE WRAPPER
+   --------------------------------------------------- */
+
+body.page {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  font-family: "Inter", sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 850px;
+  margin: 50px auto;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 25px;
+}
+
+/* ---------------------------------------------------
+   ANNOUNCEMENT CARD
+   --------------------------------------------------- */
+
+.announcement {
+  background: var(--panel);
+  padding: 20px 25px;
+  border-radius: var(--radius);
+  box-shadow: 0 3px 10px var(--shadow);
+  border: 1px solid var(--border);
+  margin-bottom: 30px;
+  transition: var(--transition);
+}
+
+.announcement:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px var(--shadow);
+}
+
+/* ---------------------------------------------------
+   HEADER (Course vs System)
+   --------------------------------------------------- */
+
+.announcement-header {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.announcement-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.announcement-header.course h3 {
+  color: var(--course-color);
+}
+
+.announcement-header.admin h3 {
+  color: var(--system-color);
+}
+
+/* ---------------------------------------------------
+   MESSAGE BODY
+   --------------------------------------------------- */
+
+.announcement-message {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 10px 0 18px;
+  white-space: pre-line;
+}
+
+/* ---------------------------------------------------
+   FOOTER
+   --------------------------------------------------- */
+
+.announcement-footer {
+  display: block;
+  color: var(--subtext);
+  font-size: 14px;
+}
+
+/* ---------------------------------------------------
+   BUTTON
+   --------------------------------------------------- */
+
+.btn {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn.outline {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+}
+
+.btn.outline:hover {
+  border-color: var(--course-color);
+  color: var(--course-color);
+}
+
+/* ---------------------------------------------------
+   FOOTER
+   --------------------------------------------------- */
+
+.footer {
+  margin-top: 50px;
+  text-align: center;
+  color: var(--subtext);
+  font-size: 14px;
+}

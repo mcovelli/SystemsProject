@@ -9,7 +9,7 @@ $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
 // If admin is viewing another student
-if (isset($_GET['studentID']) && ($_SESSION['role'] ?? '') === 'admin' && ($_SESSION['role'] ?? '') === 'faculty') {
+if (isset($_GET['studentID']) && in_array($_SESSION['role'] ?? '', ['admin', 'faculty'])) {
     $studentID = intval($_GET['studentID']);
 }
 // If student
@@ -149,7 +149,7 @@ $sched_stmt->close();
 
 // Run Degree Audit
 try {
-    $audit_stmt = $mysqli->prepare("CALL RunDegreeAudit(?)");
+    $audit_stmt = $mysqli->prepare("CALL UpdateDegreeAudit(?)");
     $audit_stmt->bind_param('i', $studentID);
     $audit_stmt->execute();
     $audit_stmt->close();
@@ -344,14 +344,10 @@ $standing = ($gpa > 2.99) ? 'Good Standing' : 'Needs Improvement';
                 if ($raw === '') {
                     $neededLines = [];
                 } else {
-                    // Remove any header lines like --- Major Courses Still Needed ---
-                    $raw = preg_replace('/^---.*?---/m', '', $raw);
-
-                    // Split by comma, semicolon, OR newline OR multiple spaces
-                    $neededLines = preg_split("/,|;|\r\n|\r|\n|\s{2,}/", $raw);
-
-                    // Clean blank entries
-                    $neededLines = array_filter(array_map('trim', $neededLines));
+                    $neededLines = preg_split("/\r\n|\r|\n/", $raw);
+                    $neededLines = array_filter(array_map('trim', $neededLines), function($line) {
+                        return $line !== '' && !str_starts_with($line, '---');
+                    });
                 }
               ?>
                 <?php if (!empty($neededLines)): ?>

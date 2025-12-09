@@ -126,10 +126,12 @@ $standing = ($cumulativeGPA >= 3.0) ? 'Good Standing' : 'Needs Improvement';
 // Compute credits currently registered (in‑progress)
 $credits_sql = "
     SELECT SUM(c.Credits) AS TotalCredits
-    FROM StudentEnrollment se
-    JOIN CourseSection cs ON se.CRN = cs.CRN
-    JOIN Course c ON cs.CourseID = c.CourseID
-    WHERE se.StudentID = ? AND se.Status IN('ENROLLED', 'IN-PROGRESS')
+FROM StudentEnrollment se
+JOIN CourseSection cs ON se.CRN = cs.CRN
+JOIN Course c ON cs.CourseID = c.CourseID
+WHERE se.StudentID = ?
+  AND se.SemesterID = ?
+  AND se.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED');
 ";
 $credits_stmt = $mysqli->prepare($credits_sql);
 $credits_stmt->bind_param('i', $userId);

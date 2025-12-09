@@ -452,7 +452,11 @@ if ($isGrad) {
           </div>
           <div class="row gap">
             <button onclick="location.href='degree_audit.php'" class="btn">View Degree Plan</button>
-            <button onclick="location.href='mailto:<?php echo isset($advisorEmail) ? $advisorEmail : ''; ?>'" class="btn outline">Email Advisor</button>
+            <button 
+                onclick="location.href='mailto:<?php echo htmlspecialchars($advisorEmail ?? ''); ?>'" 
+                class="btn outline">
+                Email Advisor
+            </button>
           </div>
         </div>
 

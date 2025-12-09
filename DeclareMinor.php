@@ -37,7 +37,7 @@ if ($isStudent) {
         FROM Student s
         JOIN Users u ON s.StudentID = u.UserID
         LEFT JOIN StudentMinor sm ON s.StudentID = sm.StudentID
-        LEFT JOIN Minor m ON sm.MajorID = m.MajorID
+        LEFT JOIN Minor m ON sm.MinorID = m.MinorID
         WHERE s.StudentID = ?
         ORDER BY s.StudentID ASC");
 

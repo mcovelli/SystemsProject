@@ -324,8 +324,8 @@ $adv_stmt->close();
               <?php else: ?>
                 <?php foreach ($courses as $row): ?>
                   <tr>
-                    <td><a href="ViewRoster.php?crn=<?= urlencode($row['CRN']) ?>">
-                      <?= htmlspecialchars($row['CRN']) ?> </a></td>
+                    <td><a href="ViewRoster.php?crn=<?= urlencode($row['CRN']) ?>&facultyID=<?= urlencode($facultyId) ?>">
+                    <?= htmlspecialchars($row['CRN']) ?> </a></td>
                     <td><?= htmlspecialchars($row['CourseName']) ?></td>
 
                     <?php

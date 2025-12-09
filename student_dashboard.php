@@ -158,28 +158,61 @@ if ($selectedSemester === null) {
 }
 
 //Semester GPA
+//Semester GPA - Check both history and current enrollment
 $sem_gpa_sql = "
 SELECT 
-    ROUND(SUM(gs.GradeValue * c.Credits) / SUM(c.Credits), 3) AS SemesterGPA
+    COALESCE(
+        ROUND(SUM(gs.GradeValue * c.Credits) / NULLIF(SUM(c.Credits), 0), 3),
+        0.00
+    ) AS SemesterGPA
 FROM StudentHistory sh
 JOIN GradingScale gs ON sh.Grade = gs.GradeLetter
 JOIN Course c ON sh.CourseID = c.CourseID
 WHERE sh.StudentID = ?
   AND sh.SemesterID = ?
+  AND sh.Grade IS NOT NULL
+  AND gs.GradeValue IS NOT NULL
 ";
 
 $sem_gpa_stmt = $mysqli->prepare($sem_gpa_sql);
 $sem_gpa_stmt->bind_param("is", $userId, $selectedSemester);
 $sem_gpa_stmt->execute();
 $sem_gpa_result = $sem_gpa_stmt->get_result()->fetch_assoc();
+$sem_gpa_stmt->close();
 
-$semesterGPA = $sem_gpa_result['SemesterGPA'] ?? null;
+$semesterGPA = $sem_gpa_result['SemesterGPA'] ?? 0.00;
+
+if ($semesterGPA == 0.00 && $selectedSemester) {
+    $current_gpa_sql = "
+    SELECT 
+        COALESCE(
+            ROUND(SUM(gs.GradeValue * c.Credits) / NULLIF(SUM(c.Credits), 0), 2),
+            0.00
+        ) AS SemesterGPA
+    FROM StudentEnrollment se
+    JOIN CourseSection cs ON se.CRN = cs.CRN
+    JOIN Course c ON cs.CourseID = c.CourseID
+    LEFT JOIN GradingScale gs ON se.Grade = gs.GradeLetter
+    WHERE se.StudentID = ?
+      AND se.SemesterID = ?
+      AND se.Grade IS NOT NULL
+      AND gs.GradeValue IS NOT NULL
+    ";
+    
+    $current_gpa_stmt = $mysqli->prepare($current_gpa_sql);
+    $current_gpa_stmt->bind_param("is", $userId, $selectedSemester);
+    $current_gpa_stmt->execute();
+    $current_gpa_result = $current_gpa_stmt->get_result()->fetch_assoc();
+    $current_gpa_stmt->close();
+    
+    $semesterGPA = $current_gpa_result['SemesterGPA'] ?? 0.00;
+}
 
 // --- Fetch last 3 semester GPAs ---
 $gpa_history_sql = "
     SELECT 
         sh.SemesterID,
-        ROUND(SUM(gs.GradeValue * c.Credits) / SUM(c.Credits), 3) AS GPA
+        ROUND(SUM(gs.GradeValue * c.Credits) / SUM(c.Credits), 2) AS GPA
     FROM StudentHistory sh
     JOIN GradingScale gs ON sh.Grade = gs.GradeLetter
     JOIN Course c ON sh.CourseID = c.CourseID

@@ -30,36 +30,21 @@ if (!$role) {
     redirect('login.php');
 }
 
-if ($role === 'admin') {
+// Determine which student profile to view
+if ($role === 'admin' || $role === 'faculty') {
 
-    // Admin with ?studentID=  → view that student's profile
-    if (isset($_GET['studentID'])) {
-        $studentId = intval($_GET['studentID']);
-    }
-    else {
-        redirect($dashboard);
-    }
-}
-
-elseif ($role === 'faculty') {
-
-    if (isset($_GET['studentID'])) {
-        // Faculty viewing a single student's profile
+    if (isset($_GET['studentID']) && !empty($_GET['studentID'])) {
         $studentId = intval($_GET['studentID']);
     } else {
-        // No studentID → redirect to faculty dashboard
+        // No studentID provided - redirect to dashboard
         redirect($dashboard);
     }
-}
+} elseif ($role === 'student') {
 
-elseif ($role === 'student') {
-
-    // Students can only access their own profile
     $studentId = $_SESSION['user_id'];
-}
+} else {
 
-else {
-    redirect($dashboard);
+    redirect('login.php');
 }
 
 $mysqli = get_db();
@@ -73,6 +58,12 @@ $stmt->execute();
 $res = $stmt->get_result();
 $student = $res->fetch_assoc();
 $stmt->close();
+
+// Check if student was found
+if (!$student) {
+    echo "<p>Student not found.</p>";
+    exit;
+}
 
 // What kind of student is this?
 $stype_sql = "SELECT StudentType FROM Student WHERE StudentID = ? LIMIT 1";
@@ -313,7 +304,7 @@ $credits_stmt->close();
 
 $semesterCredits = (int)($credits_result['TotalCredits'] ?? 0);
 
-$initials = substr($student['FirstName'], 0, 1) . substr($student['LastName'], 0, 1);
+$initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastName'] ?? 'U', 0, 1);
 ?>
 
 <!doctype html>
@@ -402,7 +393,7 @@ $initials = substr($student['FirstName'], 0, 1) . substr($student['LastName'], 0
       <aside class="card profile">
         <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
         <div class="name" id="studentName"><?php echo htmlspecialchars(
-    $student['FirstName'] . ' ' . $student['LastName']); ?></div>
+          ($student['FirstName'] ?? 'Unknown') . ' ' . ($student['LastName'] ?? 'Student')); ?></div>
         <div class="muted" id="studentID">Student ID: <?php echo htmlspecialchars(
     $student['UserID']); ?></div>
     <div class="muted" id="studentBirthDate">Birth Date: <?php echo htmlspecialchars(

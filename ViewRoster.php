@@ -15,7 +15,23 @@ if (
 }
 
 $userId = $_SESSION['user_id'];
-$facultyId = $userId;
+
+$userId = $_SESSION['user_id'];
+$role = strtolower($_SESSION['role'] ?? '');
+
+if ($role === 'admin' && isset($_GET['facultyID']) && !empty($_GET['facultyID'])) {
+    // Admin viewing a specific faculty member's roster
+    $facultyId = intval($_GET['facultyID']);
+} elseif ($role === 'faculty') {
+    // Faculty viewing their own roster
+    $facultyId = $userId;
+} elseif ($role === 'admin') {
+    // Admin viewing roster without specific faculty - redirect to directory
+    redirect('viewDirectory.php');
+} else {
+    // Not logged in as faculty or admin
+    redirect('login.php');
+}
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -37,18 +53,31 @@ $sem_result = $sem_stmt->get_result();
 $semesters = $sem_result->fetch_all(MYSQLI_ASSOC);
 $sem_stmt->close();
 
-// Determine which semester to show for the schedule
-$selectedSemester = isset($_GET['semester']) && $_GET['semester'] !== '' ? $_GET['semester'] : null;
-if ($selectedSemester === null) {
-    // Auto‑select current semester if available
-    $auto_sql = "SELECT SemesterID FROM Semester WHERE CURDATE() BETWEEN StartDate AND EndDate LIMIT 1";
-    $auto_res = $mysqli->query($auto_sql);
-    if ($auto_row = $auto_res->fetch_assoc()) {
-        $selectedSemester = $auto_row['SemesterID'];
+$selectedCRN = isset($_GET['crn']) && $_GET['crn'] !== '' ? $_GET['crn'] : null;
+
+// If a CRN is provided, get its semester from the database
+if ($selectedCRN) {
+    $crn_sem_sql = "SELECT SemesterID FROM CourseSection WHERE CRN = ? LIMIT 1";
+    $crn_sem_stmt = $mysqli->prepare($crn_sem_sql);
+    $crn_sem_stmt->bind_param('i', $selectedCRN);
+    $crn_sem_stmt->execute();
+    $crn_sem_result = $crn_sem_stmt->get_result();
+    if ($crn_sem_row = $crn_sem_result->fetch_assoc()) {
+        $selectedSemester = $crn_sem_row['SemesterID'];
+    }
+    $crn_sem_stmt->close();
+} else {
+    // Only use dropdown/current semester if no CRN is specified
+    $selectedSemester = isset($_GET['semester']) && $_GET['semester'] !== '' ? $_GET['semester'] : null;
+    if ($selectedSemester === null) {
+        // Auto‑select current semester if available
+        $auto_sql = "SELECT SemesterID FROM Semester WHERE CURDATE() BETWEEN StartDate AND EndDate LIMIT 1";
+        $auto_res = $mysqli->query($auto_sql);
+        if ($auto_row = $auto_res->fetch_assoc()) {
+            $selectedSemester = $auto_row['SemesterID'];
+        }
     }
 }
-
-$selectedCRN = isset($_GET['crn']) && $_GET['crn'] !== '' ? $_GET['crn'] : null;
 
 // Fetch schedule for courses taught
 $schedule = [];
@@ -84,6 +113,7 @@ $courses_sql = "
 
 // Fetch roster (students enrolled in faculty's sections)
 $whereClauses = ["cs.FacultyID = ?"];
+
 $params = [$facultyId];
 $types = "i";
 
@@ -128,12 +158,17 @@ $roster_sql = "
   ORDER BY c.CourseName, u.LastName, u.FirstName;
 ";
 
-    $roster_stmt = $mysqli->prepare($roster_sql);
-    $roster_stmt->bind_param($types, ...$params);
-    $roster_stmt->execute();
-    $roster_result = $roster_stmt->get_result();
-    $roster = $roster_result->fetch_all(MYSQLI_ASSOC);
-    $roster_stmt->close();
+$roster_stmt = $mysqli->prepare($roster_sql);
+$roster_stmt->bind_param($types, ...$params);
+$roster_stmt->execute();
+
+if ($roster_stmt->error) {
+    echo "SQL Error: " . $roster_stmt->error . "<br>";
+}
+
+$roster_result = $roster_stmt->get_result();
+$roster = $roster_result->fetch_all(MYSQLI_ASSOC);
+$roster_stmt->close();
 
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
@@ -212,13 +247,22 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <div>
           
           <form method="get" class="semester-selector" style="margin-bottom:10px">
-            <label for="semester" style="margin-right:6px">View Semester:</label>
-            <select name="semester" id="semester" onchange="this.form.submit()">
-              <option value="">Current Semester</option>
-              <?php foreach ($semesters as $sem): ?>
-                <option value="<?php echo htmlspecialchars($sem['SemesterID']); ?>" <?php echo ($selectedSemester == $sem['SemesterID']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($sem['SemesterName'] . ' ' . $sem['Year']); ?></option>
-              <?php endforeach; ?>
-            </select>
+            <?php if ($role === 'admin' && isset($_GET['facultyID'])): ?>
+              <input type="hidden" name="facultyID" value="<?= htmlspecialchars($_GET['facultyID']) ?>">
+            <?php endif; ?>
+            <?php if ($selectedCRN): ?>
+              <input type="hidden" name="crn" value="<?= htmlspecialchars($selectedCRN) ?>">
+            <?php endif; ?>
+            
+            <?php if ($role === 'faculty'): ?>
+              <label for="semester" style="margin-right:6px">View Semester:</label>
+              <select name="semester" id="semester" onchange="this.form.submit()">
+                <option value="">Current Semester</option>
+                <?php foreach ($semesters as $sem): ?>
+                  <option value="<?php echo htmlspecialchars($sem['SemesterID']); ?>" <?php echo ($selectedSemester == $sem['SemesterID']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($sem['SemesterName'] . ' ' . $sem['Year']); ?></option>
+                <?php endforeach; ?>
+              </select>
+            <?php endif; ?>
           </form>
 
           <h2 class="card-title">

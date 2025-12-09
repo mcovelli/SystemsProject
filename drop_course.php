@@ -57,7 +57,7 @@ try {
         WHERE StudentID = ? 
           AND CRN = ? 
           AND SemesterID = ? 
-          AND Status IN ('ENROLLED','IN-PROGRESS')
+          AND Status IN ('ENROLLED','IN-PROGRESS' 'PLANNED', 'WAITLIST')
     ");
     $drop->bind_param('iis', $userId, $crn, $semester);
     $drop->execute();

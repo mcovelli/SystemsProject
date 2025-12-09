@@ -131,7 +131,10 @@ $courses_stmt->close();
 
 // Fetch advisees
 $advisees_sql = "
-  SELECT u.FirstName, u.LastName, m.MajorName, mn.MinorName, p.ProgramName AS MajorName
+  SELECT 
+    u.FirstName,
+    u.LastName,
+    COALESCE(p.ProgramName, m.MajorName, 'Undeclared') AS MajorName
   FROM Advisor a
   JOIN Users u ON a.StudentID = u.UserID
   LEFT JOIN StudentMajor sm ON a.StudentID = sm.StudentID
@@ -369,7 +372,7 @@ $adv_stmt->close();
                 <?php foreach ($advisees as $adv): ?>
                   <tr>
                     <td><?php echo htmlspecialchars($adv['FirstName'] . ' ' . $adv['LastName']); ?></td>
-                    <td><?php echo htmlspecialchars($adv['MajorName'] ?? 'Program'); ?></td>
+                    <td><?php echo htmlspecialchars($adv['MajorName'] ?? 'Undeclared'); ?></td>
                   </tr>
                 <?php endforeach; ?>
               <?php endif; ?>

@@ -1,5 +1,5 @@
 <?php
-// Student Dashboard: display a rich portal using Northport dashboard design.
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 

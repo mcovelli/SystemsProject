@@ -29,10 +29,9 @@ if (empty($crn) || empty($semester)) {
 }
 
 try {
-    // Start transaction
     $mysqli->begin_transaction();
 
-    // Verify the student is actually enrolled
+    // Verify enrollment
     $check = $mysqli->prepare("
         SELECT 1 FROM StudentEnrollment 
         WHERE StudentID = ? AND CRN = ? AND SemesterID = ?
@@ -50,51 +49,51 @@ try {
     }
     $check->close();
 
-    // Drop only if currently enrolled
+    // Perform drop
     $drop = $mysqli->prepare("
         UPDATE StudentEnrollment 
         SET Status = 'DROPPED'
         WHERE StudentID = ? 
           AND CRN = ? 
-          AND SemesterID = ? 
-          AND Status IN ('ENROLLED','IN-PROGRESS', 'PLANNED', 'WAITLIST')
+          AND SemesterID = ?
+          AND Status IN ('ENROLLED','IN-PROGRESS','PLANNED','WAITLIST')
     ");
     $drop->bind_param('iis', $userId, $crn, $semester);
     $drop->execute();
 
-    // Drop only if currently enrolled
+    // Remove from history
     $delete = $mysqli->prepare("
-    DELETE FROM StudentHistory
-    WHERE StudentID = ?
-      AND CRN = ?
-      AND SemesterID = ?
+        DELETE FROM StudentHistory
+        WHERE StudentID = ?
+          AND CRN = ?
     ");
-    $delete->bind_param('iis', $userId, $crn, $semester);
+    $delete->bind_param('ii', $userId, $crn);
     $delete->execute();
     $delete->close();
-    
-    // CHECK if a row was actually changed before giving back the seat!
-    if ($drop->affected_rows > 0) {
-        $drop->close();
 
-        // Only increment seats if someone was actually enrolled
+    if ($drop->affected_rows > 0) {
+
+        // Give back seat only if truly dropped
         $update = $mysqli->prepare("
             UPDATE CourseSection
             SET AvailableSeats = AvailableSeats + 1
-            WHERE CRN = ? 
+            WHERE CRN = ?
         ");
         $update->bind_param('i', $crn);
         $update->execute();
         $update->close();
-        
+
         $_SESSION['success_message'] = "Successfully dropped course CRN $crn.";
     } else {
-        // If 0 rows affected, they were likely already dropped
-        $drop->close();
         $_SESSION['error_message'] = "Course was already dropped or could not be processed.";
     }
 
     $mysqli->commit();
+
+} catch (Throwable $e) {
+    $mysqli->rollback();
+    $_SESSION['error_message'] = "Drop failed: " . $e->getMessage();
+}
     
 // Redirect back to Add/Drop view
 $redirectUrl = "Add_Drop_courses.php";

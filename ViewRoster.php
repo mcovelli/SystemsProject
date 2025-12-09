@@ -15,8 +15,6 @@ if (
 }
 
 $userId = $_SESSION['user_id'];
-
-$userId = $_SESSION['user_id'];
 $role = strtolower($_SESSION['role'] ?? '');
 
 if ($role === 'admin' && isset($_GET['facultyID']) && !empty($_GET['facultyID'])) {

@@ -65,18 +65,23 @@ foreach ($cart as $item) {
     $available  = (int)$course['AvailableSeats'];
 
     // Decide enrollment status
-    if ($available > 0) {
-        $status = 'ENROLLED';
+    try {
         $insertEnroll->bind_param('isiss', $userId, $semesterId, $crn, $courseId, $status);
         $insertEnroll->execute();
-        $updateSeats->bind_param('i', $crn);
-        $updateSeats->execute();
-        $enrolled[] = $crn;
-    } else {
-        $status = 'WAITLIST';
-        $insertEnroll->bind_param('isiss', $userId, $semesterId, $crn, $courseId, $status);
-        $insertEnroll->execute();
-        $waitlisted[] = $crn;
+
+        if ($available > 0) {
+            $updateSeats->bind_param('i', $crn);
+            $updateSeats->execute();
+            $enrolled[] = $crn;
+        } else {
+            $waitlisted[] = $crn;
+        }
+
+    } catch (mysqli_sql_exception $e) {
+
+        $errors[] = "CRN {$crn}: " . $e->getMessage();
+
+        continue;
     }
 }
 

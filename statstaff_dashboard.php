@@ -24,6 +24,76 @@ if (!$statstaff) {
     echo "<p>Profile not found for your account.</p>";
     exit;
 }
+
+//AVG Campus GPA
+$gpa_sql = "SELECT AVG(CumulativeGPA) AS AvgGPA
+        FROM DegreeAudit WHERE CumulativeGPA > 0";
+$gpa_stmt = $mysqli->prepare($gpa_sql);
+$gpa_stmt->execute();
+
+$gpa_res = $gpa_stmt->get_result();
+$gpa_row = $gpa_res->fetch_assoc();
+
+$averageGPA = $gpa_row['AvgGPA'] ?? 0;
+
+$gpa_stmt->close();
+
+
+//Num male Students
+$male_sql = "SELECT SUM(Gender) AS Gender
+        FROM Users WHERE Gender = 'M' AND UserType = 'Student'";
+$male_stmt = $mysqli->prepare($male_sql);
+$male_stmt->execute();
+
+$male_res = $male_stmt->get_result();
+$male_row = $male_res->fetch_assoc();
+
+$numMaleStudents = $male_row['Gender'] ?? 'N/A';
+
+$male_stmt->close();
+
+
+//Num Female Students
+$female_sql = "SELECT SUM(Gender) AS Gender
+        FROM Users WHERE Gender = 'F' AND UserType = 'Student'";
+$female_stmt = $mysqli->prepare($female_sql);
+$female_stmt->execute();
+
+$female_res = $female_stmt->get_result();
+$female_row = $female_res->fetch_assoc();
+
+$numFemaleStudents = $female_row['Gender'] ?? 'N/A';
+
+$female_stmt->close();
+
+
+//Num Grad Students
+$graduate_sql = "SELECT SUM(StudentType) AS StudentType
+        FROM Student WHERE StudentType = 'Graduate'";
+$graduate_stmt = $mysqli->prepare($graduate_sql);
+$graduate_stmt->execute();
+
+$graduate_res = $graduate_stmt->get_result();
+$graduate_row = $graduate_res->fetch_assoc();
+
+$numGradStudents = $graduate_row['StudentType'] ?? 'N/A';
+
+$graduate_stmt->close();
+
+//Num Undergrad Students
+$undergraduate_sql = "SELECT SUM(StudentType) AS StudentType
+        FROM Student WHERE StudentType = 'Undergraduate'";
+$undergraduate_stmt = $mysqli->prepare($undergraduate_sql);
+$undergraduate_stmt->execute();
+
+$undergraduate_res = $undergraduate_stmt->get_result();
+$undergraduate_row = $undergraduate_res->fetch_assoc();
+
+$numUGStudents = $undergraduate_row['StudentType'] ?? 'N/A';
+
+$undergraduate_stmt->close();
+
+
 ?>
 <!doctype html>
 <html lang="en" data-theme="light">
@@ -48,10 +118,6 @@ if (!$statstaff) {
     </div>
     <div class="top-actions">
       <div class="search">
-        <i class="search-icon" data-lucide="search"></i>
-        <input type="text" placeholder="Search courses, people, anything…" />
-      </div>
-      <button class="icon-btn" aria-label="Notifications" a href = announcements.php><i data-lucide="bell"></i></button>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
       <div class="user">
@@ -89,44 +155,68 @@ if (!$statstaff) {
 
         <div class="card stat">
           <div class="card-head">
-            <div class="sub muted"></div>
+            <div class="muted">Average GPA</div>
             <i data-lucide="clipboard-list"></i>
           </div>
-          <div class="stat-value"></div>
-          <div class="sub muted"></div>
-          <div class="sub muted"></div>
 
-        <div class="card stat">
-          <div class="card-head">
-            <div class="muted">Unread Messages</div>
-            <i data-lucide="inbox"></i>
-          </div>
-          <div class="stat-value">2</div>
-          <div class="sub muted">Inbox • Faculty, Bursar</div>
+          <div class="stat-value"><?= number_format($averageGPA, 2) ?></div>
+
+          <div class="sub muted">Campus-wide average</div>
         </div>
 
         <div class="card stat">
           <div class="card-head">
-            <div class="muted"></div>
-            <i data-lucide="triangle-alert"></i>
+            <div class="muted">Number of Male Students</div>
+            <i data-lucide="clipboard-list"></i>
           </div>
-          <div class="stat-value"></div>
-          <div class="sub muted"></div>
+
+          <div class="stat-value"><?= $numMaleStudents ?></div>
+
+          <div class="sub muted">Campus-wide</div><br>
+
+          <div class="muted">Number of Female Students</div>
+
+          <div class="stat-value"><?= $numFemaleStudents ?></div>
+
+          <div class="sub muted">Campus-wide</div>
         </div>
-      </div>
 
       <div class="grid-two">
         <div class="card">
-          <div class="card-title"></div>
-          <div class="row between small muted">
-            <span></span>
-            <div class="progress">
-              <div class="bar"></div>
-            </div>
+          <div class="card-head">
+            <div class="muted"></div>
+            <i data-lucide="line-chart"></i>
           </div>
-          <div class="badges">
-            <span class="badge"></span>
+          <div class="stat-value"></div>
+          <div class="sub muted"></div>
+        </div>
+
+        <div class="card stat">
+          <div class="card-head">
+            <div class="muted">Average GPA</div>
+            <i data-lucide="clipboard-list"></i>
           </div>
+
+          <div class="stat-value"><?= number_format($averageGPA, 2) ?></div>
+
+          <div class="sub muted">Campus-wide average</div>
+        </div>
+
+        <div class="card stat">
+          <div class="card-head">
+            <div class="muted">Number of Grad Students</div>
+            <i data-lucide="clipboard-list"></i>
+          </div>
+
+          <div class="stat-value"><?= $numGradStudents ?></div>
+
+          <div class="sub muted">Campus-wide</div><br>
+
+          <div class="muted">Number of Undergraduate Students</div>
+
+          <div class="stat-value"><?= $numUGStudents ?></div>
+
+          <div class="sub muted">Campus-wide</div>
         </div>
 
         <div class="card">
@@ -140,11 +230,6 @@ if (!$statstaff) {
       <div class="card">
         <div class="card-head between">
           <div class="card-title"></div>
-          <div class="row gap">
-            <button class="btn outline"><i data-lucide="calendar-days"></i> Open Calendar</button>
-            <button class="btn">Add Event</button>
-          </div>
-        </div>
         <div class="table-wrap">
           <form method="get" class="">
             <label for=""></label>
@@ -169,21 +254,17 @@ if (!$statstaff) {
     </section>
     <br>
     <aside class="right">
-      <div class="card">
-        <div class="card-title">Quick Actions</div>
-        <div class="quick-grid" id="studentQuickLinks"></div>
-      </div>
 
       <div class="tabs">
         <div class="tabs-list">
-          <button class="tab active" data-tab="tasks">To‑Dos</button>
+          <button class="tab active" data-tab="tasks">To-Dos</button>
           <button class="tab" data-tab="announcements">Announcements</button>
         </div>
         <div class="tab-panels">
           <div class="tab-panel active" id="panel-tasks">
             <div class="card">
-              <div class="card-title"></div>
-              <div id="studentTasksList" class="vstack gap"></div>
+              <div class="card-title">Upcoming Deadlines</div>
+              <div id="facultyTasksList" class="vstack gap"></div>
               <div class="pt-8">
                 <button class="btn"><i data-lucide="clipboard-list"></i> View All Tasks</button>
               </div>
@@ -191,11 +272,66 @@ if (!$statstaff) {
           </div>
           <div class="tab-panel" id="panel-announcements">
             <div class="card">
-              <div class="card-title">Campus Updates</div>
-              <div id="studentAnnList" class="vstack gap"></div>
-              <div class="pt-8">
-                <button class="btn outline">View All Announcements</button>
-              </div>
+              <div class="card-title">Recent Announcements (Faculty & Admin)</div>
+              <?php
+              // --- COMBINED SQL QUERY using UNION ---
+              $recent = $mysqli->prepare("
+                  -- 1. Announcements from Admin
+                  SELECT
+                      a.Title,
+                      a.Message,
+                      a.DatePosted,
+                      'System Announcement' AS CourseName, -- Placeholder for Admin
+                      'Admin' AS SenderType                -- Type for identification
+                  FROM AdminAnnouncements a
+                  WHERE a.TargetGroup IN ('ALL', 'STUDENTS')
+
+                  UNION ALL
+
+                  -- 2. Announcements from Faculty (Course Specific)
+                  SELECT
+                      ca.Title,
+                      ca.Message,
+                      ca.DatePosted,
+                      c.CourseName,                      -- Course context
+                      'Faculty' AS SenderType            -- Type for identification
+                  FROM CourseAnnouncements ca
+                  JOIN CourseSection cs ON ca.CRN = cs.CRN
+                  JOIN Course c ON cs.CourseID = c.CourseID
+                  -- Filter by courses the student is enrolled in (assuming this is still desired)
+                  JOIN StudentEnrollment se ON se.CRN = cs.CRN
+                  WHERE se.StudentID = ? 
+                  
+                  ORDER BY DatePosted DESC
+                  LIMIT 3
+              ");
+
+              $recent->bind_param('i', $userId); 
+              $recent->execute();
+              $res = $recent->get_result();
+
+              if ($res->num_rows > 0):
+              ?>
+                <ul style="list-style:none; padding:0; margin:0;">
+                  <?php while ($a = $res->fetch_assoc()): ?>
+                    <li style="border-bottom:1px solid var(--line); padding:10px 0;">
+                      <strong><?= htmlspecialchars($a['Title']) ?></strong>
+                      <span style="color:var(--muted);"> 
+                        — <?= htmlspecialchars($a['CourseName'] . " (" . $a['SenderType'] . ")") ?>
+                      </span>
+                      <div style="margin-top:4px;"><?= nl2br(htmlspecialchars($a['Message'])) ?></div>
+                      <small style="color:var(--muted);">Posted <?= htmlspecialchars($a['DatePosted']) ?></small>
+                    </li>
+                  <?php endwhile; ?>
+                </ul>
+                <div style="text-align:right; margin-top:10px;">
+                  <a href="announcements.php" class="btn outline">View All Announcements →</a>
+                </div>
+              <?php else: ?>
+                <p>No recent announcements from faculty or administration.</p>
+              <?php endif;
+              $recent->close();
+              ?>
             </div>
           </div>
         </div>
@@ -247,22 +383,6 @@ if (!$statstaff) {
               ?>
             </div>
         </div>
-
-        <div class="card">
-          <div class="card-title"></div>
-          <div class="row between small">
-            <span></span>
-            <strong></strong>
-          </div>
-          <div class="row between small muted">
-            <span></span>
-            <span></span>
-          </div>
-          <div class="row gap pt-8">
-            <button class="btn"><i data-lucide="credit-card"></i></button>
-            <button class="btn outline"></button>
-          </div>
-        </div>
       </div>
     </aside>
   </main>
@@ -288,6 +408,19 @@ if (!$statstaff) {
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       if (window.lucide) lucide.createIcons();
     });
+
+        // Tab switching
+    document.querySelectorAll('.tabs .tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.getAttribute('data-tab');
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+          panel.classList.toggle('active', panel.id === 'panel-' + target);
+        });
+      });
+    });
+
     </script>
  </html>
 

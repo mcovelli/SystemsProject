@@ -364,9 +364,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                   ORDER BY DatePosted DESC
                   LIMIT 3
               ");
-              
-              // The CourseAnnouncements part still needs the StudentID to filter by enrollment
-              // If you want *all* Faculty announcements (not just enrolled courses), remove the last JOIN/WHERE clauses and the bind_param.
+
               $recent->bind_param('i', $userId); 
               $recent->execute();
               $res = $recent->get_result();

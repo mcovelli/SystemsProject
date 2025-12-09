@@ -56,9 +56,10 @@ try {
         SET Status = 'DROPPED'
         WHERE StudentID = ? 
           AND CRN = ? 
+          AND SemesterID = ? 
           AND Status IN ('ENROLLED','IN-PROGRESS', 'PLANNED', 'WAITLIST')
     ");
-    $drop->bind_param('ii', $userId, $crn);
+    $drop->bind_param('iis', $userId, $crn, $semester);
     $drop->execute();
 
     // Drop only if currently enrolled
@@ -66,8 +67,9 @@ try {
     DELETE FROM StudentHistory
     WHERE StudentID = ?
       AND CRN = ?
+      AND SemesterID = ?
     ");
-    $delete->bind_param('ii', $userId, $crn;
+    $delete->bind_param('iis', $userId, $crn, $semester);
     $delete->execute();
     $delete->close();
     
@@ -94,12 +96,6 @@ try {
 
     $mysqli->commit();
     
-    $_SESSION['success_message'] = "Successfully dropped course CRN $crn.";
-} catch (Throwable $e) {
-    $mysqli->rollback();
-    $_SESSION['error_message'] = "Drop failed: " . $e->getMessage();
-}
-
 // Redirect back to Add/Drop view
 $redirectUrl = "Add_Drop_courses.php";
 $q = [];

@@ -33,7 +33,7 @@ if (isset($_POST['searchStudent'])) {
     // Load Student table
     $stmt = $mysqli->prepare("SELECT 
           s.StudentID, 
-          CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
+          CONCAT(u.FirstName, ' ', u.LastName) AS StudentName 
         FROM Student s
         JOIN Users u ON s.StudentID = u.UserID
         LEFT JOIN StudentHold sh ON s.StudentID = sh.StudentID

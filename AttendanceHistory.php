@@ -23,6 +23,18 @@ $selectedCRN = $_GET['crn'] ?? null;
 $selectedCourseID = null;
 $existingAttendance = [];
 
+// Generate the week dates BEFORE using them
+$startOfWeek = strtotime('monday this week');
+$days = [];
+for ($i = 0; $i < 5; $i++) {
+    $timestamp = strtotime("+$i day", $startOfWeek);
+    $days[] = [
+        'label'   => date('D', $timestamp),       // Mon
+        'display' => date('M j', $timestamp),     // Jan 27
+        'mysql'   => date('Y-m-d', $timestamp)    // 2025-01-27
+    ];
+}
+
 
 $userId = $_SESSION['user_id'];
 $role = strtolower($_SESSION['role'] ?? '');

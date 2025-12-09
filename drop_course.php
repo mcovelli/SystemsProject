@@ -59,7 +59,7 @@ try {
           AND SemesterID = ? 
           AND Status IN ('ENROLLED','IN-PROGRESS' 'PLANNED', 'WAITLIST')
     ");
-    $drop->bind_param('iis', $userId, $crn, $semester);
+    $drop->bind_param('ii', $userId, $crn);
     $drop->execute();
 
     // Drop only if currently enrolled
@@ -69,7 +69,7 @@ try {
       AND CRN = ?
       AND SemesterID = ?
     ");
-    $delete->bind_param('iis', $userId, $crn, $semester);
+    $delete->bind_param('ii', $userId, $crn;
     $delete->execute();
     $delete->close();
     

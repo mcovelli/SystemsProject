@@ -247,8 +247,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <thead>
           <tr>
             <th>Student Type</th>
-            <th>Student Name</th>
             <th>Student ID</th>
+            <th>Student Name</th>
             <th>Email</th>
             <th>Major</th>
             <th>Minor</th>
@@ -264,9 +264,9 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           ?>
               <tr>
                 <td><?= htmlspecialchars($s['StudentType']) ?></td>
-                <td><?= htmlspecialchars($s['StudentName'])?></td>
-                <td><a href="student_profile.php?studentID=<?= urlencode($s['StudentID']) ?>">
-                      <?= htmlspecialchars($s['StudentID']) ?> </a></td>
+                <td><?= htmlspecialchars($s['StudentID'])?></td>
+                <td><a href="student_profile.php?studentID=<?= urlencode($s['StudentName']) ?>">
+                      <?= htmlspecialchars($s['StudentName']) ?> </a></td>
                 <td><?= htmlspecialchars($s['Email']) ?></td>
                 <td><?= $s['MajorName'] ? htmlspecialchars($s['MajorName']) : 'Undeclared' ?></td>
                 <td><?= $s['MinorName'] ? htmlspecialchars($s['MinorName']) : 'Undeclared'  ?></td>

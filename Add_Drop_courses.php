@@ -82,7 +82,7 @@ if (!empty($studentLevel)) {
     } elseif (stripos($studentLevel, 'grad') !== false) {
         $studentLevel = 'GRAD';
     } else {
-        $studentLevel = ''; // fallback disables filter if unrecognized
+        $studentLevel = '';
     }
 }
 }

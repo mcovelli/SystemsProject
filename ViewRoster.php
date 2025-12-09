@@ -48,6 +48,8 @@ if ($selectedSemester === null) {
     }
 }
 
+$selectedCRN = isset($_GET['crn']) && $_GET['crn'] !== '' ? $_GET['crn'] : null;
+
 // Fetch schedule for courses taught
 $schedule = [];
 if ($selectedSemester) {
@@ -81,41 +83,57 @@ $courses_sql = "
 }
 
 // Fetch roster (students enrolled in faculty's sections)
-$roster = [];
+$whereClauses = ["cs.FacultyID = ?"];
+$params = [$facultyId];
+$types = "i";
+
 if ($selectedSemester) {
-    $roster_sql = "
-      SELECT 
-        u.FirstName, 
-        u.LastName, 
-        c.CourseName, 
-        GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
-        DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
-        DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
-        cs.RoomID,
-        se.Grade,
-        se.StudentID
-      FROM StudentEnrollment se
-      JOIN Users u ON se.StudentID = u.UserID
-      JOIN CourseSection cs ON se.CRN = cs.CRN
-      JOIN Course c ON cs.CourseID = c.CourseID
-      JOIN Semester s ON cs.SemesterID = s.SemesterID
-      JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
-      JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
-      JOIN Day d ON tsd.DayID = d.DayID
-      JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
-      JOIN Period p ON tsp.PeriodID = p.PeriodID
-      WHERE cs.FacultyID = ?
-        AND cs.SemesterID = ?
-      GROUP BY se.StudentID, cs.CRN, c.CourseName, cs.RoomID
-      ORDER BY c.CourseName, u.LastName, u.FirstName;
-    ";
+    $whereClauses[] = "cs.SemesterID = ?";
+    $params[] = $selectedSemester;
+    $types .= "s";
+}
+
+if ($selectedCRN) {
+    $whereClauses[] = "cs.CRN = ?";
+    $params[] = $selectedCRN;
+    $types .= "i";
+}
+
+$whereClause = implode(" AND ", $whereClauses);
+
+$roster_sql = "
+  SELECT 
+    u.FirstName, 
+    u.LastName, 
+    c.CourseName,
+    cs.CRN,
+    GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
+    DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
+    DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
+    cs.RoomID,
+    se.Grade,
+    se.StudentID
+  FROM StudentEnrollment se
+  JOIN Users u ON se.StudentID = u.UserID
+  JOIN CourseSection cs ON se.CRN = cs.CRN
+  JOIN Course c ON cs.CourseID = c.CourseID
+  JOIN Semester s ON cs.SemesterID = s.SemesterID
+  JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
+  JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
+  JOIN Day d ON tsd.DayID = d.DayID
+  JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
+  JOIN Period p ON tsp.PeriodID = p.PeriodID
+  WHERE $whereClause
+  GROUP BY se.StudentID, cs.CRN, c.CourseName, cs.RoomID
+  ORDER BY c.CourseName, u.LastName, u.FirstName;
+";
+
     $roster_stmt = $mysqli->prepare($roster_sql);
-    $roster_stmt->bind_param('is', $facultyId, $selectedSemester);
+    $roster_stmt->bind_param($types, ...$params);
     $roster_stmt->execute();
     $roster_result = $roster_stmt->get_result();
     $roster = $roster_result->fetch_all(MYSQLI_ASSOC);
     $roster_stmt->close();
-}
 
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
@@ -203,7 +221,12 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             </select>
           </form>
 
-          <h2 class="card-title">View Class Roster</h2>
+          <h2 class="card-title">
+            View Class Roster
+            <?php if ($selectedCRN): ?>
+              <span style="color: #666; font-size: 0.9em;"> - CRN: <?= htmlspecialchars($selectedCRN)?></span>
+            <?php endif; ?>
+          </h2>
         </div>
       </div>
 

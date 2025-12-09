@@ -482,6 +482,7 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
             <h2>Links</h2>
             <div class="links" id="links">
               <a href="transcript.php?studentID=<?= urlencode($studentId) ?>">Transcript</a>
+              <a href="AttendanceHistory.php?studentID=<?= urlencode($studentId) ?>">Attendance History</a>
               <?php if ($_SESSION['user_id'] === $studentId): ?>
               <a href="degree_audit.php">Degree Audit</a>
               <a href="messages.php">Messages</a>

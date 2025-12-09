@@ -40,7 +40,7 @@ $gpa_stmt->close();
 
 
 //Num male Students
-$male_sql = "SELECT SUM(Gender) AS Gender
+$male_sql = "SELECT Count(*) AS Gender
         FROM Users WHERE Gender = 'M' AND UserType = 'Student'";
 $male_stmt = $mysqli->prepare($male_sql);
 $male_stmt->execute();
@@ -54,7 +54,7 @@ $male_stmt->close();
 
 
 //Num Female Students
-$female_sql = "SELECT SUM(Gender) AS Gender
+$female_sql = "SELECT COUNT(*) AS Gender
         FROM Users WHERE Gender = 'F' AND UserType = 'Student'";
 $female_stmt = $mysqli->prepare($female_sql);
 $female_stmt->execute();
@@ -68,7 +68,7 @@ $female_stmt->close();
 
 
 //Num Grad Students
-$graduate_sql = "SELECT SUM(StudentType) AS StudentType
+$graduate_sql = "SELECT COUNT(*) AS StudentType
         FROM Student WHERE StudentType = 'Graduate'";
 $graduate_stmt = $mysqli->prepare($graduate_sql);
 $graduate_stmt->execute();
@@ -81,7 +81,7 @@ $numGradStudents = $graduate_row['StudentType'] ?? 'N/A';
 $graduate_stmt->close();
 
 //Num Undergrad Students
-$undergraduate_sql = "SELECT SUM(StudentType) AS StudentType
+$undergraduate_sql = "SELECT COUNT(*) AS StudentType
         FROM Student WHERE StudentType = 'Undergraduate'";
 $undergraduate_stmt = $mysqli->prepare($undergraduate_sql);
 $undergraduate_stmt->execute();
@@ -92,6 +92,45 @@ $undergraduate_row = $undergraduate_res->fetch_assoc();
 $numUGStudents = $undergraduate_row['StudentType'] ?? 'N/A';
 
 $undergraduate_stmt->close();
+
+//Num Faculty
+$faculty_sql = "SELECT COUNT(*) AS Faculty
+        FROM Users WHERE UserType = 'Faculty'";
+$faculty_stmt = $mysqli->prepare($faculty_sql);
+$faculty_stmt->execute();
+
+$faculty_res = $faculty_stmt->get_result();
+$faculty_row = $faculty_res->fetch_assoc();
+
+$numFaculty = $faculty_row['Faculty'] ?? 'N/A';
+
+$faculty_stmt->close();
+
+//Num Admin
+$admin_sql = "SELECT COUNT(*) AS Admin
+        FROM Users WHERE UserType = 'Admin'";
+$admin_stmt = $mysqli->prepare($admin_sql);
+$admin_stmt->execute();
+
+$admin_res = $admin_stmt->get_result();
+$admin_row = $admin_res->fetch_assoc();
+
+$numAdmin = $admin_row['Admin'] ?? 'N/A';
+
+$admin_stmt->close();
+
+//Num Statstaff
+$statstaff_sql = "SELECT COUNT(*) AS Stat
+        FROM Users WHERE UserType = 'Statstaff'";
+$statstaff_stmt = $mysqli->prepare($statstaff_sql);
+$statstaff_stmt->execute();
+
+$statstaff_res = $statstaff_stmt->get_result();
+$statstaff_row = $statstaff_res->fetch_assoc();
+
+$numStat = $statstaff_row['Stat'] ?? 'N/A';
+
+$statstaff_stmt->close();
 
 
 ?>
@@ -114,7 +153,6 @@ $undergraduate_stmt->close();
       <span class="pill">Staff Portal</span>
       <h3>Welcome, <?php echo htmlspecialchars(
     $statstaff['FirstName'] . ' ' . $statstaff['LastName']); ?></h3>
-      <h1> <?php echo htmlspecialchars(' (' . $statstaff['UserType'] . ' - ');?></h1>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -144,14 +182,7 @@ $undergraduate_stmt->close();
 
     <section class="left">
       <div class="stats">
-        <div class="card stat">
-          <div class="card-head">
-            <div class="muted"></div>
-            <i data-lucide="line-chart"></i>
-          </div>
-          <div class="stat-value"></div>
-          <div class="sub muted"></div>
-        </div>
+
 
         <div class="card stat">
           <div class="card-head">
@@ -181,27 +212,6 @@ $undergraduate_stmt->close();
           <div class="sub muted">Campus-wide</div>
         </div>
 
-      <div class="grid-two">
-        <div class="card">
-          <div class="card-head">
-            <div class="muted"></div>
-            <i data-lucide="line-chart"></i>
-          </div>
-          <div class="stat-value"></div>
-          <div class="sub muted"></div>
-        </div>
-
-        <div class="card stat">
-          <div class="card-head">
-            <div class="muted">Average GPA</div>
-            <i data-lucide="clipboard-list"></i>
-          </div>
-
-          <div class="stat-value"><?= number_format($averageGPA, 2) ?></div>
-
-          <div class="sub muted">Campus-wide average</div>
-        </div>
-
         <div class="card stat">
           <div class="card-head">
             <div class="muted">Number of Grad Students</div>
@@ -215,6 +225,23 @@ $undergraduate_stmt->close();
           <div class="muted">Number of Undergraduate Students</div>
 
           <div class="stat-value"><?= $numUGStudents ?></div>
+
+          <div class="sub muted">Campus-wide</div>
+        </div>
+
+        <div class="card stat">
+          <div class="card-head">
+            <div class="muted">Number of Faculty</div>
+            <i data-lucide="clipboard-list"></i>
+          </div>
+
+          <div class="stat-value"><?= $numFaculty ?></div>
+
+          <div class="sub muted">Campus-wide</div><br>
+
+          <div class="muted">Number of Admin</div>
+
+          <div class="stat-value"><?= $numAdmin ?></div>
 
           <div class="sub muted">Campus-wide</div>
         </div>

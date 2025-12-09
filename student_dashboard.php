@@ -103,6 +103,17 @@ if ($isGrad) {
     $minorName = $minor['MinorName'] ?? 'Undeclared';
 }
 
+// Determine which semester to show for the schedule
+$selectedSemester = isset($_GET['semester']) && $_GET['semester'] !== '' ? $_GET['semester'] : null;
+if ($selectedSemester === null) {
+    // Auto‑select current semester if available
+    $auto_sql = "SELECT SemesterID FROM Semester WHERE CURDATE() BETWEEN StartDate AND EndDate LIMIT 1";
+    $auto_res = $mysqli->query($auto_sql);
+    if ($auto_row = $auto_res->fetch_assoc()) {
+        $selectedSemester = $auto_row['SemesterID'];
+    }
+}
+
 // Degree audit summary (credits & GPA)
 $progress_sql = "
     SELECT Credits_Completed, Credits_Remaining, CumulativeGPA
@@ -148,18 +159,6 @@ $sem_result = $sem_stmt->get_result();
 $semesters = $sem_result->fetch_all(MYSQLI_ASSOC);
 $sem_stmt->close();
 
-// Determine which semester to show for the schedule
-$selectedSemester = isset($_GET['semester']) && $_GET['semester'] !== '' ? $_GET['semester'] : null;
-if ($selectedSemester === null) {
-    // Auto‑select current semester if available
-    $auto_sql = "SELECT SemesterID FROM Semester WHERE CURDATE() BETWEEN StartDate AND EndDate LIMIT 1";
-    $auto_res = $mysqli->query($auto_sql);
-    if ($auto_row = $auto_res->fetch_assoc()) {
-        $selectedSemester = $auto_row['SemesterID'];
-    }
-}
-
-//Semester GPA
 //Semester GPA - Check both history and current enrollment
 $sem_gpa_sql = "
 SELECT 

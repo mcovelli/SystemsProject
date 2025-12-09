@@ -56,7 +56,6 @@ try {
         SET Status = 'DROPPED'
         WHERE StudentID = ? 
           AND CRN = ? 
-          AND SemesterID = ? 
           AND Status IN ('ENROLLED','IN-PROGRESS', 'PLANNED', 'WAITLIST')
     ");
     $drop->bind_param('ii', $userId, $crn);
@@ -67,7 +66,6 @@ try {
     DELETE FROM StudentHistory
     WHERE StudentID = ?
       AND CRN = ?
-      AND SemesterID = ?
     ");
     $delete->bind_param('ii', $userId, $crn;
     $delete->execute();

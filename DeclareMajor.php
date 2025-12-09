@@ -91,11 +91,11 @@ $userstmt->close();
 if (isset($_POST['declareMajor'])) {
     $StudentID = $_POST['studentID'] ?? '';
     $selectedMajors = $_POST['majorIDs'] ?? [];
-    $selectedMajors = array_slice($selectedMajors, 0, 2);
+    $selectedMajors = array_slice($selectedMajors, 0, 2); // max 2 majors
 
     $mysqli->begin_transaction();
     $ok = true;
-
+    
     $stmt = $mysqli->prepare("SELECT MajorID FROM StudentMajor WHERE StudentID = ?");
     $stmt->bind_param("i", $StudentID);
     $stmt->execute();
@@ -107,59 +107,77 @@ if (isset($_POST['declareMajor'])) {
     if (!empty($toDelete)) {
         $del = $mysqli->prepare("DELETE FROM StudentMajor WHERE StudentID = ? AND MajorID = ?");
         foreach ($toDelete as $mid) {
-            if (!$del->bind_param("ii", $StudentID, $mid) ||
-                !$del->execute()) {
+            if (
+                !$del->bind_param("ii", $StudentID, $mid) ||
+                !$del->execute()
+            ) {
                 $ok = false;
             }
         }
         $del->close();
+
+        // If no majors remain selected, update Student.MajorID = NULL
+        if (empty($selectedMajors)) {
+            $stmtNull = $mysqli->prepare("UPDATE Student SET MajorID = NULL WHERE StudentID = ?");
+            $stmtNull->bind_param("i", $StudentID);
+            if (!$stmtNull->execute()) {
+                $ok = false;
+            }
+            $stmtNull->close();
+        }
     }
 
     $toInsert = array_diff($selectedMajors, $existingMajors);
 
     if (!empty($toInsert)) {
-        $ins = $mysqli->prepare(
-            "INSERT INTO StudentMajor (StudentID, MajorID, DateOfDeclaration)
-             VALUES (?, ?, CURRENT_DATE())"
-        );
+        $ins = $mysqli->prepare("
+            INSERT INTO StudentMajor (StudentID, MajorID, DateOfDeclaration)
+            VALUES (?, ?, CURRENT_DATE())
+        ");
         foreach ($toInsert as $mid) {
-            if (!$ins->bind_param("ii", $StudentID, $mid) ||
-                !$ins->execute()) {
+            if (
+                !$ins->bind_param("ii", $StudentID, $mid) ||
+                !$ins->execute()
+            ) {
                 $ok = false;
             }
         }
         $ins->close();
     }
-$primaryMajor = $selectedMajors[0] ?? null;
 
-if ($primaryMajor !== null) {
+    $primaryMajor = $selectedMajors[0] ?? null;
 
-    // Get DeptID for this major
-    $dept_stmt = $mysqli->prepare("
-        SELECT DeptID FROM Major WHERE MajorID = ? LIMIT 1
-    ");
-    $dept_stmt->bind_param("i", $primaryMajor);
-    $dept_stmt->execute();
-    $dept_res = $dept_stmt->get_result()->fetch_assoc();
-    $dept_stmt->close();
-
-    $deptID = $dept_res['DeptID'] ?? null;
-
-    if ($deptID !== null) {
-        // Update Undergraduate record
-        $ug_stmt = $mysqli->prepare("
-            UPDATE Undergraduate SET DeptID = ?
-            WHERE StudentID = ?
+    if ($primaryMajor !== null) {
+        // Set Student.MajorID = first selected major
+        $up1 = $mysqli->prepare("
+            UPDATE Student SET MajorID = ? WHERE StudentID = ?
         ");
-        $ug_stmt->bind_param("ii", $deptID, $StudentID);
-
-        if (!$ug_stmt->execute()) {
+        $up1->bind_param("ii", $primaryMajor, $StudentID);
+        if (!$up1->execute()) {
             $ok = false;
         }
+        $up1->close();
 
-        $ug_stmt->close();
+        // Also update Undergraduate.DeptID
+        $dept_stmt = $mysqli->prepare("SELECT DeptID FROM Major WHERE MajorID = ? LIMIT 1");
+        $dept_stmt->bind_param("i", $primaryMajor);
+        $dept_stmt->execute();
+        $dept_res = $dept_stmt->get_result()->fetch_assoc();
+        $dept_stmt->close();
+
+        $deptID = $dept_res['DeptID'] ?? null;
+
+        if ($deptID !== null) {
+            $ug_stmt = $mysqli->prepare("
+                UPDATE Undergraduate SET DeptID = ? WHERE StudentID = ?
+            ");
+            $ug_stmt->bind_param("ii", $deptID, $StudentID);
+            if (!$ug_stmt->execute()) {
+                $ok = false;
+            }
+            $ug_stmt->close();
+        }
     }
-}
 
     if ($ok) {
         $mysqli->commit();

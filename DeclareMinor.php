@@ -89,6 +89,14 @@ if (isset($_POST['declareMinor'])) {
         ";
       $stmt = $mysqli->prepare($sql);
       $stmt->bind_param("i", $StudentID);
+      $stmt->execute();
+
+      $sql = "
+        UPDATE Student
+        SET MinorID = NULL
+        ";
+      $stmt = $mysqli->prepare($sql);
+      $stmt->bind_param("i", $StudentID);
 
       if ($stmt->execute()) {
             $mysqli->commit();
@@ -108,6 +116,14 @@ if (isset($_POST['declareMinor'])) {
         ";
       $stmt = $mysqli->prepare($sql);
       $stmt->bind_param("ii", $StudentID, $MinorID);
+      $stmt->execute();
+
+      $sql = "
+        UPDATE Student
+        SET MinorID = ?
+        ";
+      $stmt = $mysqli->prepare($sql);
+      $stmt->bind_param("i", $MinorID);
 
         if ($stmt->execute()) {
             $mysqli->commit();

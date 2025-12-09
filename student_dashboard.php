@@ -134,7 +134,7 @@ WHERE se.StudentID = ?
   AND se.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED');
 ";
 $credits_stmt = $mysqli->prepare($credits_sql);
-$credits_stmt->bind_param('i', $userId);
+$credits_stmt->bind_param('is', $userId, $selectedSemester);
 $credits_stmt->execute();
 $credits_result = $credits_stmt->get_result()->fetch_assoc();
 $credits_stmt->close();

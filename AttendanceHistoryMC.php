@@ -32,12 +32,6 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
-<<<<<<< Updated upstream
-if ($role === 'admin' && isset($_GET['facultyID']) && !empty($_GET['facultyID'])) {
-    // Admin viewing a specific faculty member's roster
-    $facultyId = intval($_GET['facultyID']);
-} elseif ($role === 'faculty') {
-=======
 $studentID = NULL;
 $studentName = NULL;
 
@@ -46,7 +40,6 @@ if (($role === 'admin' || $role === 'faculty') && isset($_GET['studentID']) && !
     // Admin or faculty viewing a specific student's roster
     $studentID = intval($_GET['studentID']);
 } elseif ($role === 'student') {
->>>>>>> Stashed changes
     // Faculty viewing their own roster
     $studentID = $userId;
 } elseif ($role === 'admin' && empty($_GET['studentID'])) {
@@ -56,40 +49,6 @@ if (($role === 'admin' || $role === 'faculty') && isset($_GET['studentID']) && !
     redirect(PROJECT_ROOT . "/login.html");
 }
 
-<<<<<<< Updated upstream
-$selectedCRN = $_GET['crn'] ?? null;
-
-$days = [];
-if ($selectedCRN){
-    $dates_sql = "SELECT DISTINCT AttendanceDate
-    FROM CourseSectionAttendance
-    WHERE CRN = ? ORDER BY AttendanceDate ASC";
-    $dates_stmt = $mysqli->prepare($dates_sql);
-    $dates_stmt->bind_param("i", $selectedCRN);
-    $dates_stmt->execute();
-    $dates_res = $dates_stmt->get_result();
-    while ($date_row = $dates_res->fetch_assoc()) {
-        $date = $date_row['AttendanceDate'];
-        $days[] = [
-            'label' => date('D', strtotime($date)),
-            'display' => date('m j', strtotime($date)),
-            'date' => $date
-        ];
-    }
-}
-
-$selectedCourseID = null;
-if ($selectedCRN) {
-    $cid_sql = "SELECT CourseID FROM CourseSection WHERE CRN = ? LIMIT 1";
-    $cid_stmt = $mysqli->prepare($cid_sql);
-    $cid_stmt->bind_param("i", $selectedCRN);
-    $cid_stmt->execute();
-    $cid_res = $cid_stmt->get_result();
-    $cid_row = $cid_res->fetch_assoc();
-    $selectedCourseID = $cid_row['CourseID'];
-    $cid_stmt->close();
-}
-=======
 $search = $_GET['search'] ?? '';
 
 $sql = "
@@ -132,7 +91,6 @@ $stmt->bind_param($types, ...$params);
 $stmt->execute();
 $attendance = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
->>>>>>> Stashed changes
 
 if (!empty($attendance)) {
     $studentName = $attendance[0]['StudentName'];
@@ -140,46 +98,6 @@ if (!empty($attendance)) {
     $studentName = "Unknown Student";
 }
 
-<<<<<<< Updated upstream
-
-$roster = [];
-
-if ($selectedCRN){
-    $roster_sql = "SELECT
-    csa.AttendanceDate,
-    csa.PresentAbsent,
-    s.StudentID,
-    CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
-    cs.CRN,
-    cs.CourseID,
-    cs.FacultyID
-    FROM CourseSectionAttendance csa
-    JOIN Student s ON csa.StudentID = s.StudentID
-    JOIN Users u ON s.StudentID = u.UserID
-    JOIN CourseSection cs ON csa.CRN = cs.CRN
-    WHERE csa.CRN = ?
-    ORDER BY u.LastName, u.FirstName, csa.AttendanceDate ASC";
-    $roster_stmt = $mysqli->prepare($roster_sql);
-    $roster_stmt->bind_param("i", $selectedCRN);
-    $roster_stmt->execute();
-    $roster_res = $roster_stmt->get_result();
-    $attendance = [];
-
-    while ($row = $roster_res->fetch_assoc()) {
-        $studentID = $row['StudentID'];
-        $date = $row['AttendanceDate'];
-        if (!isset($attendance[$studentID])) {
-            $attendance[$studentID] = [
-                'StudentID' => $studentID,
-                'StudentName' => $row['StudentName'],
-                'CRN' => $row['CRN'],
-                'CourseID' => $row['CourseID'],
-                'FacultyID' => $row['FacultyID'],
-            ];
-        }
-        $attendance[$studentID][$date] = $row;
-    }
-=======
 switch ($role) {
     case 'student':
         $dashboard = 'student_dashboard.php';
@@ -206,7 +124,6 @@ switch ($role) {
     default:
         $dashboard = 'login.html';
         $profile = 'login.html';
->>>>>>> Stashed changes
 }
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
@@ -318,34 +235,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
             foreach ($attendance as $a):
 
-<<<<<<< Updated upstream
-<?php if ($selectedCRN && !empty($roster)): ?>
-  <div id="attendance-chart" class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
-    <div class="card-head">
-      <div>Attendance Chart: <?= htmlspecialchars($selectedCourseID . ' - CRN: ' . $selectedCRN) ?></div>
-    </div>
-    <div class="card-body">
-      <div class="table-wrap">
-        <form method="POST">
-          <table id="daily-schedule">
-            <thead>
-              <tr>
-                <th>Student Name</th>
-                <?php foreach ($days as $d): ?>
-                  <th><?= $d['label'] ?> (<?= $d['display'] ?>)</th>
-                <?php endforeach; ?>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($attendance as $student): ?>
-                <tr>
-                  <td><?= htmlspecialchars($student['StudentName']) ?></td>
-                    <?php foreach ($days as $d): 
-                        $studentPresence = $student[$d['date']]['PresentAbsent'] ?? 'N/A';
-                    ?>
-                    <td><?= htmlspecialchars($studentPresence) ?></td>
-                    <?php endforeach; ?>
-=======
                 // When a new CRN starts, print the header row ONE time
                 if ($lastCRN !== $a['CRN']): ?>
 
@@ -373,7 +262,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <td><?= htmlspecialchars($a['AttendanceDate']) ?></td>
                     <td><?= htmlspecialchars($a['PresentAbsent']) ?></td>
                     <td><?= htmlspecialchars($a['SemesterID']) ?></td>
->>>>>>> Stashed changes
                 </tr>
 
             <?php
@@ -407,22 +295,5 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       lucide.createIcons();
     });
-
-    fetch('get_semesters.php')
-        .then(response => response.json())
-        .then(data => {
-          const semesterSelect = document.getElementById('Semester');
-          const selectedSemester = new URLSearchParams(window.location.search).get('Semester');
-
-          data.forEach(id => {
-            const opt = document.createElement('option');
-            opt.value = id.SemesterID;
-            opt.textContent = id.SemesterID;
-            if (name === selectedSemester) opt.selected = true;
-            semesterSelect.appendChild(opt);
-          });
-        })
-        .catch(err => console.error('Error loading semesters:', err));
-    
   </script>
 </html>

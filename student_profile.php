@@ -104,7 +104,7 @@ if ($isGrad) {
 } else {
     // Undergraduate: use Major/Minor tables
     $major_sql = "
-      SELECT m.MajorName, m.CreditsNeeded
+      SELECT m.MajorName, m.CreditsNeeded, m.MajorID
       FROM Major m
       JOIN StudentMajor sm ON m.MajorID = sm.MajorID
       JOIN Student s ON sm.StudentID = s.StudentID
@@ -120,7 +120,7 @@ if ($isGrad) {
     $majorName = $major['MajorName'] ?? 'Undeclared';
 
     $minor_sql = "
-      SELECT mn.MinorName, mn.CreditsNeeded
+      SELECT mn.MinorName, mn.CreditsNeeded, mn.MinorID
       FROM Minor mn
       JOIN StudentMinor smn ON mn.MinorID = smn.MinorID
       JOIN Student s ON smn.StudentID = s.StudentID
@@ -450,7 +450,9 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
             <?php else: ?>
               <div class="kv">
                 <div class="label">Major</div>
-                <div id="major"><?= htmlspecialchars($majorName ?? 'Undeclared') ?></div>
+                <div id="major"><a href="ViewMajorRequirements.php?majorID=<?= urlencode($major['MajorID']) ?>">
+                        <?= htmlspecialchars($majorName ?? 'Undeclared') ?>
+                      </a></div>
               </div>
               <div class="kv">
                 <div class="label">Minor</div>

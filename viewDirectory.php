@@ -57,8 +57,8 @@ $quickLinks = [
     ['label' => 'View Departments',     'href' => 'ViewDepartments.php',                      'icon' => 'mail'],
     ['label' => 'View Programs',      'href' => 'ViewPrograms.php',                      'icon' => 'brain'],
     ['label' => 'View Majors',      'href' => 'ViewMajors.php',                      'icon' => 'brain'],
-    ['label' => 'View Minors',      'href' => 'ViewMinors.php',                      'icon' => 'brain']
-    ['label' => 'Attendance History', 'href' => 'AttendanceHistory.php',   'icon' => 'check-square'],
+    ['label' => 'View Minors',      'href' => 'ViewMinors.php',                      'icon' => 'brain'],
+    ['label' => 'View Attendance', 'href' => 'AttendanceHistory.php',       'icon' => 'file-text'],
 ];
 
 

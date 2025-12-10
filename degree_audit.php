@@ -298,7 +298,8 @@ $standing = ($gpa > 2.99) ? 'Good Standing' : 'Needs Improvement';
     <!-- Header -->
     <div class="header">
       <div class="title">
-        <h1>Degree Audit</h1>
+        <h1>Degree Audit</h1><br>
+        <small>Student: <span id="student"><?= $student['FirstName'] . ' ' . $student['LastName']?> <br>ID: <?= $student['UserID'] ?></span></small><br>
         <small>Program: <span id="programName"><?= $majorName ?></span> • Catalog <span id="catalogYear">2024–2025</span></small>
       </div>
       <div class="actions">

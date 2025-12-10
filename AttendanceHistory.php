@@ -30,20 +30,6 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
-
-// Generate the week dates BEFORE using them
-$startOfWeek = strtotime('monday this week');
-$days = [];
-for ($i = 0; $i < 5; $i++) {
-    $timestamp = strtotime("+$i day", $startOfWeek);
-    $days[] = [
-        'label'   => date('D', $timestamp),       // Mon
-        'display' => date('M j', $timestamp),     // Jan 27
-        'mysql'   => date('Y-m-d', $timestamp)    // 2025-01-27
-    ];
-}
-
-
 if ($role === 'admin' && isset($_GET['facultyID']) && !empty($_GET['facultyID'])) {
     // Admin viewing a specific faculty member's roster
     $facultyId = intval($_GET['facultyID']);
@@ -58,17 +44,38 @@ if ($role === 'admin' && isset($_GET['facultyID']) && !empty($_GET['facultyID'])
     redirect(PROJECT_ROOT . "/login.html");
 }
 
-$mysqli = get_db();
-$mysqli->set_charset('utf8mb4');
+$selectedCRN = $_GET['crn'] ?? null;
 
-$usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
-        FROM Users WHERE UserID = ? LIMIT 1";
-$stmt = $mysqli->prepare($sql);
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$res = $stmt->get_result();
-$user = $res->fetch_assoc();
-$stmt->close();
+$days = [];
+if ($selectedCRN){
+    $dates_sql = "SELECT DISTINCT AttendanceDate
+    FROM CourseSectionAttendance
+    WHERE CRN = ? ORDER BY AttendanceDate ASC";
+    $dates_stmt = $mysqli->prepare($dates_sql);
+    $dates_stmt->bind_param("i", $selectedCRN);
+    $dates_stmt->execute();
+    $dates_res = $dates_stmt->get_result();
+    while ($date_row = $dates_res->fetch_assoc()) {
+        $date = $date_row['AttendanceDate'];
+        $days[] = [
+            'label' => date('D', strtotime($date)),
+            'display' => date('m j', strtotime($date)),
+            'date' => $date
+        ];
+    }
+}
+
+$selectedCourseID = null;
+if ($selectedCRN) {
+    $cid_sql = "SELECT CourseID FROM CourseSection WHERE CRN = ? LIMIT 1";
+    $cid_stmt = $mysqli->prepare($cid_sql);
+    $cid_stmt->bind_param("i", $selectedCRN);
+    $cid_stmt->execute();
+    $cid_res = $cid_stmt->get_result();
+    $cid_row = $cid_res->fetch_assoc();
+    $selectedCourseID = $cid_row['CourseID'];
+    $cid_stmt->close();
+}
 
 $courses_sql = "SELECT cs.CRN, cs.CourseID, c.CourseName
     FROM CourseSection cs
@@ -81,11 +88,8 @@ $courses_res = $courses_stmt->get_result();
 $courses = $courses_res->fetch_all(MYSQLI_ASSOC);
 $courses_stmt->close();
 
-$selectedCRN = $_GET['crn'] ?? null;
-$selectedSemester = $_GET['semester'] ?? null;
 
 $roster = [];
-$existingAttendance = [];
 
 if ($selectedCRN){
     $roster_sql = "SELECT
@@ -106,8 +110,22 @@ if ($selectedCRN){
     $roster_stmt->bind_param("i", $selectedCRN);
     $roster_stmt->execute();
     $roster_res = $roster_stmt->get_result();
-    $roster = $roster_res->fetch_all(MYSQLI_ASSOC);
-    $roster_stmt->close();
+    $attendance = [];
+
+    while ($row = $roster_res->fetch_assoc()) {
+        $studentID = $row['StudentID'];
+        $date = $row['AttendanceDate'];
+        if (!isset($attendance[$studentID])) {
+            $attendance[$studentID] = [
+                'StudentID' => $studentID,
+                'StudentName' => $row['StudentName'],
+                'CRN' => $row['CRN'],
+                'CourseID' => $row['CourseID'],
+                'FacultyID' => $row['FacultyID'],
+            ];
+        }
+        $attendance[$studentID][$date] = $row;
+    }
 }
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
@@ -216,33 +234,15 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                 <?php endforeach; ?>
               </tr>
             </thead>
-
             <tbody>
-              <?php foreach ($roster as $r): ?>
+              <?php foreach ($attendance as $student): ?>
                 <tr>
-                  <td>
-                    <?= htmlspecialchars($r['StudentName']) ?>
-                    <input type="hidden" name="studentID[]" value="<?= $r['StudentID'] ?>">
-                    <input type="hidden" name="crn[]" value="<?= $r['CRN'] ?>">
-                    <input type="hidden" name="courseID[]" value="<?= $r['CourseID'] ?>">
-                    <input type="hidden" name="attendanceID[]" value="<?= $r['AttendanceID'] ?>">
-                    <input type = "hidden" name="facultyID[]" value="<?= $r['FacultyID'] ?>">
-                    <input type = "hidden" name = "presentAbsent[]" value="<?= $r['PresentAbsent'] ?>">
-                  </td>
-
-                  <?php foreach ($days as $d): ?>
-                    <td>
-                      <?php
-                        $val = $existingAttendance[$r['StudentID']][$d['mysql']] ?? "";
-                      ?>
-                      <select name="presentAbsent[]">
-                        <option value="" <?= $val === "" ? "selected" : "" ?>>---</option>
-                        <option value="PRESENT" <?= $val === "PRESENT" ? "selected" : "" ?>>Present</option>
-                        <option value="ABSENT" <?= $val === "ABSENT" ? "selected" : "" ?>>Absent</option>
-                      </select>
-                      <input type="hidden" name="attendanceDate[]" value="<?= $d['mysql'] ?>">
-                    </td>
-                  <?php endforeach; ?>
+                  <td><?= htmlspecialchars($student['StudentName']) ?></td>
+                    <?php foreach ($days as $d): 
+                        $studentPresence = $student[$d['date']]['PresentAbsent'] ?? 'N/A';
+                    ?>
+                    <td><?= htmlspecialchars($studentPresence) ?></td>
+                    <?php endforeach; ?>
                 </tr>
               <?php endforeach; ?>
             </tbody>
@@ -269,5 +269,22 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       lucide.createIcons();
     });
+
+    fetch('get_semesters.php')
+        .then(response => response.json())
+        .then(data => {
+          const semesterSelect = document.getElementById('Semester');
+          const selectedSemester = new URLSearchParams(window.location.search).get('Semester');
+
+          data.forEach(id => {
+            const opt = document.createElement('option');
+            opt.value = id.SemesterID;
+            opt.textContent = id.SemesterID;
+            if (name === selectedSemester) opt.selected = true;
+            semesterSelect.appendChild(opt);
+          });
+        })
+        .catch(err => console.error('Error loading semesters:', err));
+    
   </script>
 </html>

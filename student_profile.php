@@ -192,7 +192,8 @@ if ($selectedSemester) {
             MIN(DATE_FORMAT(p.StartTime, '%l:%i %p')) AS StartTime,
             MAX(DATE_FORMAT(p.EndTime, '%l:%i %p'))   AS EndTime,
             cs.RoomID, se.Grade,
-            CONCAT(fu.FirstName, ' ', fu.LastName) AS Professor
+            CONCAT(fu.FirstName, ' ', fu.LastName) AS Professor,
+            fu.UserID AS FacultyID
         FROM StudentEnrollment se
         JOIN CourseSection cs ON se.CRN = cs.CRN
         JOIN Users fu ON cs.FacultyID = fu.UserID
@@ -263,7 +264,7 @@ $expectedGraduation = "$gradTerm $gradYear";
 
 // Advisor info
 $advisor_sql = "
-  SELECT f.OfficeID, f.Ranking, u.FirstName, u.LastName, u.Email
+  SELECT f.OfficeID, f.Ranking, u.FirstName, u.LastName, u.Email, a.FacultyID
   FROM Advisor a
   JOIN Faculty f ON a.FacultyID = f.FacultyID
   JOIN Users u ON f.FacultyID = u.UserID
@@ -459,7 +460,12 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
 
             <div class="kv">
               <div class="label">Advisor</div>
-              <div id="advisor"><?= htmlspecialchars($advisorName ?? 'Not Assigned') ?></div>
+              <div id="advisor">
+                <a href="faculty_profile.php?facultyID=<?= urlencode($advisor['FacultyID']) ?>">
+                        <?= htmlspecialchars($advisorName) ?>
+                      </a>
+                  
+                </div>
             </div>
 
             <div class="kv"><div class="label">Standing</div><div id="standing"><?php echo htmlspecialchars($standing); ?></div></div>
@@ -548,7 +554,9 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
                     <td><?= htmlspecialchars($timeStr) ?></td>
 
                     <td><?= htmlspecialchars($row['RoomID'] ?? 'TBA') ?></td>
-                    <td><?= htmlspecialchars($row['Professor'] ?? 'TBA') ?></td>
+                    <td><a href="faculty_profile.php?facultyID=<?= urlencode($row['FacultyID']) ?>">
+                        <?= htmlspecialchars($row['Professor' ?? 'TBA' ]) ?>
+                      </a></td>
                     <td><?= htmlspecialchars($row['Grade'] ?? 'TBA') ?></td>
                   </tr>
                 <?php endforeach; ?>

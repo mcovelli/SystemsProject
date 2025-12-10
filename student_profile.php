@@ -461,8 +461,8 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
             <div class="kv">
               <div class="label">Advisor</div>
               <div id="advisor">
-                <a href="faculty_profile.php?facultyID=<?= urlencode($adv['FacultyID']) ?>">
-                        <?= htmlspecialchars($advisor) ?>
+                <a href="faculty_profile.php?facultyID=<?= urlencode($advisor['FacultyID']) ?>">
+                        <?= htmlspecialchars($advisorName) ?>
                       </a>
                   
                 </div>

@@ -112,12 +112,9 @@ $courseSectionAttendance_sql = "
         GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
         DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
         DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
-        cs.RoomID,
-        csa.AttendanceID,
-        csa.PresentAbsent
+        cs.RoomID
       FROM CourseSection cs
       JOIN Course c ON cs.CourseID = c.CourseID
-      Join CourseSectionAttendance csa ON cs.CRN = csa.CRN
       JOIN Semester s ON cs.SemesterID = s.SemesterID
       JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
       JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID

@@ -5,12 +5,43 @@
   <title>Login | Northport University</title>
   <link rel="stylesheet" href="loginstyles.css">
   <script src="script.js" defer></script>
+  <style>
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    .alert.error {
+      background-color: #fef2f2;
+      border: 1px solid #ef4444;
+      color: #991b1b;
+    }
+    .alert.warning {
+      background-color: #fffbeb;
+      border: 1px solid #f59e0b;
+      color: #92400e;
+    }
+    .alert.locked {
+      background-color: #fef2f2;
+      border: 2px solid #dc2626;
+      color: #991b1b;
+      font-weight: 600;
+    }
+    .alert a {
+      color: inherit;
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
 
   <div class="auth-container login-container" role="main" aria-labelledby="login-title">
 
     <h2 id="login-title">Login</h2>
+
+    <!-- Error message container -->
+    <div id="errorContainer"></div>
 
     <form id="loginForm" action="login.php" method="post">
 
@@ -43,6 +74,62 @@
     </p>
 
   </div>
+
+  <script>
+    // Parse URL parameters to check for errors
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const err = urlParams.get('err');
+      const errorContainer = document.getElementById('errorContainer');
+
+      if (err) {
+        let message = '';
+        let alertClass = 'alert error';
+
+        switch (err) {
+          case 'empty':
+            message = 'Please enter both email and password.';
+            break;
+
+          case 'invalid':
+            message = 'Invalid email or password. Please try again.';
+            alertClass = 'alert warning';
+            break;
+
+          case 'inactive':
+            message = 'Your account is inactive. Please contact support for assistance.';
+            break;
+
+          case 'locked':
+            message = '<strong>⚠️ Account Locked</strong><br><br>' +
+                      'Too many failed login attempts. Your account has been locked for security reasons.<br><br>' +
+                      'You must <a href="forgot_password.php">reset your password</a> to regain access.';
+            alertClass = 'alert locked';
+            break;
+
+          case 'role':
+            message = 'Your account has an unrecognized role type. Please contact the administrator.';
+            break;
+
+          default:
+            message = 'An unknown error occurred. Please try again.';
+            break;
+        }
+
+        errorContainer.innerHTML = '<div class="' + alertClass + '">' + message + '</div>';
+
+        // If locked, disable the form
+        if (err === 'locked') {
+          document.getElementById('email').disabled = true;
+          document.getElementById('password').disabled = true;
+          document.querySelector('button[type="submit"]').disabled = true;
+          document.querySelector('button[type="submit"]').textContent = 'Account Locked';
+          document.querySelector('button[type="submit"]').style.backgroundColor = '#9ca3af';
+          document.querySelector('button[type="submit"]').style.cursor = 'not-allowed';
+        }
+      }
+    });
+  </script>
 
 </body>
 </html>

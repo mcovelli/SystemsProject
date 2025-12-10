@@ -264,7 +264,7 @@ $expectedGraduation = "$gradTerm $gradYear";
 
 // Advisor info
 $advisor_sql = "
-  SELECT f.OfficeID, f.Ranking, u.FirstName, u.LastName, u.Email
+  SELECT f.OfficeID, f.Ranking, u.FirstName, u.LastName, u.Email, a.FacultyID
   FROM Advisor a
   JOIN Faculty f ON a.FacultyID = f.FacultyID
   JOIN Users u ON f.FacultyID = u.UserID
@@ -460,7 +460,12 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
 
             <div class="kv">
               <div class="label">Advisor</div>
-              <div id="advisor"><?= htmlspecialchars($advisorName ?? 'Not Assigned') ?></div>
+              <div id="advisor">
+                <a href="faculty_profile.php?facultyID=<?= urlencode($adv['FacultyID']) ?>">
+                        <?= htmlspecialchars($advisor) ?>
+                      </a>
+                  
+                </div>
             </div>
 
             <div class="kv"><div class="label">Standing</div><div id="standing"><?php echo htmlspecialchars($standing); ?></div></div>

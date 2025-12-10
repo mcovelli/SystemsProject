@@ -134,7 +134,7 @@ $advisees_sql = "
   SELECT 
     u.FirstName,
     u.LastName,
-    u.UserID AS StudentID
+    u.UserID AS StudentID,
     COALESCE(p.ProgramName, m.MajorName, 'Undeclared') AS MajorName
   FROM Advisor a
   JOIN Users u ON a.StudentID = u.UserID
@@ -374,9 +374,9 @@ $adv_stmt->close();
               <?php else: ?>
                 <?php foreach ($advisees as $adv): ?>
                   <tr>
-                    <td><a href="ViewRoster.php?studentID=<?= urlencode($adv['StudentID']) ?>&studentID=<?= urlencode($adv['StudentID']) ?>">
-                    <?= htmlspecialchars($adv['StudentID']) ?> </a></td>
-                    <td><?php echo htmlspecialchars($adv['FirstName'] . ' ' . $adv['LastName']); ?></td>
+                    <td><a href="student_profile.php?studentID=<?= urlencode($adv['StudentID']) ?>">
+                        <?= htmlspecialchars($adv['FirstName'] . ' ' . $adv['LastName']) ?>
+                      </a></td>
                     <td><?php echo htmlspecialchars($adv['MajorName'] ?? 'Undeclared'); ?></td>
                   </tr>
                 <?php endforeach; ?>

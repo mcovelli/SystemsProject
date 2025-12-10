@@ -192,7 +192,8 @@ if ($selectedSemester) {
             MIN(DATE_FORMAT(p.StartTime, '%l:%i %p')) AS StartTime,
             MAX(DATE_FORMAT(p.EndTime, '%l:%i %p'))   AS EndTime,
             cs.RoomID, se.Grade,
-            CONCAT(fu.FirstName, ' ', fu.LastName) AS Professor
+            CONCAT(fu.FirstName, ' ', fu.LastName) AS Professor,
+            fu.UserID AS FacultyID
         FROM StudentEnrollment se
         JOIN CourseSection cs ON se.CRN = cs.CRN
         JOIN Users fu ON cs.FacultyID = fu.UserID
@@ -548,7 +549,9 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
                     <td><?= htmlspecialchars($timeStr) ?></td>
 
                     <td><?= htmlspecialchars($row['RoomID'] ?? 'TBA') ?></td>
-                    <td><?= htmlspecialchars($row['Professor'] ?? 'TBA') ?></td>
+                    <td><a href="faculty_profile.php?facultyID=<?= urlencode($row['FacultyID']) ?>">
+                        <?= htmlspecialchars($row['Professor' ?? 'TBA' ]) ?>
+                      </a></td>
                     <td><?= htmlspecialchars($row['Grade'] ?? 'TBA') ?></td>
                   </tr>
                 <?php endforeach; ?>

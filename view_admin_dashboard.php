@@ -32,6 +32,7 @@ $quickLinks = [
     ['label' => 'Profile',      'href' => 'admin_profile.php',    'icon' => 'user'],
     ['label' => 'Messages',     'href' => 'messages.php',                      'icon' => 'mail'],
     ['label' => 'View Directory', 'href' => 'viewDirectory.php',       'icon' => 'file-text'],
+    ['label' => 'Attendance History', 'href' => 'AttendanceHistory.php',   'icon' => 'check-square'],
     ['label' => 'Announcements',      'href' => 'send_announcement.php',                'icon' => 'megaphone'],
 ];
 

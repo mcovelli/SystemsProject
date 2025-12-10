@@ -6,22 +6,30 @@ session_start();
 require_once __DIR__ . '/config.php';
 
 if (
-    !isset($_SESSION['user_id']) || (
-        ($_SESSION['role'] ?? '') !== 'student' &&
+    !isset($_SESSION['user_id']) ||
+    (
         ($_SESSION['role'] ?? '') !== 'faculty' &&
-            ($_SESSION['role'] ?? '') !== 'admin')
+        !(($_SESSION['role'] ?? '') === 'admin' && ($_SESSION['admin_type'] ?? '') === 'update')
     )
-{
-    redirect(PROJECT_ROOT . "/login.html");
+) {
+    header('Location: login.php');
+    exit;
 }
+$userId = $_SESSION['user_id'];
+$role = strtolower($_SESSION['role'] ?? '');
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$userId = $_SESSION['user_id'];
-$selectedCRN = $_GET['crn'] ?? null;
-$selectedCourseID = null;
-$existingAttendance = [];
+$usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
+        FROM Users WHERE UserID = ? LIMIT 1";
+$userstmt = $mysqli->prepare($usersql);
+$userstmt->bind_param("i", $userId);
+$userstmt->execute();
+$userres = $userstmt->get_result();
+$user = $userres->fetch_assoc();
+$userstmt->close();
+
 
 // Generate the week dates BEFORE using them
 $startOfWeek = strtotime('monday this week');
@@ -36,9 +44,6 @@ for ($i = 0; $i < 5; $i++) {
 }
 
 
-$userId = $_SESSION['user_id'];
-$role = strtolower($_SESSION['role'] ?? '');
-
 if ($role === 'admin' && isset($_GET['facultyID']) && !empty($_GET['facultyID'])) {
     // Admin viewing a specific faculty member's roster
     $facultyId = intval($_GET['facultyID']);
@@ -47,19 +52,16 @@ if ($role === 'admin' && isset($_GET['facultyID']) && !empty($_GET['facultyID'])
     $facultyId = $userId;
 } elseif ($role === 'admin') {
     // Admin viewing roster without specific faculty - redirect to directory
-    redirect('viewDirectory.php');
-} elseif ($role === 'student') {
-    // Student viewing their own attendance history
-    $studentId = $userId;
+    redirect(PROJECT_ROOT . "/viewDirectory.php");
 } else {
     // Not logged in as student, faculty, or admin
-    redirect('login.php');
+    redirect(PROJECT_ROOT . "/login.html");
 }
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$sql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
+$usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
         FROM Users WHERE UserID = ? LIMIT 1";
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param("i", $userId);
@@ -68,154 +70,45 @@ $res = $stmt->get_result();
 $user = $res->fetch_assoc();
 $stmt->close();
 
-// Fetch all semesters for the schedule dropdown
-$sem_sql = "SELECT SemesterID, SemesterName, Year FROM Semester ORDER BY Year DESC, SemesterName DESC";
-$sem_stmt = $mysqli->prepare($sem_sql);
-$sem_stmt->execute();
-$sem_result = $sem_stmt->get_result();
-$semesters = $sem_result->fetch_all(MYSQLI_ASSOC);
-$sem_stmt->close();
+$courses_sql = "SELECT cs.CRN, cs.CourseID, c.CourseName
+    FROM CourseSection cs
+    JOIN Course c ON cs.CourseID = c.CourseID
+    WHERE cs.FacultyID = ?";
+$courses_stmt = $mysqli->prepare($courses_sql);
+$courses_stmt->bind_param("i", $facultyId);
+$courses_stmt->execute();
+$courses_res = $courses_stmt->get_result();
+$courses = $courses_res->fetch_all(MYSQLI_ASSOC);
+$courses_stmt->close();
 
-$selectedCRN = isset($_GET['crn']) && $_GET['crn'] !== '' ? $_GET['crn'] : null;
+$selectedCRN = $_GET['crn'] ?? null;
+$selectedSemester = $_GET['semester'] ?? null;
 
-// If a CRN is provided, get its semester from the database
-if ($selectedCRN) {
-    $crn_sem_sql = "SELECT SemesterID FROM CourseSection WHERE CRN = ? LIMIT 1";
-    $crn_sem_stmt = $mysqli->prepare($crn_sem_sql);
-    $crn_sem_stmt->bind_param('i', $selectedCRN);
-    $crn_sem_stmt->execute();
-    $crn_sem_result = $crn_sem_stmt->get_result();
-    if ($crn_sem_row = $crn_sem_result->fetch_assoc()) {
-        $selectedSemester = $crn_sem_row['SemesterID'];
-    }
-    $crn_sem_stmt->close();
-} else {
-    // Only use dropdown/current semester if no CRN is specified
-    $selectedSemester = isset($_GET['semester']) && $_GET['semester'] !== '' ? $_GET['semester'] : null;
-    if ($selectedSemester === null) {
-        // Auto‑select current semester if available
-        $auto_sql = "SELECT SemesterID FROM Semester WHERE CURDATE() BETWEEN StartDate AND EndDate LIMIT 1";
-        $auto_res = $mysqli->query($auto_sql);
-        if ($auto_row = $auto_res->fetch_assoc()) {
-            $selectedSemester = $auto_row['SemesterID'];
-        }
-    }
-}
+$roster = [];
+$existingAttendance = [];
 
-// Fetch schedule for courses taught
-$schedule = [];
-if ($selectedSemester) {
-$courseSectionAttendance_sql = "
-      SELECT 
-        cs.CRN,
-        c.CourseName,
-        GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
-        DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
-        DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
-        cs.RoomID
-      FROM CourseSection cs
-      JOIN Course c ON cs.CourseID = c.CourseID
-      JOIN Semester s ON cs.SemesterID = s.SemesterID
-      JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
-      JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
-      JOIN Day d ON tsd.DayID = d.DayID
-      JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
-      JOIN Period p ON tsp.PeriodID = p.PeriodID
-      WHERE cs.FacultyID = ?
-        AND cs.SemesterID = ?
-      GROUP BY cs.CRN, c.CourseName, cs.RoomID, csa.AttendanceID, csa.PresentAbsent
-      ORDER BY cs.CRN, MIN(p.StartTime);
-    ";
-    $courseSectionAttendance_stmt = $mysqli->prepare($courseSectionAttendance_sql);
-    $courseSectionAttendance_stmt->bind_param('is', $facultyId, $selectedSemester);
-    $courseSectionAttendance_stmt->execute();
-    $courseSectionAttendance_result = $courseSectionAttendance_stmt->get_result();
-    $schedule = $courseSectionAttendance_result->fetch_all(MYSQLI_ASSOC);
-    $courseSectionAttendance_stmt->close();
-}
-
-// Fetch roster (students enrolled in faculty's sections)
-$whereClauses = ["cs.FacultyID = ?"];
-
-$params = [$facultyId];
-$types = "i";
-
-if ($selectedSemester) {
-    $whereClauses[] = "cs.SemesterID = ?";
-    $params[] = $selectedSemester;
-    $types .= "s";
-}
-
-if ($selectedCRN) {
-    $whereClauses[] = "cs.CRN = ?";
-    $params[] = $selectedCRN;
-    $types .= "i";
-}
-
-$whereClause = implode(" AND ", $whereClauses);
-
-$roster_sql = "
-  SELECT 
-    u.FirstName, 
-    u.LastName, 
-    c.CourseName,
-    cs.CRN,
-    GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
-    DATE_FORMAT(MIN(p.StartTime), '%l:%i %p') AS StartTime,
-    DATE_FORMAT(MAX(p.EndTime), '%l:%i %p')   AS EndTime,
-    cs.RoomID,
-    se.Grade,
-    se.StudentID,
+if ($selectedCRN){
+    $roster_sql = "SELECT
+    csa.AttendanceDate,
     csa.PresentAbsent,
-    csa.AttendanceID
-  FROM StudentEnrollment se
-  JOIN Users u ON se.StudentID = u.UserID
-  JOIN CourseSection cs ON se.CRN = cs.CRN
-  JOIN Course c ON cs.CourseID = c.CourseID
-  JOIN CourseSectionAttendance csa ON se.StudentID = csa.StudentID AND se.CRN = csa.CRN
-  JOIN Semester s ON cs.SemesterID = s.SemesterID
-  JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
-  JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
-  JOIN Day d ON tsd.DayID = d.DayID
-  JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
-  JOIN Period p ON tsp.PeriodID = p.PeriodID
-  WHERE $whereClause
-  GROUP BY se.StudentID, cs.CRN, c.CourseName, cs.RoomID
-  ORDER BY c.CourseName, u.LastName, u.FirstName;
-";
-
-$roster_stmt = $mysqli->prepare($roster_sql);
-$roster_stmt->bind_param($types, ...$params);
-$roster_stmt->execute();
-
-if ($roster_stmt->error) {
-    echo "SQL Error: " . $roster_stmt->error . "<br>";
+    s.StudentID,
+    CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
+    cs.CRN,
+    cs.CourseID,
+    cs.FacultyID
+    FROM CourseSectionAttendance csa
+    JOIN Student s ON csa.StudentID = s.StudentID
+    JOIN Users u ON s.StudentID = u.UserID
+    JOIN CourseSection cs ON csa.CRN = cs.CRN
+    WHERE csa.CRN = ?
+    ORDER BY u.LastName, u.FirstName, csa.AttendanceDate ASC";
+    $roster_stmt = $mysqli->prepare($roster_sql);
+    $roster_stmt->bind_param("i", $selectedCRN);
+    $roster_stmt->execute();
+    $roster_res = $roster_stmt->get_result();
+    $roster = $roster_res->fetch_all(MYSQLI_ASSOC);
+    $roster_stmt->close();
 }
-
-$roster_result = $roster_stmt->get_result();
-$roster = $roster_result->fetch_all(MYSQLI_ASSOC);
-$roster_stmt->close();
-
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-    case 'faculty':
-        $dashboard = 'faculty_dashboard.php';
-        $profile = 'faculty_profile.php';
-        break;
-    case 'admin':
-        // if you have update/view admin types:
-        if (($_SESSION['admin_type'] ?? '') === 'update') {
-            $dashboard = 'update_admin_dashboard.php';
-            $profile = 'admin_profile.php';
-        } else {
-            $dashboard = 'view_admin_dashboard.php';
-            $profile = 'admin_profile.php';
-        }
-        break;
-    default:
-        $dashboard = 'login.html'; // fallback
-}
-
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
@@ -240,7 +133,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Class Roster</span>
+      <span class="pill">Attendance History</span>
     </div>
     <div class="top-actions">
       <div class="search">

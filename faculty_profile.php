@@ -373,6 +373,8 @@ $adv_stmt->close();
               <?php else: ?>
                 <?php foreach ($advisees as $adv): ?>
                   <tr>
+                    <td><a href="ViewRoster.php?studentID=<?= urlencode($adv['StudentID']) ?>&studentID=<?= urlencode($adv['StudentID']) ?>">
+                    <?= htmlspecialchars($adv['StudentID']) ?> </a></td>
                     <td><?php echo htmlspecialchars($adv['FirstName'] . ' ' . $adv['LastName']); ?></td>
                     <td><?php echo htmlspecialchars($adv['MajorName'] ?? 'Undeclared'); ?></td>
                   </tr>

@@ -134,6 +134,7 @@ $advisees_sql = "
   SELECT 
     u.FirstName,
     u.LastName,
+    u.UserID AS StudentID
     COALESCE(p.ProgramName, m.MajorName, 'Undeclared') AS MajorName
   FROM Advisor a
   JOIN Users u ON a.StudentID = u.UserID

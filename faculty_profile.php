@@ -110,7 +110,7 @@ if ($selectedSemester === null) {
 $courses_sql = "
   SELECT cs.CRN, c.CourseName, GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days,
             MIN(DATE_FORMAT(p.StartTime, '%l:%i %p')) AS StartTime,
-            MAX(DATE_FORMAT(p.EndTime, '%l:%i %p'))   AS EndTime, cs.RoomID
+            MAX(DATE_FORMAT(p.EndTime, '%l:%i %p'))   AS EndTime, cs.RoomID, cs.Status
   FROM CourseSection cs
   JOIN Course c ON cs.CourseID = c.CourseID
   JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
@@ -319,6 +319,7 @@ $adv_stmt->close();
                 <th>Days</th>
                 <th>Time</th>
                 <th>Location</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody id="facultyScheduleBody">
@@ -348,6 +349,7 @@ $adv_stmt->close();
                     <td><?= htmlspecialchars($timeStr) ?></td>
 
                     <td><?= htmlspecialchars($row['RoomID'] ?? 'TBA') ?></td>
+                    <td><?= htmlspecialchars($row['Status'] ?? 'TBA') ?></td>
                   </tr>
                 <?php endforeach; ?>
               <?php endif; ?>

@@ -132,6 +132,23 @@ $numStat = $statstaff_row['Stat'] ?? 'N/A';
 
 $statstaff_stmt->close();
 
+//Attendance
+$attendance_sql = "SELECT
+    SUM(CASE WHEN PresentAbsent = 'PRESENT' THEN 1 ELSE 0 END)
+      / COUNT(*) AS attendance_rate
+FROM CourseSectionAttendance
+";
+$attendance_stmt = $mysqli->prepare($attendance_sql);
+$attendance_stmt->execute();
+
+$attendance_res = $attendance_stmt->get_result();
+$attendance_row = $attendance_res->fetch_assoc();
+
+$attendance = $attendance_row['attendance_rate'] ?? 'N/A';
+
+$attendance_stmt->close();
+
+
 
 ?>
 <!doctype html>
@@ -191,6 +208,11 @@ $statstaff_stmt->close();
           </div>
 
           <div class="stat-value"><?= number_format($averageGPA, 2) ?></div>
+
+          <div class="sub muted">Campus-wide average</div><br>
+
+          <div class="muted">Attendance Rate</div>
+          <div class="stat-value"><?= ($attendance * 100) . '%' ?></div>
 
           <div class="sub muted">Campus-wide average</div>
         </div>

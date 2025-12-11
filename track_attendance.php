@@ -94,7 +94,7 @@ if ($selectedSemester !== null) {
     $courses_stmt->close();
 }
 
-// Generate the week dates BEFORE using them
+
 $startOfWeek = strtotime('monday this week');
 $days = [];
 for ($i = 0; $i < 5; $i++) {
@@ -133,18 +133,14 @@ if ($selectedSemester && $selectedCRN) {
     $roster_stmt->close();
 }
 
-// Fetch existing attendance for this CRN for all students for this week
 $existingAttendance = [];
 
 if (!empty($roster) && !empty($days)) {
 
-    // Build list of StudentIDs
     $studentIds = array_column($roster, 'StudentID');
 
-    // Build list of dates for the week
-    $weekDates = array_column($days, 'mysql'); // ["2025-01-27", "2025-01-28", ...]
+    $weekDates = array_column($days, 'mysql');
 
-    // Turn into placeholders (?, ?, ?, ...)
     $placeholdersStud = implode(',', array_fill(0, count($studentIds), '?'));
     $placeholdersDates = implode(',', array_fill(0, count($weekDates), '?'));
 
@@ -186,10 +182,66 @@ $ranking   = $fac['Ranking'] ?? 'Faculty';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $studentIDs = $_POST['studentID'];
-    $crns = $_POST['crn'];
-    $courseIDs = $_POST['courseID'];
-    $dates = $_POST['attendanceDate'];
-    $statuses = $_POST['status'];
+    $crns       = $_POST['crn'];
+    $courseIDs  = $_POST['courseID'];
+    $dates      = $_POST['attendanceDate'];
+    $statuses   = $_POST['status'];
+
+    $crnForPost = $crns[0] ?? null;
+
+    if ($crnForPost) {
+
+        $timeSql = "
+            SELECT MIN(p.StartTime) AS ClassStart
+            FROM CourseSection cs
+            JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
+            JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
+            JOIN Period p ON tsp.PeriodID = p.PeriodID
+            WHERE cs.CRN = ?
+        ";
+        $timeStmt = $mysqli->prepare($timeSql);
+        $timeStmt->bind_param('i', $crnForPost);
+        $timeStmt->execute();
+        $timeRes  = $timeStmt->get_result()->fetch_assoc();
+        $timeStmt->close();
+
+        if (!empty($timeRes['ClassStart'])) {
+            $now       = new DateTimeImmutable('now');
+            $todayStr  = $now->format('Y-m-d');
+            $classStart = new DateTimeImmutable($todayStr . ' ' . $timeRes['ClassStart']);
+
+            foreach ($dates as $i => $dateStr) {
+                $attDate = new DateTimeImmutable($dateStr);
+
+                if ($attDate > $now && $statuses[$i] !== '') {
+                    echo "<script>
+                        alert('You cannot submit attendance for future dates.');
+                        window.history.back();
+                    </script>";
+                    exit;
+                }
+            }
+
+            $block = false;
+            for ($i = 0; $i < count($dates); $i++) {
+                if ($dates[$i] === $todayStr && $statuses[$i] !== '') {
+                    if ($now < $classStart) {
+                        $block = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($block) {
+                echo "<script>
+                        alert('You cannot submit attendance for today before class start time (" . 
+                             $classStart->format('g:i A') . ").');
+                        window.history.back();
+                      </script>";
+                exit;
+            }
+        }
+    }
 
     $mysqli->begin_transaction();
 

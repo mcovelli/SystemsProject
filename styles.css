@@ -66,34 +66,38 @@ body{
 
 /* Layout */
 .container{
-  max-width:1120px; margin:0 auto; padding:24px; 
-  display:grid; grid-template-columns: 1fr; gap:24px;
+  max-width:1040px; margin:0 auto; padding:16px; 
+  display:grid; grid-template-columns: 1fr; gap:16px;
 }
 @media (min-width:1024px){
   .container{grid-template-columns: 2fr 1fr;}
 }
-.left{display:grid; gap:24px}
-.right{display:grid; gap:24px}
-.stats{display:grid; grid-template-columns:1fr; gap:16px}
+.left{display:grid; gap:16px}
+.right{display:grid; gap:16px}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
 @media (min-width:640px){ .stats{grid-template-columns: repeat(2,1fr);} }
 @media (min-width:1280px){ .stats{grid-template-columns: repeat(4,1fr);} }
 
 .card{
   background: var(--panel); border:1px solid var(--border);
-  border-radius:16px; box-shadow: var(--shadow); padding:16px;
+  border-radius:16px; box-shadow: var(--shadow); padding:12px 14px;
 }
 .card-title{font-weight:600; margin-bottom:8px}
 .card-head{display:flex; align-items:center; justify-content:space-between;}
 .muted{color: var(--muted);}
 .sub{margin-top:4px; font-size:12px}
-.stat-value{font-size:26px; font-weight:600; margin-top:4px}
+.stat-value{font-size:22px; font-weight:600; margin-top:4px}
 .grid-two{display:grid; grid-template-columns:1fr; gap:16px}
 @media (min-width:1024px){ .grid-two{grid-template-columns:1fr 1fr} }
 .sm-one{grid-template-columns:1fr}
 .row{display:flex; align-items:center}
 .between{justify-content:space-between}
 .gap{gap:10px}
-.small{font-size:14px}
+.small{font-size:1px}
 .pt-8{padding-top:8px}
 .vstack{display:flex; flex-direction:column}
 .table-wrap{overflow:auto}

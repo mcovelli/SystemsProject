@@ -19,7 +19,7 @@ if (
     exit;
 }
 $userId = $_SESSION['user_id'];
-$role = strtolower($_SESSION['role'] ?? '');
+$role = strtolower(trim($_SESSION['role'] ?? ''));
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -37,16 +37,20 @@ $studentID = NULL;
 $studentName = NULL;
 
 
-if (($role === 'admin' || $role === 'faculty') && isset($_GET['studentID']) && !empty($_GET['studentID'])) {
-    // Admin or faculty viewing a specific student's roster
-    $studentID = intval($_GET['studentID']);
+if (($role === 'admin' || $role === 'faculty') && !empty($_GET['studentID'])) {
+    // Admin/faculty can view a specific student
+    $studentID = (int)$_GET['studentID'];
+
 } elseif ($role === 'student') {
-    // Faculty viewing their own roster
+    // Student always views their own attendance
     $studentID = $userId;
-} elseif ($role === 'admin' && empty($_GET['studentID'])) {
+
+} elseif ($role === 'admin') {
+    // Admin with no studentID -> send back to directory
     redirect(PROJECT_ROOT . "/viewDirectory.php");
+
 } else {
-    // Not logged in as student, faculty, or admin
+    // Shouldn't get here, but safety net
     redirect(PROJECT_ROOT . "/login.html");
 }
 
@@ -196,7 +200,10 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="top-actions">
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
       <div class="divider"></div>
-      <div class="crumb"><a href="viewDirectory.php" aria-label="Back to Directory">← Back to Directory</a></div>
+      <div class="crumb">
+      <a href="<?= htmlspecialchars($profile) ?>" aria-label="Back to Profile">
+        ← Back to Profile
+      </a>
     </div>
 
     <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
@@ -223,7 +230,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           <input type="hidden" name="studentID" value="<?= htmlspecialchars($studentID) ?>">
           <label for="search">Search:</label>
           <input type="text" id="search" name="search"
-           placeholder="Search name or department..."
+           placeholder="Search course name or semester..."
            value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
 
           <button type="submit">Search</button>

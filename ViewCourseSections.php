@@ -30,14 +30,21 @@ $conditions = [];
 $params = [];
 $types = "";
 
-$sql = "SELECT cs.CRN, cs.CourseID, cs.CourseSectionNo, c.CourseName, CONCAT(fu.FirstName, ' ', fu.LastName) AS Professor, cs.TimeSlotID, cs.RoomID, cs.SemesterID, cs.AvailableSeats, d.DeptName, c.CourseType
+$sql = "SELECT cs.CRN, cs.CourseID, cs.CourseSectionNo, c.CourseName, CONCAT(fu.FirstName, ' ', fu.LastName) AS Professor, GROUP_CONCAT(DISTINCT day.DayOfWeek ORDER BY day.DayID SEPARATOR '/') AS Days,
+            MIN(DATE_FORMAT(p.StartTime, '%l:%i %p')) AS StartTime,
+            MAX(DATE_FORMAT(p.EndTime, '%l:%i %p'))   AS EndTime, 
+            cs.RoomID, cs.SemesterID, cs.AvailableSeats, d.DeptName, c.CourseType
   FROM CourseSection cs 
   JOIN Course c ON cs.CourseID = c.CourseID
   JOIN Users fu ON cs.FacultyID = fu.UserID
   JOIN Department d ON c.DeptID = d.DeptID 
+  JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
+  JOIN TimeSlotDay tsd ON ts.TS_ID = tsd.TS_ID
+  JOIN Day day ON tsd.DayID = day.DayID
+  JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
+  JOIN Period p ON tsp.PeriodID = p.PeriodID
   JOIN Semester s ON cs.SemesterID = s.SemesterID";
 
-$stmt = $mysqli->prepare($sql);
 
 if (!empty($selectedCourseType)) {
     $conditions[] = " c.CourseType = ?";
@@ -61,7 +68,23 @@ if (!empty($conditions)) {
     $sql .= " WHERE " . implode(" AND ", $conditions);
 }
 
-$sql .= " ORDER BY cs.SemesterID, cs.CourseID, cs.CRN";
+$sql .= "
+  GROUP BY 
+    cs.CRN,
+    cs.CourseID,
+    cs.CourseSectionNo,
+    c.CourseName,
+    Professor,
+    cs.RoomID,
+    cs.SemesterID,
+    cs.AvailableSeats,
+    d.DeptName,
+    c.CourseType
+  ORDER BY 
+    cs.SemesterID,
+    cs.CourseID,
+    cs.CRN
+";
 
 $stmt = $mysqli->prepare($sql);
 if (!empty($params)) {
@@ -186,7 +209,7 @@ if ($initials === '') { $initials = 'NU'; }
 
     <div class="table-wrap">
       <table id="coursesTable" border="1" cellpadding="5" cellspacing="0">
-        <thead><tr><th>CRN</th><th>Course ID</th><th>Course Section #</th><th>Course Name</th><th>Dept Name</th><th>Professor</th><th>Time Slot</th><th>Room</th><th>Semester</th><th>Available Seats</th><th>Course Type</th></tr></thead>
+        <thead><tr><th>CRN</th><th>Course ID</th><th>#</th><th>Course</th><th>Dept</th><th>Professor</th><th>Days</th><th>Time</th><th>Room</th><th>Semester</th><th># Seats</th><th>Course Type</th></tr></thead>
           <tbody id="coursesBody">
             <?php if (!empty($courses)): ?>
               <?php foreach ($courses as $c): ?>
@@ -197,7 +220,23 @@ if ($initials === '') { $initials = 'NU'; }
                   <td><?= htmlspecialchars($c['CourseName']) ?></td>
                   <td><?= htmlspecialchars($c['DeptName']) ?></td>
                   <td><?= htmlspecialchars($c['Professor']) ?></td>
-                  <td><?= htmlspecialchars($c['TimeSlotID']) ?></td>
+                  
+                  <?php
+                      // Handle combined days like "Mon/Wed" or "Tue/Thu"
+                      $dayStr = (string)($c['DayOfWeek'] ?? $c['Days'] ?? '');
+                      $dayStr = $dayStr === '' ? '—' : $dayStr;
+                    ?>
+                    <td><?= htmlspecialchars($dayStr) ?></td>
+
+                    <?php
+                      // Handle time display
+                      $start = $c['StartTime'] ?? '';
+                      $end   = $c['EndTime']   ?? '';
+                      $timeStr = trim($start . ($start && $end ? ' – ' : '') . $end);
+                      $timeStr = $timeStr === '' ? 'TBA' : $timeStr;
+                    ?>
+                    <td><?= htmlspecialchars($timeStr) ?></td>
+
                   <td><?= htmlspecialchars($c['RoomID']) ?></td>
                   <td><?= htmlspecialchars($c['SemesterID']) ?></td>
                   <td><?= htmlspecialchars($c['AvailableSeats']) ?></td>

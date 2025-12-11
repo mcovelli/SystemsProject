@@ -1,12 +1,19 @@
 <?php
 session_start();
 require_once __DIR__ . '/config.php';
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 
-if (!isset($_SESSION['user_id']) || 
-  ($_SESSION['role'] ?? '') !== 'admin' ||
-($_SESSION['admin_type'] ?? '') !== 'update') {
+$role         = $_SESSION['role'] ?? '';
+$studentType  = $_SESSION['student_type'] ?? '';
+$adminType    = $_SESSION['admin_type'] ?? '';
+
+if (
+    !isset($_SESSION['user_id']) ||
+    !(
+        $role === 'student' ||
+        $studentType === 'undergrad' ||
+        ($role === 'admin' && $adminType === 'update')
+    )
+) {
     redirect(PROJECT_ROOT . "/login.html");
 }
 
@@ -15,35 +22,45 @@ $userId = $_SESSION['user_id'];
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
-        FROM Users WHERE UserID = ? LIMIT 1";
-$userstmt = $mysqli->prepare($usersql);
-$userstmt->bind_param("i", $userId);
-$userstmt->execute();
-$userres = $userstmt->get_result();
-$user = $userres->fetch_assoc();
-$userstmt->close();
-
 $loadedStudent = null;
-$searchId = $_SESSION['user_id'];
+$studentHolds = [];
 
 if (isset($_POST['searchStudent'])) {
-    $searchId = $_POST['searchID'];
 
-    // Load Student table
-    $stmt = $mysqli->prepare("SELECT 
-          s.StudentID, 
-          CONCAT(u.FirstName, ' ', u.LastName) AS StudentName 
+    $searchId = trim($_POST['searchID']);
+
+    $stmt = $mysqli->prepare("
+        SELECT 
+            s.StudentID,
+            CONCAT(u.FirstName, ' ', u.LastName) AS StudentName
         FROM Student s
         JOIN Users u ON s.StudentID = u.UserID
-        LEFT JOIN StudentHold sh ON s.StudentID = sh.StudentID
         WHERE s.StudentID = ?
-        ORDER BY s.StudentID ASC");
-    $stmt->bind_param("i", $searchId);
+        LIMIT 1
+    ");
+    $stmt->bind_param("s", $searchId);
     $stmt->execute();
     $loadedStudent = $stmt->get_result()->fetch_assoc();
     $stmt->close();
+
+    if ($loadedStudent) {
+        $h_stmt = $mysqli->prepare("
+            SELECT HoldID 
+            FROM StudentHold 
+            WHERE StudentID = ?
+        ");
+        $h_stmt->bind_param("s", $loadedStudent['StudentID']);
+        $h_stmt->execute();
+        $studentHolds = array_column($h_stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'HoldID');
+        $h_stmt->close();
+    }
 }
+
+// Fetch all available hold
+$hold_stmt = $mysqli->prepare("SELECT HoldID, HoldType FROM Hold ORDER BY HoldType ASC");
+$hold_stmt->execute();
+$holds = $hold_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$hold_stmt->close();
 
 $userId = $_SESSION['user_id'];
 
@@ -56,36 +73,60 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
-if (isset($_POST['declareMajor'])) {
-    $MajorID = $_POST['majorID'] ?? '';
+if (isset($_POST['placeHold'])) {
     $StudentID = $_POST['studentID'] ?? '';
-    $DateOfDeclaration = date('Y-m-d');
+    $selectedHolds = $_POST['holdIDs'] ?? [];
+    $selectedHolds = array_slice($selectedHolds, 0, 4);
 
-$mysqli->begin_transaction();
+    $mysqli->begin_transaction();
+    $ok = true;
+    
+    $stmt = $mysqli->prepare("SELECT HoldID FROM StudentHold WHERE StudentID = ?");
+    $stmt->bind_param("i", $StudentID);
+    $stmt->execute();
+    $existingHolds = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'holdID');
+    $stmt->close();
 
-  $sql = "
-    INSERT INTO StudentMajor (StudentID, MajorID, DateOfDeclaration)
-    VALUES (?, ?, CURRENT_DATE())
-    ON DUPLICATE KEY UPDATE
-        MajorID = VALUES(MajorID),
-        DateOfDeclaration = CURRENT_DATE()
-    ";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("ii", $StudentID, $MajorID);
-  $stmt->execute();
+    $toDelete = array_diff($existingHolds, $selectedHolds);
 
-  $sql = "UPDATE Student SET MajorID = ? WHERE StudentID = ?";
-  $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("ii", $MajorID, $StudentID);
-  $stmt->execute();
+    if (!empty($toDelete)) {
+        $del = $mysqli->prepare("DELETE FROM StudentHold WHERE StudentID = ? AND HoldID = ?");
+        foreach ($toDelete as $mid) {
+            if (
+                !$del->bind_param("ii", $StudentID, $mid) ||
+                !$del->execute()
+            ) {
+                $ok = false;
+            }
+        }
+        $del->close();
+    }
 
-if ($stmt->execute()) {
-    $mysqli->commit();
-    echo "<script>alert('Major Declared ✅');</script>";
-} else {
-    $mysqli->rollback();
-    echo "<script>alert('Could Not Declare Major');</script>";
-}
+    $toInsert = array_diff($selectedHolds, $existingHolds);
+
+    if (!empty($toInsert)) {
+        $ins = $mysqli->prepare("
+            INSERT INTO StudentHold (StudentID, HoldID, DateOfHold)
+            VALUES (?, ?, CURRENT_DATE())
+        ");
+        foreach ($toInsert as $mid) {
+            if (
+                !$ins->bind_param("ii", $StudentID, $mid) ||
+                !$ins->execute()
+            ) {
+                $ok = false;
+            }
+        }
+        $ins->close();
+    }
+
+    if ($ok) {
+        $mysqli->commit();
+        echo "<script>alert('Hold Placed on Account ✅');</script>";
+    } else {
+        $mysqli->rollback();
+        echo "<script>alert('Could Not Place Hold on Account');</script>";
+    }
 }
 
 $userRole = strtolower($_SESSION['role'] ?? '');
@@ -115,7 +156,7 @@ switch ($userRole) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Declare Major • Northport University</title>
+  <title>Place Hold • Northport University</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -126,7 +167,7 @@ switch ($userRole) {
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Declare Major</span>
+      <span class="pill">Place Hold on Account</span>
     </div>
     <div class="top-actions">
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
@@ -151,7 +192,6 @@ switch ($userRole) {
   </header>
 
   <!-- SEARCH Student CARD -->
-<?php if (!$isStudent): ?>
 <section class="hero card">
     <h2>Search for Student</h2>
 
@@ -161,14 +201,13 @@ switch ($userRole) {
         <button type="submit" name="searchStudent">Search</button>
     </form>
 </section>
-<?php endif; ?>
 
 
 <!-- IF Student LOADED, DISPLAY FORM -->
 <?php if (!empty($loadedStudent)) : ?>
 
 <section class="hero card" style="margin-top: 20px;">
-    <h2>Declare Major: <?php echo htmlspecialchars($loadedStudent['StudentName'] . " - " . $loadedStudent['StudentID']); ?></h2>
+    <h2>Place Hold: <?php echo htmlspecialchars($loadedStudent['StudentName'] . " - " . $loadedStudent['StudentID']); ?></h2>
 
     <form method="POST">
 
@@ -181,21 +220,18 @@ switch ($userRole) {
                 <input type="text" name="studentID" readonly value="<?php echo $loadedStudent['StudentID']; ?>">
             </div>
 
-            <div class="field-block">
-                <label for = "majorID" required>Major: </label>
-                  <select name="majorID" id ="majorID">
-                    <option value="">-- Select Major--</option>
-                  </select>
-            </div>
+            <label>Select hold(s):</label><br>
 
-            <div class="field-block">
-                <label>Date of Declaration</label>
-                <input type="text" name="DateOfDeclaration" readonly 
-                  value="<?php echo htmlspecialchars(date('Y-m-d')); ?>">
-            </div>
+            <?php foreach ($holds as $h): ?>
+                <label>
+                    <input type="checkbox" name="holdIDs[]" value="<?= $h['HoldID'] ?>"
+                           <?= in_array($h['HoldID'], $studentHolds) ? 'checked' : '' ?>>
+                    <?= htmlspecialchars($h['HoldType']) ?>
+                </label><br>
+            <?php endforeach; ?>
 
             <div style="margin-top: 20px;">
-                <button type="submit" name="declareMajor">Save Changes</button>
+                <button type="submit" name="placeHold">Save Changes</button>
             </div>
 
     </form>
@@ -207,8 +243,9 @@ switch ($userRole) {
  <footer class="footer">© <span id="year"></span> Northport University</footer>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
+
 <script>
-      // Immediately create Lucide icons
+    // Immediately create Lucide icons
     lucide.createIcons();
 
     // Populate the year in the footer
@@ -225,28 +262,24 @@ switch ($userRole) {
       if (window.lucide) lucide.createIcons();
     });
 
-    // Fetch faculty from get_faculty.php
+    // Fetch holds from get_holds.php
     fetch('get_holds.php')
-    .then(response => response.json())
-    .then(data => {
-        const holdSelect = document.getElementById('holdID');
-        const selectedHold = new URLSearchParams(window.location.search).get('holdID');
+  .then(response => response.json())
+  .then(data => {
+    const holdSelect = document.getElementById('holdID');
+    const selectedHold = new URLSearchParams(window.location.search).get('holdID');
 
     data.forEach(hold => {
-        const opt = document.createElement('option');
-        opt.value = hold.id;
-        opt.textContent = hold.type
-        holdSelect.appendChild(opt);
-        });
-    })
-    .catch(err => console.error('Error loading Holds:', err));
+      const opt = document.createElement('option');
+      opt.value = hold.id;
+      opt.textContent = hold.type
 
+      if (type.id == selectedHold) {
+        opt.selectedHold = true;
+      }
 
-    document.getElementById("CreateDepartment").addEventListener("submit", (e) => {
-    console.log("Form submitted");
-});
+      holdSelect.appendChild(opt);
+
 </script>
-
 </body>
 </html>
-

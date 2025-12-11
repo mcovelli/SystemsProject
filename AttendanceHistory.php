@@ -12,7 +12,8 @@ if (
     !isset($_SESSION['user_id']) ||
     (
         ($_SESSION['role'] ?? '') !== 'faculty' &&
-        ($_SESSION['role'] ?? '') !== 'admin')
+        ($_SESSION['role'] ?? '') !== 'admin' &&
+        ($_SESSION['role'] ?? '') !== 'student')
     ) {
     header('Location: login.php');
     exit;

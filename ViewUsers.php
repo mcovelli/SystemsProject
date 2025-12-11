@@ -55,7 +55,7 @@ $sql .= " ORDER BY UserID ASC";
 $stmt = $mysqli->prepare($sql);
 
 if (!empty($search)) {
-    $stmt->bind_param("sss", $search, $search, $search);
+    $stmt->bind_param("ssss", $search, $search, $search, $search);
 }
 
 $stmt->execute();

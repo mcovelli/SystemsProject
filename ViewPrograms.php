@@ -188,13 +188,17 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
           const deptSelect = document.getElementById('dept');
           const selectedDept = new URLSearchParams(window.location.search).get('dept');
 
-          data.forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name.name;
-            opt.textContent = name.name;
-            if (name === selectedDept) opt.selected = true;
-            deptSelect.appendChild(opt);
-          });
+          data.forEach(dept => {
+          const opt = document.createElement('option');
+          opt.value = dept.name;
+          opt.textContent = dept.name;
+
+          if (dept.name === selectedDept) {
+            opt.selected = true;
+          }
+
+          deptSelect.appendChild(opt);
+        });
         })
         .catch(err => console.error('Error loading departments:', err));
 

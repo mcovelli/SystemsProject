@@ -295,6 +295,36 @@ $message_stmt->bind_param('i', $userId);
 $message_stmt->execute();
 $message_res = $message_stmt->get_result();
 
+$onHold = false;
+$studentHolds = [];
+
+$onHold = false;
+$studentHolds = [];
+
+$hold_sql = "
+    SELECT 
+        sh.HoldID,
+        h.HoldType
+    FROM StudentHold sh
+    JOIN Hold h ON sh.HoldID = h.HoldID
+    WHERE sh.StudentID = ?
+";
+
+$hold_stmt = $mysqli->prepare($hold_sql);
+$hold_stmt->bind_param('i', $userId);   // just the student ID
+$hold_stmt->execute();
+$hold_res = $hold_stmt->get_result();
+$studentHolds = $hold_res->fetch_all(MYSQLI_ASSOC);   // <- use $hold_res
+$hold_stmt->close();
+
+$onHold = !empty($studentHolds);
+
+// For the card:
+$holdCount  = count($studentHolds);
+$holdNames  = $holdCount
+    ? implode(", ", array_column($studentHolds, 'HoldType'))
+    : "No Holds";
+
 // Placeholder quick links, tasks, announcements and messages
 $quickLinks = [
     ['label' => 'Profile',      'href' => 'student_profile.php',    'icon' => 'user'],
@@ -462,11 +492,10 @@ if ($isGrad) {
         <div class="card stat">
           <div class="card-head">
             <div class="muted">Holds</div>
-            <i data-lucide="triangle-alert"></i>
+            <i data-lucide="<?= $holdCount ? 'triangle-alert' : 'check-circle' ?>"></i>
           </div>
-          <div class="stat-value">0</div>
-          <div class="sub muted">All clear</div>
-        </div>
+          <div class="stat-value"><?= $holdCount ?></div>
+          <div class="sub muted"><?= htmlspecialchars($holdNames) ?></div>
       </div>
 
       <div class="grid-two">

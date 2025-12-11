@@ -89,8 +89,11 @@ $otherLinks = [
     ['label' => 'Assign Advisor', 'href' => 'assign_advisor.php',       'icon' => 'file-text'],
     ['label' => 'Declare Major',      'href' => 'DeclareMajor.php',           'icon' => 'book'],
     ['label' => 'Declare Minor',   'href' => 'DeclareMinor.php',                      'icon' => 'book-open'],
-    ['label' => 'Declare Program',     'href' => 'DeclareProgram.php',                      'icon' => 'mail'],
-    ['label' => 'Place Hold',     'href' => 'PlaceHold.php',                      'icon' => 'check']
+    ['label' => 'Declare Program',     'href' => 'DeclareProgram.php',                      'icon' => 'open-book'],
+    ['label' => 'Place Hold',     'href' => 'PlaceHold.php',                      'icon' => 'X']
+
+
+>>>>>>> 459e53e (added place hold)
 ];
 
 $initials = substr($admin['FirstName'], 0, 1) . substr($admin['LastName'], 0, 1);

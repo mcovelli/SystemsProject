@@ -9,18 +9,20 @@ if (!isset($_GET['courseID'])) {
     exit;
 }
 
-$courseID = $_GET['courseID'];
-
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
+$courseID = $_GET['courseID'] ?? '';
+
 $sql = "
     SELECT 
-        CourseID,
-        PrerequisiteCourseID,
-        MinGradeRequired
-    FROM CoursePrerequisite
-    WHERE CourseID = ?
+        cp.PrerequisiteCourseID AS prereqCourseID,
+        cp.MinGradeRequired     AS minGradeRequired,
+        c.CourseName
+    FROM CoursePrerequisite cp
+    JOIN Course c 
+      ON cp.PrerequisiteCourseID = c.CourseID
+    WHERE cp.CourseID = ?
 ";
 
 $stmt = $mysqli->prepare($sql);
@@ -30,11 +32,7 @@ $res = $stmt->get_result();
 
 $rows = [];
 while ($row = $res->fetch_assoc()) {
-    $rows[] = [
-        'courseID'            => $row['CourseID'],
-        'prereqCourseID'      => $row['PrerequisiteCourseID'],
-        'minGradeRequired'    => $row['MinGradeRequired'],
-    ];
+    $rows[] = $row;
 }
 
 $stmt->close();

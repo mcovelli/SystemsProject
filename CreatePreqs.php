@@ -33,6 +33,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         throw new Exception("No course selected.");
     }
 
+    preg_match('/(\d+)/', $courseID, $course_match);
+    $course_num = (int)($course_match[1] ?? 0);
+
+    foreach ($prereqCourseIDs as $prereqID) {
+        preg_match('/(\d+)/', $prereqID, $prereq_match);
+        $prereq_num = (int)($prereq_match[1] ?? 0);
+
+        if ($prereq_num >= $course_num) {
+            throw new Exception(
+                "Invalid prerequisite: $prereqID must be a higher-level course than $courseID."
+            );
+        }
+    }
+
     $mysqli->begin_transaction();
 
     try {
@@ -173,7 +187,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     <div id = "create-prereq">
         <form id = "prereqForm" method = "POST">
-            <label for="courseID">Select Course:</label>
+            <label for="courseID">Select Course to create Prerequisites for:</label>
             <select id="courseID" name="courseID" required>
                     <option value="">-- Select --</option>
                 </select>
@@ -231,7 +245,6 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     if (window.lucide) lucide.createIcons();
   });
 
-  // 🔹 Populate the courseID dropdown
   fetch('get_courses.php')
     .then(response => response.json())
     .then(data => {
@@ -251,7 +264,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const courseSelect    = document.getElementById('courseID');
+    const courseSelect    = document.getElementById('courseID'); 
     const courseTableBody = document.querySelector("#courseTable tbody");
     const deptFilter      = document.getElementById("deptFilter");
 

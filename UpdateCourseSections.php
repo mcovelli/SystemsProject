@@ -89,7 +89,7 @@ if (isset($_POST['updateCourseSection'])) {
     ";
 
     $room_stmt = $mysqli->prepare($room_sql);
-    $room_stmt->bind_param('isii', $RoomID, $Semester, $TimeSlotID, $CRN);
+    $room_stmt->bind_param('ssii', $RoomID, $Semester, $TimeSlotID, $CRN);
     $room_stmt->execute();
     $room_res = $room_stmt->get_result();
     $room_available = ($room_res->num_rows === 0);

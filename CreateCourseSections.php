@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ";
 
     $room_stmt = $mysqli->prepare($room_sql);
-    $room_stmt->bind_param('isi', $RoomId, $SemesterId, $TimeSlotId);
+    $room_stmt->bind_param('ssi', $RoomId, $SemesterId, $TimeSlotId);
     $room_stmt->execute();
     $room_res = $room_stmt->get_result();
     $room_available = ($room_res->num_rows === 0);
@@ -68,6 +68,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($error_message) && !$room_available) {
         $error_message = 'Room is occupied for this timeslot.';
+    }
+
+    $date_sql = "SELECT StartDate FROM Semester WHERE SemesterID = ?";
+    $date_stmt = $mysqli->prepare($date_sql);
+    $date_stmt->bind_param('s', $SemesterId);
+    $date_stmt->execute();
+    $date_res = $date_stmt->get_result();
+    $semester = $date_res->fetch_assoc();
+    $date_stmt->close();
+
+    if ($semester && strtotime($semester['StartDate']) <= time()) {
+        $error_message = 'Cannot create course sections after the semester has started.';
     }
 
         $roomSql = "
@@ -84,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ";
 
         $stmt = $mysqli->prepare($roomSql);
-        $stmt->bind_param("i", $RoomId);
+        $stmt->bind_param("s", $RoomId);
         $stmt->execute();
         $res = $stmt->get_result();
         $row = $res->fetch_assoc();
@@ -98,19 +110,19 @@ if (empty($error_message)) {
 
   $sql = "INSERT INTO CourseSection (CourseID, CourseSectionNo, FacultyID, TimeSlotID, RoomID, Year, SemesterID, AvailableSeats, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PLANNED')";
   $stmt = $mysqli->prepare($sql);
-  $stmt->bind_param("siiisssi", $CourseID, $CourseSectionNo, $FacultyId, $TimeSlotId, $RoomId, $Year, $SemesterId, $AvailableSeats);
+  $stmt->bind_param("siiisisi", $CourseID, $CourseSectionNo, $FacultyId, $TimeSlotId, $RoomId, $Year, $SemesterId, $AvailableSeats);
         
   if ($stmt->execute()) {
     $mysqli->commit();
     $_SESSION['update_success'] = true;
     $_SESSION['success_message'] = 'Course section created successfully!';
-    header("Location: UpdateCourseSections.php");
+    header("Location: CreateCourseSections.php");
     exit;
 } else {
     $mysqli->rollback();
     $_SESSION['update_success'] = false;
     $_SESSION['success_message'] = 'Course section could not be created';
-    header("Location: UpdateCourseSections.php");
+    header("Location: CreateCourseSections.php");
     exit;
 }
   
@@ -307,7 +319,7 @@ sem.addEventListener("change", loadRooms);
     .catch(err => console.error('Error loading times:', err));
 
     // Fetch semesters from get_semesters.php
-    fetch('get_semesters.php')
+    fetch('get_open_semesters.php')
     .then(response => response.json())
     .then(data => {
         const semesterSelect = document.getElementById('semesterID');

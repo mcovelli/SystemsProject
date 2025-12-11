@@ -295,8 +295,27 @@ $message_stmt->bind_param('i', $userId);
 $message_stmt->execute();
 $message_res = $message_stmt->get_result();
 
-$onHold = false;
-$studentHolds = [];
+$advisorEmail = null;
+
+// Example: adjust table/column names to match your schema
+$advisor_sql = "
+    SELECT u.Email, u.FirstName, u.LastName
+    FROM Advisor a
+    JOIN Faculty f ON a.FacultyID = f.FacultyID
+    JOIN Users u ON f.FacultyID = u.UserID
+    WHERE a.StudentID = ?
+    LIMIT 1
+";
+
+$advisor_stmt = $mysqli->prepare($advisor_sql);
+$advisor_stmt->bind_param('i', $userId);
+$advisor_stmt->execute();
+$advisor = $advisor_stmt->get_result()->fetch_assoc();
+$advisor_stmt->close();
+
+if ($advisor) {
+    $advisorEmail = $advisor['Email'];
+}
 
 $onHold = false;
 $studentHolds = [];
@@ -516,11 +535,15 @@ if ($isGrad) {
           </div>
           <div class="row gap">
             <button onclick="location.href='degree_audit.php'" class="btn">View Degree Plan</button>
-            <button 
-                onclick="location.href='mailto:<?php echo htmlspecialchars($advisorEmail ?? ''); ?>'" 
-                class="btn outline">
-                Email Advisor
-            </button>
+            <?php if (!empty($advisorEmail)): ?>
+              <button 
+                  onclick="location.href='mailto:<?= htmlspecialchars($advisorEmail) ?>'" 
+                  class="btn outline">
+                  Email Advisor
+              </button>
+            <?php else: ?>
+              <button class="btn outline" disabled>No Advisor Assigned</button>
+            <?php endif; ?>
           </div>
         </div>
 

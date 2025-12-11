@@ -58,7 +58,8 @@ $quickLinks = [
     ['label' => 'Create Departments',     'href' => 'CreateDepartments.php',                      'icon' => 'mail'],
     ['label' => 'Create Majors/Minors',      'href' => 'CreateMajorsMinors.php',                      'icon' => 'check'],
     ['label' => 'Create Programs',      'href' => 'CreatePrograms.php',                      'icon' => 'brain'],
-    ['label' => 'Create Requirements',      'href' => 'CreateRequirements.php',                      'icon' => 'list']
+    ['label' => 'Create Requirements',      'href' => 'CreateRequirements.php',                      'icon' => 'list'],
+    ['label' => 'Create Prerequisites',      'href' => 'CreatePreqs.php',                      'icon' => 'list']
 ];
 
 $updateLinks = [
@@ -69,7 +70,8 @@ $updateLinks = [
     ['label' => 'Update Majors',      'href' => 'UpdateMajors.php',                      'icon' => 'check'],
     ['label' => 'Update Minors',      'href' => 'UpdateMinors.php',                      'icon' => 'check'],
     ['label' => 'Update Programs',      'href' => 'UpdatePrograms.php',                      'icon' => 'brain'],
-    ['label' => 'Update Requirements',      'href' => 'UpdateRequirements.php',                      'icon' => 'list']
+    ['label' => 'Update Requirements',      'href' => 'UpdateRequirements.php',                      'icon' => 'list'],
+    ['label' => 'Updates Prerequisites',      'href' => 'UpdatePrereqs.php',                      'icon' => 'list']
 
 ];
 
@@ -87,7 +89,8 @@ $otherLinks = [
     ['label' => 'Assign Advisor', 'href' => 'assign_advisor.php',       'icon' => 'file-text'],
     ['label' => 'Declare Major',      'href' => 'DeclareMajor.php',           'icon' => 'book'],
     ['label' => 'Declare Minor',   'href' => 'DeclareMinor.php',                      'icon' => 'book-open'],
-    ['label' => 'Declare Program',     'href' => 'DeclareProgram.php',                      'icon' => 'mail'],
+    ['label' => 'Declare Program',     'href' => 'DeclareProgram.php',                      'icon' => 'mail']
+
 ];
 
 $initials = substr($admin['FirstName'], 0, 1) . substr($admin['LastName'], 0, 1);

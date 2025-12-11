@@ -217,6 +217,32 @@ if ($selectedSemester) {
     $sched_stmt->close();
 }
 
+
+$onHold = false;
+$studentHolds = [];
+
+$hold_sql = "
+SELECT 
+    sh.HoldID, 
+    h.HoldType
+  FROM StudentHold sh
+  JOIN Hold h ON sh.HoldID = h.HoldID
+  WHERE sh.StudentID = ?
+";
+
+$hold_stmt = $mysqli->prepare($hold_sql);
+$hold_stmt->bind_param('i', $userId);
+$hold_stmt->execute();
+$hold_res = $hold_stmt->get_result();
+$studentHolds = $hold_res->fetch_all(MYSQLI_ASSOC);
+$hold_stmt->close();
+
+if (!empty($studentHolds)){
+  $onHold = true;
+}
+
+
+
 ?>
 
 <!doctype html>
@@ -246,7 +272,6 @@ if ($selectedSemester) {
 
 
   <main class="page">
-
     <?php if (!empty($_SESSION['error_message'])): ?>
       <div class="alert error" style="background:#fee2e2;color:#991b1b;padding:10px;border-radius:6px;margin-bottom:10px;">
         <?= htmlspecialchars($_SESSION['error_message']) ?>
@@ -350,6 +375,7 @@ if ($selectedSemester) {
       </div>
 
       <!-- RIGHT: stack Cart + Chosen boxes -->
+      
       <div class="stack">
         <!-- Cart -->
         <aside class="card">
@@ -400,11 +426,14 @@ if ($selectedSemester) {
             </table>
 
             <form action="confirm_cart.php" method="POST" style="margin-top:1em;">
-              <button type="submit" class="btn gradient">✅ Confirm Enrollment</button>
+              <?php if ($onHold): ?>
+                  <button disabled class="disabled-btn">Register (Hold on Account)</button>
+              <?php else: ?>
+                  <button class="btn-primary">Register</button>
+              <?php endif; ?>
             </form>
 
           </div>
-
           <div id="conflictBox" class="sub muted" style="margin-top:8px"></div>
         </aside>
       </div>

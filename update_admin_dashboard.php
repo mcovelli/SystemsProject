@@ -34,6 +34,7 @@ $quickLinks = [
     ['label' => 'View Directory', 'href' => 'viewDirectory.php',       'icon' => 'file-text'],
     ['label' => 'Create Directory',      'href' => 'createDirectory.php',           'icon' => 'book'],
     ['label' => 'Announcements',      'href' => 'send_announcement.php',                'icon' => 'megaphone'],
+    ['label' => 'Holds',      'href' => 'PlaceHold.php',                'icon' => 'check'];
 ];
 ?>
 

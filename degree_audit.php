@@ -275,19 +275,19 @@ $standing = ($gpa > 2.99) ? 'Good Standing' : 'Needs Improvement';
       switch ($role) {
           case 'faculty':
               $dashboard = 'faculty_dashboard.php';
-              $profile = 'faculty_profile.php'
+              $profile = 'faculty_profile.php';
               break;
           case 'admin':
               $dashboard = 'admin_dashboard.php';
-              $profile = 'admin_profile.php'
+              $profile = 'admin_profile.php';
               break;
           case 'student':
               $dashboard = 'student_dashboard.php';
-              $profile = 'student_profile.php'
+              $profile = 'student_profile.php';
               break;
           default:
               $dashboard = 'login.html';
-              $profile = 'login.html'
+              $profile = 'login.html';
               break;
       }
     ?>

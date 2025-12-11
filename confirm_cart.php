@@ -62,6 +62,25 @@ $checkPrior = $mysqli->prepare("
     LIMIT 1
 ");
 
+$missingPrereq = $mysqli->prepare("
+    SELECT 
+        cp.PrerequisiteCourseID,
+        cp.MinGradeRequired
+    FROM CoursePrerequisite cp
+    LEFT JOIN StudentHistory sh 
+        ON sh.StudentID = ? 
+       AND sh.CourseID = cp.PrerequisiteCourseID
+    LEFT JOIN GradingScale gs_req 
+        ON gs_req.GradeLetter = cp.MinGradeRequired
+    LEFT JOIN GradingScale gs_got 
+        ON gs_got.GradeLetter = sh.Grade
+    WHERE cp.CourseID = ?
+      AND (
+            sh.Grade IS NULL 
+         OR gs_got.GradeValue < gs_req.GradeValue
+      )
+");
+
 $enrolled = [];
 $waitlisted = [];
 $errors = [];
@@ -95,6 +114,19 @@ foreach ($cart as $item) {
     $semesterId = $course['SemesterID'];
     $courseId = $courseIdFromCart ?: $course['CourseID'];
     $available = (int)$course['AvailableSeats'];
+
+    $missingPrereq->bind_param('is', $userId, $courseId);
+    $missingPrereq->execute();
+    $missingRes = $missingPrereq->get_result();
+
+    if ($missingRes->num_rows > 0) {
+        $missingList = [];
+        while ($row = $missingRes->fetch_assoc()) {
+            $missingList[] = $row['PrerequisiteCourseID'] . " (min " . $row['MinGradeRequired'] . ")";
+        }
+        $errors[] = "CRN $crn: missing prerequisites: " . implode(', ', $missingList);
+        continue;
+    }
 
     $checkPrior->bind_param('ii', $userId, $courseId);
     $checkPrior->execute();
@@ -138,6 +170,7 @@ $getCourse->close();
 $insertEnroll->close();
 $updateSeats->close();
 $checkPrior->close();
+$missingPrereq->close();
 unset($_SESSION['cart']);
 
 // Redirect dashboard

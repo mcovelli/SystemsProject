@@ -52,44 +52,44 @@ switch ($userRole) {
 
 // Placeholder quick links, tasks, announcements and messages
 $quickLinks = [
-    ['label' => 'Create User', 'href' => 'CreateUsers.php',       'icon' => 'file-text'],
+    ['label' => 'Create User', 'href' => 'CreateUsers.php',       'icon' => 'user'],
     ['label' => 'Create Courses',      'href' => 'CreateCourses.php',           'icon' => 'book'],
     ['label' => 'Create Sections',   'href' => 'CreateCourseSections.php',                      'icon' => 'book-open'],
-    ['label' => 'Create Departments',     'href' => 'CreateDepartments.php',                      'icon' => 'mail'],
-    ['label' => 'Create Majors/Minors',      'href' => 'CreateMajorsMinors.php',                      'icon' => 'check'],
+    ['label' => 'Create Departments',     'href' => 'CreateDepartments.php',                      'icon' => 'building'],
+    ['label' => 'Create Majors/Minors',      'href' => 'CreateMajorsMinors.php',                      'icon' => 'brain'],
     ['label' => 'Create Programs',      'href' => 'CreatePrograms.php',                      'icon' => 'brain'],
     ['label' => 'Create Requirements',      'href' => 'CreateRequirements.php',                      'icon' => 'list'],
     ['label' => 'Create Prerequisites',      'href' => 'CreatePreqs.php',                      'icon' => 'list']
 ];
 
 $updateLinks = [
-  ['label' => 'Update User', 'href' => 'UpdateUsers.php',       'icon' => 'file-text'],
+  ['label' => 'Update User', 'href' => 'UpdateUsers.php',       'icon' => 'user'],
     ['label' => 'Update Courses',      'href' => 'UpdateCourses.php',           'icon' => 'book'],
     ['label' => 'Update Sections',   'href' => 'UpdateCourseSections.php',                      'icon' => 'book-open'],
-    ['label' => 'Update Departments',     'href' => 'UpdateDepartments.php',                      'icon' => 'mail'],
-    ['label' => 'Update Majors',      'href' => 'UpdateMajors.php',                      'icon' => 'check'],
-    ['label' => 'Update Minors',      'href' => 'UpdateMinors.php',                      'icon' => 'check'],
+    ['label' => 'Update Majors',      'href' => 'UpdateMajors.php',                      'icon' => 'brain'],
+    ['label' => 'Update Minors',      'href' => 'UpdateMinors.php',                      'icon' => 'brain'],
     ['label' => 'Update Programs',      'href' => 'UpdatePrograms.php',                      'icon' => 'brain'],
+    ['label' => 'Update Departments',     'href' => 'UpdateDepartments.php',                      'icon' => 'building'],
     ['label' => 'Update Requirements',      'href' => 'UpdateRequirements.php',                      'icon' => 'list'],
     ['label' => 'Updates Prerequisites',      'href' => 'UpdatePrereqs.php',                      'icon' => 'list']
 
 ];
 
 $deleteLinks = [
-  ['label' => 'Delete User', 'href' => 'DeleteUsers.php',       'icon' => 'file-text'],
-    ['label' => 'Delete Courses',      'href' => 'DeleteCourses.php',           'icon' => 'book'],
-    ['label' => 'Delete Sections',   'href' => 'DeleteCourseSections.php',                      'icon' => 'book-open'],
-    ['label' => 'Delete Departments',     'href' => 'DeleteDepartments.php',                      'icon' => 'mail'],
-    ['label' => 'Delete Majors/Minors',      'href' => 'DeleteMajorsMinors.php',                      'icon' => 'check'],
-    ['label' => 'Delete Programs',      'href' => 'DeletePrograms.php',                      'icon' => 'brain']
+  ['label' => 'Delete User', 'href' => 'DeleteUsers.php',       'icon' => 'x'],
+    ['label' => 'Delete Courses',      'href' => 'DeleteCourses.php',           'icon' => 'x'],
+    ['label' => 'Delete Sections',   'href' => 'DeleteCourseSections.php',                      'icon' => 'X'],
+    ['label' => 'Delete Departments',     'href' => 'DeleteDepartments.php',                      'icon' => 'x'],
+    ['label' => 'Delete Majors/Minors',      'href' => 'DeleteMajorsMinors.php',                      'icon' => 'x'],
+    ['label' => 'Delete Programs',      'href' => 'DeletePrograms.php',                      'icon' => 'x']
 
 ];
 
 $otherLinks = [
-    ['label' => 'Assign Advisor', 'href' => 'assign_advisor.php',       'icon' => 'file-text'],
-    ['label' => 'Declare Major',      'href' => 'DeclareMajor.php',           'icon' => 'book'],
-    ['label' => 'Declare Minor',   'href' => 'DeclareMinor.php',                      'icon' => 'book-open'],
-    ['label' => 'Declare Program',     'href' => 'DeclareProgram.php',                      'icon' => 'open-book'],
+    ['label' => 'Declare Major',      'href' => 'DeclareMajor.php',           'icon' => 'graduation-cap'],
+    ['label' => 'Declare Minor',   'href' => 'DeclareMinor.php',                      'icon' => 'graduation-cap'],
+    ['label' => 'Declare Program',     'href' => 'DeclareProgram.php',                      'icon' => 'graduation-cap'],
+    ['label' => 'Assign Advisor', 'href' => 'assign_advisor.php',       'icon' => 'check'],
     ['label' => 'Place Hold',     'href' => 'PlaceHold.php',                      'icon' => 'X']
 ];
 

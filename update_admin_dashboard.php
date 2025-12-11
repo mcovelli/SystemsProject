@@ -108,6 +108,7 @@ $quickLinks = [
           </div>
           <div class="stat-value"><?php echo $admin['DOB'] ? date('m/d/Y', strtotime($admin['DOB'])) : 'N/A'; ?></div>
         </div>
+      </div>
 
     </section>
 

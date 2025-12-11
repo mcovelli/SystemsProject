@@ -413,6 +413,7 @@ if ($isGrad) {
           <div class="stat-value"><?php echo number_format($cumulativeGPA, 2); ?></div>
           <div class="sub muted">Standing: <?php echo htmlspecialchars($standing); ?></div>
         </div>
+    </div>
 
         <div class="card stat">
           <div class="card-head">

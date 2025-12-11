@@ -267,39 +267,6 @@ $attendance_stmt->close();
 
           <div class="sub muted">Campus-wide</div>
         </div>
-
-        <div class="card">
-          <div class="card-title"></div>
-          <div class="chart-wrap">
-            <canvas id="gpaChart" height="200"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head between">
-          <div class="card-title"></div>
-        <div class="table-wrap">
-          <form method="get" class="">
-            <label for=""></label>
-            <select name="" id="">
-              <option value=""></option>
-            </select>
-          </form>
-          <table>
-            <thead>
-              <tr>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-                <tr>
-                  <td></td>
-                </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </section>
     <br>
     <aside class="right">

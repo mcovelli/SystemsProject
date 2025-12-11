@@ -101,6 +101,7 @@ $messages = [
 
   <main class="container">
     <section class="left">
+      <div class="stats">
       
         <div class="card stat">
           <div class="card-head">

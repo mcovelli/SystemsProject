@@ -222,6 +222,25 @@ gap: 10px;
 .tab-panels .tab-panel{display:none}
 .tab-panels .tab-panel.active{display:block}
 
+/* Page layout */
+.page{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hero{
+  width: 100%;
+  overflow: hidden;
+}
+
+.hero .table-wrap{
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 /* Footer */
 .footer{border-top:1px solid var(--border); text-align:center; padding:24px; font-size:12px; color:var(--muted)}
 .footer .link{color:inherit}

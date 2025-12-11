@@ -53,6 +53,15 @@ $updateSeats = $mysqli->prepare("
     WHERE CRN = ?
 ");
 
+$checkPrior = $mysqli->prepare("
+    SELECT 1
+    FROM StudentHistory
+    WHERE StudentID = ?
+      AND CourseID = ?
+      AND Grade IN ('A', 'A-', 'B+', 'B', 'B-', 'C+', 'C')
+    LIMIT 1
+");
+
 $enrolled = [];
 $waitlisted = [];
 $errors = [];
@@ -87,6 +96,15 @@ foreach ($cart as $item) {
     $courseId = $courseIdFromCart ?: $course['CourseID'];
     $available = (int)$course['AvailableSeats'];
 
+    $checkPrior->bind_param('ii', $userId, $courseId);
+    $checkPrior->execute();
+    $checkPrior->store_result();
+
+    if ($checkPrior->num_rows > 0) {
+        $errors[] = "CRN $crn: You have already completed this course with a grade of C or better.";
+        continue;
+    }
+
     // Determine status first
     if ($available > 0) {
         $status = 'ENROLLED';
@@ -119,6 +137,7 @@ $check->close();
 $getCourse->close();
 $insertEnroll->close();
 $updateSeats->close();
+$checkPrior->close();
 unset($_SESSION['cart']);
 
 // Redirect dashboard

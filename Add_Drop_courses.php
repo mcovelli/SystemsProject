@@ -182,6 +182,7 @@ if (!empty($_SESSION['cart'])) {
     }
 }
 
+
 // Fetch schedule entries for the selected semester
 $schedule = [];
 if ($selectedSemester) {
@@ -239,8 +240,6 @@ $hold_stmt->close();
 if (!empty($studentHolds)){
   $onHold = true;
 }
-
-
 
 ?>
 

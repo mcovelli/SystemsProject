@@ -91,7 +91,6 @@ if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
-// ✅ Enforce degree-level filtering
 if (!empty($studentLevel)) {
     $conditions[] = " c.CourseType = ?";
     $params[] = $studentLevel;

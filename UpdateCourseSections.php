@@ -27,6 +27,7 @@ if ($adminType !== 'UPDATE') {
 }
 
 $loadedCourseSection = null;
+$error_message = '';
 
 if (isset($_POST['searchCourseSection'])) {
     $searchId = $_POST['searchID'];
@@ -62,7 +63,44 @@ if (isset($_POST['updateCourseSection'])) {
     $Semester   = $_POST['semester'];
     $Status     = $_POST['status'];
 
-    
+    $fac_sql = "
+    SELECT 
+        FacultyID, SemesterID, TimeSlotID
+      FROM CourseSection
+      WHERE FacultyID = ? AND SemesterID = ? AND TimeSlotID = ? AND CRN <> ?
+    ";
+
+    $fac_stmt = $mysqli->prepare($fac_sql);
+    $fac_stmt->bind_param('isii', $FacultyID, $Semester, $TimeSlotID, $CRN);
+    $fac_stmt->execute();
+    $fac_res = $fac_stmt->get_result();
+    $faculty_available = ($fac_res->num_rows === 0);
+    $fac_stmt->close();
+
+    if (!$faculty_available) {
+        $error_message = 'Faculty is not available for this timeslot.';
+    }
+
+    $room_sql = "
+    SELECT 
+        RoomID, SemesterID, TimeSlotID
+      FROM CourseSection
+      WHERE RoomID = ? AND SemesterID = ? AND TimeSlotID = ? AND CRN <> ?
+    ";
+
+    $room_stmt = $mysqli->prepare($room_sql);
+    $room_stmt->bind_param('isii', $RoomID, $Semester, $TimeSlotID, $CRN);
+    $room_stmt->execute();
+    $room_res = $room_stmt->get_result();
+    $room_available = ($room_res->num_rows === 0);
+    $room_stmt->close();
+
+    if (empty($error_message) && !$room_available) {
+        $error_message = 'Room is occupied for this timeslot.';
+    }
+
+    if (empty($error_message)) {
+
     $mysqli->begin_transaction();
 
     $sql = "UPDATE CourseSection
@@ -88,13 +126,18 @@ if (isset($_POST['updateCourseSection'])) {
 if ($stmt->execute()) {
     $mysqli->commit();
     $_SESSION['update_success'] = true;
+    $_SESSION['success_message'] = 'Course section updated successfully!';
     header("Location: UpdateCourseSections.php");
     exit;
 } else {
     $mysqli->rollback();
     $_SESSION['update_success'] = false;
+    $_SESSION['success_message'] = 'Course section could not be updated';
+    header("Location: UpdateCourseSections.php");
+    exit;
 }
 
+}
 }
 
 $userRole = strtolower($_SESSION['role'] ?? '');
@@ -462,11 +505,18 @@ function showToast(message) {
     }, 3000);
 }
 
-// Show success toast if update was successful
-<?php if (!empty($_SESSION['update_success'])): ?>
-    showToast("✅ Course Section updated successfully!");
-    <?php unset($_SESSION['update_success']); ?>
-<?php endif; ?>
 </script>
+
+<?php if (!empty($_SESSION['success_message'])): ?>
+<script>
+alert("<?php echo addslashes($_SESSION['success_message']); ?>");
+</script>
+<?php unset($_SESSION['success_message']); endif; ?>
+
+<?php if (!empty($error_message)): ?>
+<script>
+alert("<?php echo addslashes($error_message); ?>");
+</script>
+<?php endif; ?>
 </body>
 </html>

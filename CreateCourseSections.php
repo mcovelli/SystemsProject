@@ -24,6 +24,7 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
+$error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $CourseID = $_POST['courseID'] ?? '';
@@ -32,6 +33,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $TimeSlotId = $_POST['timeSlotID'] ?? '';
     $SemesterId = $_POST['semesterID'] ?? '';
     $RoomId = $_POST['roomID'] ?? '';
+
+    $fac_sql = "
+    SELECT 
+        FacultyID, SemesterID, TimeSlotID
+      FROM CourseSection
+      WHERE FacultyID = ? AND SemesterID = ? AND TimeSlotID = ?
+    ";
+
+    $fac_stmt = $mysqli->prepare($fac_sql);
+    $fac_stmt->bind_param('isi', $FacultyId, $SemesterId, $TimeSlotId);
+    $fac_stmt->execute();
+    $fac_res = $fac_stmt->get_result();
+    $faculty_available = ($fac_res->num_rows === 0);
+    $fac_stmt->close();
+
+    if (!$faculty_available) {
+    $error_message = 'Faculty is not available for this timeslot.';
+    }
+
+    $room_sql = "
+    SELECT 
+        RoomID, SemesterID, TimeSlotID
+      FROM CourseSection
+      WHERE RoomID = ? AND SemesterID = ? AND TimeSlotID = ?
+    ";
+
+    $room_stmt = $mysqli->prepare($room_sql);
+    $room_stmt->bind_param('isi', $RoomId, $SemesterId, $TimeSlotId);
+    $room_stmt->execute();
+    $room_res = $room_stmt->get_result();
+    $room_available = ($room_res->num_rows === 0);
+    $room_stmt->close();
+
+    if (empty($error_message) && !$room_available) {
+        $error_message = 'Room is occupied for this timeslot.';
+    }
 
         $roomSql = "
             SELECT 
@@ -56,21 +93,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $Year = substr($SemesterId, -4);
     $Status = $_POST['status'] ?? 'PLANNED';
 
-$mysqli->begin_transaction();
+if (empty($error_message)) {
+    $mysqli->begin_transaction();
 
   $sql = "INSERT INTO CourseSection (CourseID, CourseSectionNo, FacultyID, TimeSlotID, RoomID, Year, SemesterID, AvailableSeats, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PLANNED')";
   $stmt = $mysqli->prepare($sql);
   $stmt->bind_param("siiisssi", $CourseID, $CourseSectionNo, $FacultyId, $TimeSlotId, $RoomId, $Year, $SemesterId, $AvailableSeats);
         
   if ($stmt->execute()) {
-    echo "alert('$CourseID. created ✅');";
-  } else {
-    echo "alert('Could not create course section');";
-        }
+    $mysqli->commit();
+    $_SESSION['update_success'] = true;
+    $_SESSION['success_message'] = 'Course section created successfully!';
+    header("Location: UpdateCourseSections.php");
+    exit;
+} else {
+    $mysqli->rollback();
+    $_SESSION['update_success'] = false;
+    $_SESSION['success_message'] = 'Course section could not be created';
+    header("Location: UpdateCourseSections.php");
+    exit;
+}
   
 $mysqli->commit();
 }
-
+}
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
@@ -281,5 +327,16 @@ sem.addEventListener("change", loadRooms);
 });
 </script>
 
+<?php if (!empty($_SESSION['success_message'])): ?>
+<script>
+alert("<?php echo addslashes($_SESSION['success_message']); ?>");
+</script>
+<?php unset($_SESSION['success_message']); endif; ?>
+
+<?php if (!empty($error_message)): ?>
+<script>
+alert("<?php echo addslashes($error_message); ?>");
+</script>
+<?php endif; ?>
 </body>
 </html>

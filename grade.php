@@ -172,7 +172,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <section>
     <div class="card">
         <h1>Current Semester Grades</h1>
-        <h4>Click course section row to view roster and submit grades>
+        <h4>Click course section row to view roster and submit grades</h4>
         <div class="table-wrap">
           <table>
             <thead>
@@ -325,32 +325,32 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     });
 
     document.querySelectorAll(".grade-form").forEach(form => {
-        const select = form.querySelector(".grade-select");
+    const select = form.querySelector(".grade-select");
 
-        select.addEventListener("change", async () => {
+    select.addEventListener("change", async () => {
 
-            const data = new FormData();
-            data.append("studentID", form.dataset.student);
-            data.append("crn", form.dataset.crn);
-            data.append("courseID", form.dataset.course);
-            data.append("semesterID", form.dataset.semester);
-            data.append("grade", select.value);
+        const data = new FormData();
+        data.append("studentID", form.dataset.student);
+        data.append("crn", form.dataset.crn);
+        data.append("courseID", form.dataset.course);
+        data.append("semesterID", form.dataset.semester);
+        data.append("grade", select.value);
 
-            const response = await fetch("grade_update.php", {
-                method: "POST",
-                body: data
-            });
-
-            const result = await response.json();
-
-            if (result.ok) {
-                console.log("Grade saved!");
-                alert("Grade Saved ✔");
-            } else {
-                alert("Error saving grade ❌");
-            }
+        const response = await fetch("grade_update.php", {
+            method: "POST",
+            body: data
         });
+
+        const result = await response.json();
+
+        if (result.ok) {
+            console.log("Grade saved!");
+            alert("Grade Saved ✔");
+        } else {
+            alert(result.message || "Error saving grade ❌");
+        }
     });
+});
 
 </script>
 

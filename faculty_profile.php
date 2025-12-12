@@ -235,8 +235,9 @@ $adv_stmt->close();
         <div class="name" id="facultyName"><?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?></div>
         <div class="muted" id="facultyTitle"><?php echo htmlspecialchars($ranking); ?></div>
         <div class="chips">
-          <span class="chip" id="research1"><?php echo htmlspecialchars($office) ?></span>
+          <span class="chip" id="research1">Office: <?php echo htmlspecialchars($office) ?></span>
           <span class="chip" id="research2">Faculty</span>
+          <span class="chip" id="research2">ID: <?= $facultyId ?></span>
         </div>
         <div class="btn-row">
           <a class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</a>
@@ -279,6 +280,8 @@ $adv_stmt->close();
           <div class="kv">
             <div class="label">Roles</div>
             <div id="roles"><?php echo htmlspecialchars($ranking); ?></div>
+            <div class="label">Depts</div>
+            <div id="roles"><?php echo htmlspecialchars($fac['DeptNames']); ?></div>
           </div>
         </div><br>
 

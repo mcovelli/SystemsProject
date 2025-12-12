@@ -35,22 +35,6 @@ $quickLinks = [
     ['label' => 'Announcements',      'href' => 'send_announcement.php',                'icon' => 'megaphone'],
 ];
 
-$tasks = [
-    ['title' => 'CS 301 – Homework 3', 'due' => 'Oct 20, 2025', 'course' => 'CS 301'],
-    ['title' => 'MATH 202 – Midterm',  'due' => 'Oct 25, 2025', 'course' => 'MATH 202'],
-    ['title' => 'ENG 101 – Essay',     'due' => 'Nov 1, 2025',  'course' => 'ENG 101'],
-];
-
-$announcements = [
-    ['title' => 'Campus closed for Thanksgiving', 'body' => 'Northport University will be closed Nov 26–27.', 'date' => 'Nov 15, 2025'],
-    ['title' => 'Registration opens soon',        'body' => 'Spring 2026 registration begins Oct 30.',        'date' => 'Oct 15, 2025'],
-];
-
-$messages = [
-    ['from' => 'Dr. Lee',    'subject' => 'Project Update',      'time' => 'Oct 10', 'preview' => 'Please send me your latest project status by Friday.'],
-    ['from' => 'Bursar',     'subject' => 'Payment Reminder',    'time' => 'Oct 08', 'preview' => 'Your tuition payment is due Oct 25.'],
-];
-
 ?>
 
 <!doctype html>
@@ -322,45 +306,6 @@ if (window.lucide) lucide.createIcons();
     });
     lucide.createIcons();
 
-    // Insert tasks
-    const tasks = <?php echo json_encode($tasks); ?>;
-    const taskList = document.getElementById('adminTasksList');
-    tasks.forEach(task => {
-      const item = document.createElement('div');
-      item.className = 'row between small';
-      item.innerHTML = '<span>' + task.title + '</span><span class="muted">' + task.due + '</span>';
-      taskList.appendChild(item);
-    });
-
-    // Announcements
-    const announcements = <?php echo json_encode($announcements); ?>;
-    const annList = document.getElementById('adminAnnList');
-    announcements.forEach(ann => {
-      const item = document.createElement('div');
-      item.className = 'vstack';
-      const title = document.createElement('strong');
-      title.textContent = ann.title;
-      const body = document.createElement('span');
-      body.className = 'muted';
-      body.textContent = ann.body;
-      const date = document.createElement('span');
-      date.className = 'muted small';
-      date.textContent = ann.date;
-      item.appendChild(title);
-      item.appendChild(body);
-      item.appendChild(date);
-      annList.appendChild(item);
-    });
-
-    // Messages
-    const messages = <?php echo json_encode($messages); ?>;
-    const msgList = document.getElementById('adminMsgList');
-    messages.forEach(msg => {
-      const item = document.createElement('div');
-      item.className = 'row between small';
-      item.innerHTML = '<span><strong>' + msg.from + ':</strong> ' + msg.subject + '</span><span class="muted">' + msg.time + '</span>';
-      msgList.appendChild(item);
-    });
   </script>
 </body>
 </html>

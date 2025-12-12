@@ -52,7 +52,7 @@ $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
 // Fetch user info
-$u_stmt = $mysqli->prepare("SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB, HouseNumber, Street, City, State, ZIP, PhoneNumber
+$u_stmt = $mysqli->prepare("SELECT UserID, FirstName, MiddleName, LastName, Email, UserType, Status, DOB, HouseNumber, Street, City, State, ZIP, PhoneNumber
         FROM Users WHERE UserID = ? LIMIT 1");
 $u_stmt->bind_param('i', $facultyId);
 $u_stmt->execute();
@@ -232,7 +232,13 @@ $adv_stmt->close();
       <!-- LEFT: Profile Card -->
       <aside class="card profile">
         <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
-        <div class="name" id="facultyName"><?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?></div>
+        <div class="name" id="facultyName">
+          <?= htmlspecialchars(
+              $user['FirstName'] . ' ' .
+              (!empty($user['MiddleName']) ? substr($user['MiddleName'], 0, 1) . '. ' : '') .
+              $user['LastName']
+          ) ?>
+        </div>
         <div class="muted" id="facultyTitle"><?php echo htmlspecialchars($ranking); ?></div>
         <div class="chips">
           <span class="chip" id="research1">Office: <?php echo htmlspecialchars($office) ?></span>

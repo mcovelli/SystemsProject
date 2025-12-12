@@ -15,8 +15,6 @@ $role = strtolower($_SESSION['role'] ?? '');
 // Determine back dashboard
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
-    case 'student':  $dashboard = 'student_dashboard.php'; break;
-    case 'faculty':  $dashboard = 'faculty_dashboard.php'; break;
     case 'admin':
         $dashboard = ($_SESSION['admin_type'] ?? '') === 'update'
             ? 'update_admin_dashboard.php'
@@ -137,8 +135,7 @@ if (!$user) {
         <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
         <div class="name" id="adminName"><?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?></div>
         <div class="chips">
-          <span class="chip" id="research1">N/A</span>
-          <span class="chip" id="research2">N/A</span>
+          <span class="chip" id="research1">ID: <?php echo htmlspecialchars($adminId); ?></span>
         </div>
         <div class="btn-row">
           <button class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</button>
@@ -168,21 +165,6 @@ if (!$user) {
           </div>
         </div>
       </aside>
-
-      <!-- RIGHT: Details -->
-      <section class="card">
-        <div class="section">
-          <h2>About</h2>
-          <div class="kv">
-            <div class="label"></div>
-            <div id="bio"></div>
-          </div>
-          <div class="section">
-          <h2>Links</h2>
-          <div class="links" id="links">
-            <a href="#"></a>
-          </div>
-        </div>
 
       </section>
     </div>

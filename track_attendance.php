@@ -60,9 +60,7 @@ $selectedSemester = $current['SemesterID'] ?? null;
 
 // Fetch schedule for courses taught
 $schedule = [];
-
 if ($selectedSemester !== null) {
-
     $courses_sql = "
         SELECT 
             cs.CRN,
@@ -85,7 +83,6 @@ if ($selectedSemester !== null) {
         GROUP BY cs.CRN, c.CourseName, cs.RoomID
         ORDER BY cs.CRN, MIN(p.StartTime);
     ";
-
     $courses_stmt = $mysqli->prepare($courses_sql);
     $courses_stmt->bind_param("is", $userId, $selectedSemester);
     $courses_stmt->execute();
@@ -94,19 +91,19 @@ if ($selectedSemester !== null) {
     $courses_stmt->close();
 }
 
-
+// Week dates (Mon–Fri)
 $startOfWeek = strtotime('monday this week');
 $days = [];
 for ($i = 0; $i < 5; $i++) {
     $timestamp = strtotime("+$i day", $startOfWeek);
     $days[] = [
-        'label'   => date('D', $timestamp),       // Mon
-        'display' => date('M j', $timestamp),     // Jan 27
-        'mysql'   => date('Y-m-d', $timestamp)    // 2025-01-27
+        'label'   => date('D', $timestamp),
+        'display' => date('M j', $timestamp),
+        'mysql'   => date('Y-m-d', $timestamp)
     ];
 }
 
-// Fetch roster (students enrolled in faculty's sections)
+// Fetch roster
 $roster = [];
 if ($selectedSemester && $selectedCRN) {
     $roster_sql = "
@@ -133,15 +130,13 @@ if ($selectedSemester && $selectedCRN) {
     $roster_stmt->close();
 }
 
+// Existing attendance for this week
 $existingAttendance = [];
-
-if (!empty($roster) && !empty($days)) {
-
+if (!empty($roster) && !empty($days) && $selectedCRN) {
     $studentIds = array_column($roster, 'StudentID');
+    $weekDates  = array_column($days, 'mysql');
 
-    $weekDates = array_column($days, 'mysql');
-
-    $placeholdersStud = implode(',', array_fill(0, count($studentIds), '?'));
+    $placeholdersStud  = implode(',', array_fill(0, count($studentIds), '?'));
     $placeholdersDates = implode(',', array_fill(0, count($weekDates), '?'));
 
     $sql_att = "
@@ -152,131 +147,112 @@ if (!empty($roster) && !empty($days)) {
           AND AttendanceDate IN ($placeholdersDates)
     ";
 
-    $types = str_repeat('i', count($studentIds)) . str_repeat('s', count($weekDates));
-    $bindTypes = "i" . $types;
+    $types     = "i" . str_repeat('i', count($studentIds)) . str_repeat('s', count($weekDates));
+    $stmt_att  = $mysqli->prepare($sql_att);
+    $bindVals  = array_merge([(int)$selectedCRN], $studentIds, $weekDates);
 
-    $stmt_att = $mysqli->prepare($sql_att);
-
-    $bindValues = array_merge([$selectedCRN], $studentIds, $weekDates);
-
-    $stmt_att->bind_param($bindTypes, ...$bindValues);
+    $stmt_att->bind_param($types, ...$bindVals);
     $stmt_att->execute();
+    $res_att = $stmt_att->get_result();
 
-    $result_att = $stmt_att->get_result();
-
-    while ($row = $result_att->fetch_assoc()) {
+    while ($row = $res_att->fetch_assoc()) {
         $existingAttendance[$row['StudentID']][$row['AttendanceDate']] = $row['PresentAbsent'];
     }
-
     $stmt_att->close();
 }
 
-$fac_stmt = $mysqli->prepare("SELECT OfficeID, Ranking FROM Faculty WHERE FacultyID = ? LIMIT 1");
-$fac_stmt->bind_param('i', $userId);
-$fac_stmt->execute();
-$fac = $fac_stmt->get_result()->fetch_assoc();
-$fac_stmt->close();
-$office    = $fac['OfficeID'] ?? 'N/A';
-$ranking   = $fac['Ranking'] ?? 'Faculty';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $studentIDs = $_POST['studentID'];
-    $crns       = $_POST['crn'];
-    $courseIDs  = $_POST['courseID'];
-    $dates      = $_POST['attendanceDate'];
-    $statuses   = $_POST['status'];
+    $crn       = (int)($_POST['crn'] ?? 0);
+    $courseID  = $_POST['courseID'] ?? '';
+    $statusMap = $_POST['status'] ?? [];
 
-    $crnForPost = $crns[0] ?? null;
+    if ($crn <= 0 || $courseID === '' || !is_array($statusMap)) {
+        echo "<script>alert('Invalid submission.'); window.history.back();</script>";
+        exit;
+    }
 
-    if ($crnForPost) {
+    // Fetch class start time
+    $timeSql = "
+        SELECT MIN(p.StartTime) AS ClassStart
+        FROM CourseSection cs
+        JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
+        JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
+        JOIN Period p ON tsp.PeriodID = p.PeriodID
+        WHERE cs.CRN = ?
+    ";
+    $timeStmt = $mysqli->prepare($timeSql);
+    $timeStmt->bind_param('i', $crn);
+    $timeStmt->execute();
+    $timeRes = $timeStmt->get_result()->fetch_assoc();
+    $timeStmt->close();
 
-        $timeSql = "
-            SELECT MIN(p.StartTime) AS ClassStart
-            FROM CourseSection cs
-            JOIN TimeSlot ts ON cs.TimeSlotID = ts.TS_ID
-            JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
-            JOIN Period p ON tsp.PeriodID = p.PeriodID
-            WHERE cs.CRN = ?
-        ";
-        $timeStmt = $mysqli->prepare($timeSql);
-        $timeStmt->bind_param('i', $crnForPost);
-        $timeStmt->execute();
-        $timeRes  = $timeStmt->get_result()->fetch_assoc();
-        $timeStmt->close();
+    if (!empty($timeRes['ClassStart'])) {
+        $now        = new DateTimeImmutable('now');
+        $todayStr   = $now->format('Y-m-d');
+        $classStart = new DateTimeImmutable($todayStr . ' ' . $timeRes['ClassStart']);
 
-        if (!empty($timeRes['ClassStart'])) {
-            $now       = new DateTimeImmutable('now');
-            $todayStr  = $now->format('Y-m-d');
-            $classStart = new DateTimeImmutable($todayStr . ' ' . $timeRes['ClassStart']);
+        foreach ($statusMap as $studentID => $byDate) {
+            if (!is_array($byDate)) continue;
 
-            foreach ($dates as $i => $dateStr) {
-                $attDate = new DateTimeImmutable($dateStr);
+            foreach ($byDate as $dateStr => $presentAbsent) {
+                if ($presentAbsent === '') continue;
 
-                if ($attDate > $now && $statuses[$i] !== '') {
-                    echo "<script>
-                        alert('You cannot submit attendance for future dates.');
-                        window.history.back();
-                    </script>";
+                // Block future dates (anything after today)
+                if ($dateStr > $todayStr) {
+                    echo "<script>alert('You cannot submit attendance for future dates.'); window.history.back();</script>";
                     exit;
                 }
-            }
 
-            $block = false;
-            for ($i = 0; $i < count($dates); $i++) {
-                if ($dates[$i] === $todayStr && $statuses[$i] !== '') {
-                    if ($now < $classStart) {
-                        $block = true;
-                        break;
-                    }
+                // Block “today” before class start
+                if ($dateStr === $todayStr && $now < $classStart) {
+                    echo "<script>alert('You cannot submit attendance for today before class start time (" .
+                         $classStart->format('g:i A') . ").'); window.history.back();</script>";
+                    exit;
                 }
-            }
-
-            if ($block) {
-                echo "<script>
-                        alert('You cannot submit attendance for today before class start time (" . 
-                             $classStart->format('g:i A') . ").');
-                        window.history.back();
-                      </script>";
-                exit;
             }
         }
     }
 
     $mysqli->begin_transaction();
 
-    $sql = "INSERT INTO CourseSectionAttendance
-            (StudentID, CRN, CourseID, AttendanceDate, PresentAbsent)
-            VALUES (?, ?, ?, ?, ?) 
+    try {
+        $sql = "
+            INSERT INTO CourseSectionAttendance
+              (StudentID, CRN, CourseID, AttendanceDate, PresentAbsent)
+            VALUES (?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
-            PresentAbsent = VALUES(PresentAbsent)";
+              PresentAbsent = VALUES(PresentAbsent)
+        ";
+        $stmt = $mysqli->prepare($sql);
 
-    $stmt = $mysqli->prepare($sql);
+        foreach ($statusMap as $studentID => $byDate) {
+            if (!is_array($byDate)) continue;
 
-    for ($i = 0; $i < count($studentIDs); $i++) {
-        if ($statuses[$i] === "") continue;
+            $studentID = (int)$studentID;
 
-        $stmt->bind_param(
-            "iisss",
-            $studentIDs[$i],
-            $crns[$i],
-            $courseIDs[$i],
-            $dates[$i],
-            $statuses[$i]
-        );
+            foreach ($byDate as $dateStr => $presentAbsent) {
+                if ($presentAbsent === '') continue;
 
-        $stmt->execute();
+                $stmt->bind_param("iisss", $studentID, $crn, $courseID, $dateStr, $presentAbsent);
+                $stmt->execute();
+            }
+        }
+
+        $stmt->close();
+        $mysqli->commit();
+
+        echo "<script>alert('Attendance Submitted ✅');</script>";
+
+    } catch (mysqli_sql_exception $e) {
+        $mysqli->rollback();
+        echo "<script>alert('Error saving attendance: " . htmlspecialchars($e->getMessage()) . "'); window.history.back();</script>";
+        exit;
     }
-
-    $mysqli->commit();
-
-    echo "<script>alert('Attendance Submitted ✅');</script>";
 }
-
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
-
 <!doctype html>
 <html lang="en" data-theme="light">
 <head>
@@ -307,12 +283,13 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
         <div class="user-meta">
           <div class="name"><?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?></div>
-          <div class="sub"><?php echo htmlspecialchars($ranking); ?></div>
+          <div class="sub"><?php echo htmlspecialchars('Faculty'); ?></div>
         </div>
         <div class="header-left">
           <div class="menu">
             <button>☰ Menu</button>
             <div class="menu-content">
+              <a href="faculty_dashboard.php">Dashboard</a>
               <a href="faculty_profile.php">Profile</a>
               <a href="ViewAdvisees.php">Advisees</a>
               <a href="ViewRoster.php">Rosters</a>
@@ -325,14 +302,13 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     </div>
   </header>
 
-    
   <div class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
     <div class="card-head"><div>Track Attendance</div></div>
     <div class="card-body">
       <div class="controls" style="margin-bottom:16px; margin-left:10px; margin-right:10px">
         <form method="GET">
           <div class="label">
-            <label for="teacher-courses">
+            <label>
               <div>Select Course:</div>
               <select name="crn">
                 <option value="">---</option>
@@ -360,6 +336,10 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="card-body">
       <div class="table-wrap">
         <form method="POST">
+          <!-- single hidden inputs (not per-row) -->
+          <input type="hidden" name="crn" value="<?= htmlspecialchars($selectedCRN) ?>">
+          <input type="hidden" name="courseID" value="<?= htmlspecialchars($selectedCourseID) ?>">
+
           <table id="daily-schedule">
             <thead>
               <tr>
@@ -373,30 +353,24 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             <tbody>
               <?php foreach ($roster as $r): ?>
                 <tr>
-                  <td>
-                    <?= htmlspecialchars($r['StudentName']) ?>
-                    <input type="hidden" name="studentID[]" value="<?= $r['StudentID'] ?>">
-                    <input type="hidden" name="crn[]" value="<?= $r['CRN'] ?>">
-                    <input type="hidden" name="courseID[]" value="<?= $r['CourseID'] ?>">
-                  </td>
+                  <td><a href="student_profile.php?studentID=<?= urlencode($r['StudentID']) ?>">
+                      <?= htmlspecialchars($r['StudentName']) ?> </a></td>
 
                   <?php foreach ($days as $d): ?>
                     <td>
-                      <?php
-                        $val = $existingAttendance[$r['StudentID']][$d['mysql']] ?? "";
-                      ?>
-                      <select name="status[]">
+                      <?php $val = $existingAttendance[$r['StudentID']][$d['mysql']] ?? ""; ?>
+                      <select name="status[<?= (int)$r['StudentID'] ?>][<?= htmlspecialchars($d['mysql']) ?>]">
                         <option value="" <?= $val === "" ? "selected" : "" ?>>---</option>
                         <option value="PRESENT" <?= $val === "PRESENT" ? "selected" : "" ?>>Present</option>
                         <option value="ABSENT" <?= $val === "ABSENT" ? "selected" : "" ?>>Absent</option>
                       </select>
-                      <input type="hidden" name="attendanceDate[]" value="<?= $d['mysql'] ?>">
                     </td>
                   <?php endforeach; ?>
                 </tr>
               <?php endforeach; ?>
             </tbody>
           </table>
+
           <button type="submit" class="btn" style="margin-top:16px;">
             Submit Attendance
           </button>
@@ -405,30 +379,25 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     </div>
   </div>
   <?php elseif ($selectedCRN && empty($roster)): ?>
-  <div class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
-    <div class="card-body">
-      <p>No students enrolled in this course section.</p>
+    <div class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
+      <div class="card-body">
+        <p>No students enrolled in this course section.</p>
+      </div>
     </div>
-  </div>
   <?php endif; ?>
 
   <footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script>
-    // Immediately create Lucide icons
     lucide.createIcons();
-
-    // Populate the year in the footer
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Theme toggle
     const themeToggle = document.getElementById('themeToggle');
     themeToggle.addEventListener('click', () => {
       const root = document.documentElement;
       const current = root.getAttribute('data-theme') || 'light';
       root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      // Swap the icon
       themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
       lucide.createIcons();
     });

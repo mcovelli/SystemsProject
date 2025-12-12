@@ -161,8 +161,7 @@ switch ($userRole) {
         <div class="name" id="facultyName"><?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?></div>
 
         <div class="chips">
-          <span class="chip" id="research1">N/A</span>
-          <span class="chip" id="research2">N/A</span>
+          <span class="chip" id="research1">ID: <?php echo htmlspecialchars($adminId); ?></span>
         </div>
         <div class="btn-row">
           <button class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</button>

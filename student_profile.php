@@ -50,7 +50,7 @@ if ($role === 'admin' || $role === 'faculty') {
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$sql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB, HouseNumber, Street, City, State, ZIP, PhoneNumber
+$sql = "SELECT UserID, FirstName, MiddleName, LastName, Email, UserType, Status, DOB, HouseNumber, Street, City, State, ZIP, PhoneNumber
         FROM Users WHERE UserID = ? LIMIT 1";
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param("i", $studentId);
@@ -394,7 +394,10 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
       <aside class="card profile">
         <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
         <div class="name" id="studentName"><?php echo htmlspecialchars(
-          ($student['FirstName'] ?? 'Unknown') . ' ' . ($student['LastName'] ?? 'Student')); ?></div>
+              $student['FirstName'] . ' ' .
+              (!empty($student['MiddleName']) ? substr($student['MiddleName'], 0, 1) . '. ' : '') .
+              $student['LastName']
+          ) ?></div>
         <div class="muted" id="studentID">Student ID: <?php echo htmlspecialchars(
     $student['UserID']); ?></div>
     <div class="muted" id="studentBirthDate">Birth Date: <?php echo htmlspecialchars(

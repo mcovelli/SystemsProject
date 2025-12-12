@@ -11,6 +11,7 @@ if (!isset($_SESSION['user_id']) ||
 }
 
 $userId = $_SESSION['user_id'];
+$error_message = '';
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -77,14 +78,18 @@ if (isset($_POST['UpdateDepartment'])) {
     $stmt = $mysqli->prepare($sql);
     $stmt->bind_param("ssssss", $DeptName, $DeptEmail, $DeptPhone, $RoomID, $ChairID, $DeptID);
  
-if ($stmt->execute()) {
+    if ($stmt->execute()) {
     $mysqli->commit();
     $_SESSION['update_success'] = true;
+    $_SESSION['success_message'] = 'Dept updated successfully!';
     header("Location: UpdateDepartments.php");
     exit;
 } else {
     $mysqli->rollback();
     $_SESSION['update_success'] = false;
+    $_SESSION['success_message'] = 'Update failed: ' . $stmt->error;
+    header("Location: UpdateDepartments.php");
+    exit;
 }
 }
 
@@ -162,6 +167,61 @@ input[type=text], input[type=date], select {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css" />
+
+   <style>
+/* Inline enhancements */
+.field-block {
+    margin-bottom: 12px;
+}
+label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 3px;
+}
+input[type=text], input[type=date], select {
+    width: 280px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+.multiselect {
+    height: 120px;
+    width: 300px;
+    padding: 6px;
+}
+.section-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    background: var(--card-bg);
+}
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-15px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.hidden { display: none; }
+.toast.error  { background: #dc2626; }
+</style>
 </head>
 <body>
   <header class="topbar">
@@ -329,28 +389,42 @@ input[type=text], input[type=date], select {
     console.log("Form submitted");
 });
 
-function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.remove("hidden");
+function showToast(message, type = "success") {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
 
-    // Trigger animation
-    setTimeout(() => {
-        toast.classList.add("show");
-    }, 100);
+  toast.classList.remove("hidden", "error");
+  if (type === "error") toast.classList.add("error");
 
-    // Hide after 3 seconds
-    setTimeout(() => {
-        toast.classList.remove("show");
-        setTimeout(() => toast.classList.add("hidden"), 300);
-    }, 3000);
+  setTimeout(() => toast.classList.add("show"), 50);
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.classList.add("hidden"), 300);
+  }, 3000);
 }
+</script>
 
-// Show success toast if update was successful
-<?php if (!empty($_SESSION['update_success'])): ?>
-    showToast("✅ Department updated successfully!");
-    <?php unset($_SESSION['update_success']); ?>
-<?php endif; ?>
+<?php
+$toastMsg = '';
+$toastType = 'success';
+
+if (!empty($_SESSION['success_message'])) {
+  $toastMsg = $_SESSION['success_message'];
+  $toastType = !empty($_SESSION['update_success']) ? 'success' : 'error';
+  unset($_SESSION['success_message'], $_SESSION['update_success']);
+} elseif (!empty($error_message)) {
+  $toastMsg = $error_message;
+  $toastType = 'error';
+}
+?>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const msg = <?= json_encode($toastMsg) ?>;
+  const type = <?= json_encode($toastType) ?>;
+  if (msg) showToast(msg, type);
+});
 </script>
 </body>
 </html>

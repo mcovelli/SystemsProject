@@ -39,11 +39,17 @@ $mysqli->begin_transaction();
   $stmt = $mysqli->prepare($sql);
   $stmt->bind_param("ssssis", $CourseId, $CourseName, $DeptId, $CourseDesc, $Credits, $CourseType);
         
-  if ($stmt->execute()) {
-    echo "alert('$CourseName. created ✅');";
-  } else {
-    echo "alert('Could not create course');";
-        }
+if ($stmt->execute()) {
+  $mysqli->commit();
+  header("Location: CreateCourses.php?success=1&name=" . urlencode($CourseName));
+  exit;
+} else {
+  $mysqli->rollback();
+
+  $msg = $stmt->error ?: "Could not create course";
+  header("Location: CreateCourses.php?error=1&msg=" . urlencode($msg));
+  exit;
+}
   
 $mysqli->commit();
 }
@@ -65,6 +71,36 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-15px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.hidden {
+    display: none;
+}
+.toast.error {
+  background: #dc2626;
+}
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -96,6 +132,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       </div>
     </div>
   </header>
+
+    <div id="toast" class="toast hidden"></div>
 
     <main class="page">
         <section class="hero card">
@@ -185,8 +223,40 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     })
     .catch(err => console.error('Error loading Course Types:', err));
 
-    document.getElementById("CreateCourse").addEventListener("submit", (e) => {
-    console.log("Form submitted");
+    const form = document.getElementById("CreateCourse");
+    form?.addEventListener("submit", () => console.log("Form submitted ✅"));
+</script>
+
+<script>
+   function showToast(message, type = "success") {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+
+  toast.classList.remove("hidden", "error");
+  if (type === "error") toast.classList.add("error");
+
+  setTimeout(() => toast.classList.add("show"), 100);
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.classList.add("hidden"), 300);
+  }, 3000);
+}
+
+  document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("success") === "1") {
+    const name = params.get("name") || "Course";
+    showToast(`✅ ${name} created`);
+    history.replaceState({}, "", window.location.pathname);
+  }
+
+  if (params.get("error") === "1") {
+    const msg = params.get("msg") || "An error occurred";
+    showToast(`❌ ${msg}`, "error");
+    history.replaceState({}, "", window.location.pathname);
+  }
 });
 </script>
 </body>

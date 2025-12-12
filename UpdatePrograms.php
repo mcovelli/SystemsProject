@@ -11,6 +11,7 @@ if (!isset($_SESSION['user_id']) ||
 }
 
 $userId = $_SESSION['user_id'];
+$error_message = '';
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -49,6 +50,7 @@ if (isset($_POST['searchPrograms'])) {
 }
 
 $userId = $_SESSION['user_id'];
+$error_message = '';
 
 
 $usersql = "SELECT UserID, FirstName, LastName, Email, UserType, Status, DOB
@@ -77,16 +79,21 @@ if (isset($_POST['UpdateProgram'])) {
     ");
     $stmt->bind_param("ississi", $DeptId, $name, $Code, $creditsRequired, $degreeLevel, $Status, $ID);
 
-    if ($stmt->execute()) {
+if ($stmt->execute()) {
+    $mysqli->commit();
     $_SESSION['update_success'] = true;
+    $_SESSION['success_message'] = 'Program updated successfully!';
+    header("Location: UpdatePrograms.php");
+    exit;
+} else {
+    $mysqli->rollback();
+    $_SESSION['update_success'] = false;
+    $_SESSION['success_message'] = 'Major could not be updated';
     header("Location: UpdatePrograms.php");
     exit;
 }
 
-    $_SESSION['update_success'] = true;
 }
-
-
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
@@ -345,29 +352,42 @@ input[type=text], input[type=date], select {
     })
     .catch(err => console.error('Error loading Grad Degree Levels:', err));
 
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.remove("hidden");
 
-function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.remove("hidden");
+        setTimeout(() => {
+            toast.classList.add("show");
+        }, 100);
 
-    // Trigger animation
-    setTimeout(() => {
-        toast.classList.add("show");
-    }, 100);
+        setTimeout(() => {
+            toast.classList.remove("show");
+            setTimeout(() => toast.classList.add("hidden"), 300);
+        }, 3000);
+    }
+</script>
 
-    // Hide after 3 seconds
-    setTimeout(() => {
-        toast.classList.remove("show");
-        setTimeout(() => toast.classList.add("hidden"), 300);
-    }, 3000);
+<?php
+$toastMsg = '';
+$toastType = 'success';
+
+if (!empty($_SESSION['success_message'])) {
+  $toastMsg = $_SESSION['success_message'];
+  $toastType = !empty($_SESSION['update_success']) ? 'success' : 'error';
+  unset($_SESSION['success_message'], $_SESSION['update_success']);
+} elseif (!empty($error_message)) {
+  $toastMsg = $error_message;
+  $toastType = 'error';
 }
+?>
 
-// Show success toast if update was successful
-<?php if (!empty($_SESSION['update_success'])): ?>
-    showToast("✅ Program updated successfully!");
-    <?php unset($_SESSION['update_success']); ?>
-<?php endif; ?>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const msg = <?= json_encode($toastMsg) ?>;
+  const type = <?= json_encode($toastType) ?>;
+  if (msg) showToast(msg, type);
+});
 </script>
 </body>
 </html>

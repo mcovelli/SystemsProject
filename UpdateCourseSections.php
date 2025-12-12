@@ -82,31 +82,31 @@ if (isset($_POST['updateCourseSection'])) {
     }
 
     $fac_count_sql = "
-    SELECT 
-        COUNT(*) AS cnt,
-        CASE
-            WHEN f.FacultyType = 'FullTimeFaculty' THEN ftf.MaxCourses
-            WHEN f.FacultyType = 'PartTimeFaculty' THEN ptf.MaxCourses
-        END AS maxAllowed
-      FROM CourseSection cs
-      JOIN Faculty f ON cs.FacultyID = f.FacultyID
-      LEFT JOIN PartTimeFaculty ptf ON f.FacultyID = ptf.FacultyID
-      LEFT JOIN FullTimeFaculty ftf ON f.FacultyID = ftf.FacultyID
-      WHERE cs.FacultyID = ? AND cs.SemesterID = ?
+      SELECT
+        COUNT(cs.CRN) AS cnt,
+        COALESCE(ftf.MaxCourses, ptf.MaxCourses, 1) AS maxAllowed
+      FROM Faculty f
+      LEFT JOIN FullTimeFaculty ftf ON ftf.FacultyID = f.FacultyID
+      LEFT JOIN PartTimeFaculty ptf ON ptf.FacultyID = f.FacultyID
+      LEFT JOIN CourseSection cs
+        ON cs.FacultyID = f.FacultyID
+       AND cs.SemesterID = ?
+      WHERE f.FacultyID = ?
     ";
-
     $fac_count_stmt = $mysqli->prepare($fac_count_sql);
-    $fac_count_stmt->bind_param('is', $FacultyId, $SemesterId);
+    $fac_count_stmt->bind_param('si', $SemesterId, $FacultyId);
     $fac_count_stmt->execute();
-    $fac_count_res = $fac_count_stmt->get_result();
-    $fac_count = $fac_count_stmt->fetch_assoc();
+    $fac_count = $fac_count_stmt->get_result()->fetch_assoc();
     $fac_count_stmt->close();
 
     
-    if (!$fac_count || (int)$fac_count['maxAllowed'] <= 0) {
-        $error_message = "Faculty type/max courses not set.";
-    } elseif ((int)$fac_count['cnt'] >= (int)$fac_count['maxAllowed']) {
-        $error_message = "Faculty has no more availability this semester.";
+    $cnt = (int)($fac_count['cnt'] ?? 0);
+    $max = (int)($fac_count['maxAllowed'] ?? 0);
+
+    if ($max <= 0) {
+      $error_message = "Faculty type/max courses not set.";
+    } elseif ($cnt >= $max) {
+      $error_message = "Faculty has no more availability this semester.";
     }
 
     $room_sql = "

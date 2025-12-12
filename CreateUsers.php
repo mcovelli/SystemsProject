@@ -4,10 +4,12 @@ require_once __DIR__ . '/config.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-if (!isset($_SESSION['user_id']) || 
-  ($_SESSION['role'] ?? '') !== 'admin' &&
-($_SESSION['admin_type'] ?? '') !== 'update') {
-    redirect(PROJECT_ROOT . "/login.html");
+if (
+  !isset($_SESSION['user_id']) ||
+  ($_SESSION['role'] ?? '') !== 'admin' ||
+  ($_SESSION['admin_type'] ?? '') !== 'update'
+) {
+  redirect(PROJECT_ROOT . "/login.html");
 }
 
 $mysqli = get_db();
@@ -15,6 +17,8 @@ $mysqli->set_charset('utf8mb4');
 
 $userRole = strtolower($_SESSION['role'] ?? '');
 $userId = $_SESSION['user_id'];
+
+$success = isset($_GET['success']) && $_GET['success'] == '1';
 
 // Fetch user info
 $user_stmt = $mysqli->prepare("SELECT FirstName, LastName, Email, DOB FROM Users WHERE UserID = ? LIMIT 1");
@@ -313,7 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       error_log("DEBUG INSERT PATH: UserType=$userType, subType=$subType, subType2=$subType2, majorId=$majorId, deptId=" . ($deptId ?? 'NULL'));
 
         $mysqli->commit();
-        header("Location: update_admin_dashboard.php?success=1");
+        header("Location: CreateUsers.php?success=1");
         exit();
 
     } catch (Exception $e) {
@@ -341,6 +345,36 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./stylesGrade.css" />
+  <style>
+    .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-15px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.hidden {
+    display: none;
+}
+.toast.error {
+  background: #dc2626;
+}
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -376,6 +410,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       </div>
     </div>
   </header>
+
+  <div id="toast" class="toast hidden"></div>
 
       <main class="page">
         <section class="hero card">
@@ -513,17 +549,20 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       lucide.createIcons();
     });
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById("CreateUser");
-      subTypeMenu.style.display = "none";
-      subTypeMenu2.style.display = "none";
-      MajorMenu.style.display = "none";
-      MinorMenu.style.display = "none";
-      DepartmentMenu.style.display = "none";
-      OfficeMenu.style.display = "none";
-      RankingMenu.style.display = "none";
-      SpecialtyMenu.style.display = "none";
-    });
+    function showToast(message, type = "success") {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+
+      toast.classList.remove("hidden", "error");
+      if (type === "error") toast.classList.add("error");
+
+      setTimeout(() => toast.classList.add("show"), 100);
+
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.classList.add("hidden"), 300);
+      }, 3000);
+    }
 
     const UserType = document.getElementById("UserType");
     const subType = document.getElementById("subType");
@@ -554,7 +593,22 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       Graduate: ["-- Select Student SubType --", "FullTimeGrad", "PartTimeGrad"],
     };
 
-    // STEP 1: When UserType changes
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("CreateUser");
+      subTypeMenu.style.display = "none";
+      subTypeMenu2.style.display = "none";
+      MajorMenu.style.display = "none";
+      MinorMenu.style.display = "none";
+      DepartmentMenu.style.display = "none";
+      OfficeMenu.style.display = "none";
+      RankingMenu.style.display = "none";
+      SpecialtyMenu.style.display = "none";
+
+      const success = <?= $success ? 'true' : 'false' ?>;
+      if (success) showToast("✅ User created successfully!");
+    });
+
+    //When UserType changes
     UserType.addEventListener("change", function() {
       const value = this.value;
 
@@ -624,7 +678,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       }
     });
 
-    // STEP 2: When SubType (Undergraduate / Graduate) changes
+    //When SubType (Undergraduate / Graduate) changes
     subType.addEventListener("change", function() {
       const value2 = this.value;
       subType2.innerHTML = "";
@@ -649,7 +703,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
       if (value2 === "Undergraduate" || value2 === "Graduate") {
         subType2.required = true;
-        majorSelect.required = true;
+        majorSelect.required = false;
       }
     if (value2 === "Undergraduate") {
       // Load majors for undergrads
@@ -657,6 +711,14 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       .then(res => res.json())
       .then(data => {
         majorSelect.innerHTML = "";
+
+        const defaultOpt = document.createElement("option");
+        defaultOpt.textContent = "-- Undeclared --";
+        defaultOpt.value = "";
+        defaultOpt.selected = true;
+        defaultOpt.disabled = false;
+        majorSelect.appendChild(defaultOpt);
+
         data.forEach(m => {
           const opt = document.createElement("option");
           opt.textContent = m.name;
@@ -671,6 +733,14 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       .then(res => res.json())
       .then(data => {
         minorSelect.innerHTML = "";
+
+        const defaultOpt = document.createElement("option");
+        defaultOpt.textContent = "-- Undeclared --";
+        defaultOpt.value = "";
+        defaultOpt.selected = true;
+        defaultOpt.disabled = false;
+        minorSelect.appendChild(defaultOpt);
+
         data.forEach(m => {
           const opt = document.createElement("option");
           opt.textContent = m.name;
@@ -681,11 +751,20 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
       });
 
     } else if (value2 === "Graduate") {
+      majorSelect.required = true; 
       // Load graduate programs
       fetch('get_programs.php')
       .then(res => res.json())
       .then(data => {
         majorSelect.innerHTML = "";
+
+        const defaultOpt = document.createElement("option");
+        defaultOpt.textContent = "-- Undeclared --";
+        defaultOpt.value = "";
+        defaultOpt.selected = true;
+        defaultOpt.disabled = false;
+        majorSelect.appendChild(defaultOpt);
+
         data.forEach(p => {
           const opt = document.createElement("option");
           opt.textContent = p.name;
@@ -703,10 +782,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     }
   });
 
-    form.addEventListener("submit", (e) => {
-      console.log("Form submitted ✅");
-    });
-
+  const form = document.getElementById("CreateUser");
+  form?.addEventListener("submit", () => console.log("Form submitted ✅"));
     </script>
   </body>
 </html>

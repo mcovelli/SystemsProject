@@ -11,6 +11,7 @@ if (!isset($_SESSION['user_id']) ||
 }
 
 $userId = $_SESSION['user_id'];
+$error_message = '';
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -79,11 +80,15 @@ if (isset($_POST['UpdateProgram'])) {
 if ($stmt->execute()) {
     $mysqli->commit();
     $_SESSION['update_success'] = true;
-    header("Location: updateMajors.php");
+    $_SESSION['success_message'] = 'Major updated successfully!';
+    header("Location: UpdateMajors.php");
     exit;
 } else {
     $mysqli->rollback();
     $_SESSION['update_success'] = false;
+    $_SESSION['success_message'] = 'Major could not be updated';
+    header("Location: UpdateMajors.php");
+    exit;
 }
 
 }
@@ -150,9 +155,8 @@ input[type=text], input[type=date], select {
     transform: translateY(0);
 }
 
-.toast.hidden {
-    display: none;
-}
+.toast.hidden { display: none; }
+.toast.error  { background: #dc2626; }
 </style>
 
 <meta charset="UTF-8" />
@@ -276,7 +280,7 @@ input[type=text], input[type=date], select {
     });
 
     // Fetch dept from get_departments.php
-    const currentDept = "<?php echo $loadedProgram['DeptID']; ?>";
+    const currentDept = <?= json_encode($loadedProgram['DeptID'] ?? '') ?>;
 
     fetch(`get_departments.php?current=${currentDept}`)
     .then(response => response.json())
@@ -295,28 +299,42 @@ input[type=text], input[type=date], select {
     })
     .catch(err => console.error('Error loading departments:', err));
 
-function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.remove("hidden");
+function showToast(message, type = "success") {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
 
-    // Trigger animation
-    setTimeout(() => {
-        toast.classList.add("show");
-    }, 100);
+  toast.classList.remove("hidden", "error");
+  if (type === "error") toast.classList.add("error");
 
-    // Hide after 3 seconds
-    setTimeout(() => {
-        toast.classList.remove("show");
-        setTimeout(() => toast.classList.add("hidden"), 300);
-    }, 3000);
+  setTimeout(() => toast.classList.add("show"), 50);
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.classList.add("hidden"), 300);
+  }, 3000);
 }
+</script>
 
-// Show success toast if update was successful
-<?php if (!empty($_SESSION['update_success'])): ?>
-    showToast("✅ Major updated successfully!");
-    <?php unset($_SESSION['update_success']); ?>
-<?php endif; ?>
+<?php
+$toastMsg = '';
+$toastType = 'success';
+
+if (!empty($_SESSION['success_message'])) {
+  $toastMsg = $_SESSION['success_message'];
+  $toastType = !empty($_SESSION['update_success']) ? 'success' : 'error';
+  unset($_SESSION['success_message'], $_SESSION['update_success']);
+} elseif (!empty($error_message)) {
+  $toastMsg = $error_message;
+  $toastType = 'error';
+}
+?>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const msg = <?= json_encode($toastMsg) ?>;
+  const type = <?= json_encode($toastType) ?>;
+  if (msg) showToast(msg, type);
+});
 </script>
 </body>
 </html>

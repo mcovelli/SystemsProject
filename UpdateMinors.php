@@ -11,6 +11,7 @@ if (!isset($_SESSION['user_id']) ||
 }
 
 $userId = $_SESSION['user_id'];
+$error_message = '';
 
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
@@ -42,7 +43,7 @@ if (isset($_POST['searchPrograms'])) {
         WHERE MinorName LIKE CONCAT('%', ?, '%')
            OR MinorID   LIKE CONCAT('%', ?, '%')
     ");
-    $stmt->bind_param("si", $searchId, $searchId);
+    $stmt->bind_param("ss", $searchId, $searchId);
     $stmt->execute();
     $loadedProgram = $stmt->get_result()->fetch_assoc();
     $stmt->close();
@@ -70,21 +71,25 @@ if (isset($_POST['UpdateProgram'])) {
     $mysqli->begin_transaction();
 
     $stmt = $mysqli->prepare("
-        UPDATE Major 
-        SET DeptID = ?, MajorName = ?, CreditsNeeded = ?
-        WHERE MajorID = ?
+        UPDATE Minor 
+        SET DeptID = ?, MinorName = ?, CreditsNeeded = ?
+        WHERE MinorID = ?
     ");
     $stmt->bind_param("isii", $DeptId, $name, $creditsNeeded, $ID);
 
     if ($stmt->execute()) {
-        $mysqli->commit();
-        $_SESSION['update_success'] = true;
-        header("Location: updateMajors.php");
-        exit;
-    } else {
-        $mysqli->rollback();
-        $_SESSION['update_success'] = false;
-    }
+    $mysqli->commit();
+    $_SESSION['update_success'] = true;
+    $_SESSION['success_message'] = 'Minor updated successfully!';
+    header("Location: UpdateMinors.php");
+    exit;
+} else {
+    $mysqli->rollback();
+    $_SESSION['update_success'] = false;
+    $_SESSION['success_message'] = 'Update failed: ' . $stmt->error;
+    header("Location: UpdateMinors.php");
+    exit;
+}
 }
 
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
@@ -149,9 +154,8 @@ input[type=text], input[type=date], select {
     transform: translateY(0);
 }
 
-.toast.hidden {
-    display: none;
-}
+.toast.hidden { display: none; }
+.toast.error  { background: #dc2626; }
 </style>
 
 <meta charset="UTF-8" />
@@ -216,11 +220,15 @@ input[type=text], input[type=date], select {
                 <div id = "update-section-department">
                     <form id = "UpdateProgram" method = "POST" action = "">
                       <label for = "ID" readonly>Minor ID (read only):</label>
-                            <input type = "text" id = "ID" name="ID" readonly placeholder="ex. 1"><br>
+                            <input type="text" id="ID" name="ID" readonly
+                               value="<?= htmlspecialchars($loadedProgram['MinorID'] ?? '') ?>"
+                               placeholder="ex. 1"><br>
 
                         <div class = "field-block">
                             <label for="name">Program Name: </label>
-                            <input type = "text" id="name" name="name" placeholder="ex. Mathematics"><br>
+                            <input type="text" id="name" name="name"
+                               value="<?= htmlspecialchars($loadedProgram['MinorName'] ?? '') ?>"
+                               placeholder="ex. Mathematics"><br>
                         </div>
 
                         <label for ="deptID">Dept Name: </label>
@@ -229,7 +237,10 @@ input[type=text], input[type=date], select {
                             </select><br>
 
                             <label for="creditsNeeded">Credits Needed: </label>
-                                 <input type = "number" id="creditsNeeded" name="creditsNeeded" placeholder="96"><br>
+                                 
+                                <input type="number" id="creditsNeeded" name="creditsNeeded"
+                                       value="<?= htmlspecialchars($loadedProgram['CreditsNeeded'] ?? '') ?>"
+                                       placeholder="96"><br>
 
                             <div style="margin-top: 20px;">
                                 <button type="submit" name="UpdateProgram">Save Changes</button>
@@ -242,17 +253,6 @@ input[type=text], input[type=date], select {
 
     <footer class="footer">© <span id="year"></span> Northport University</footer>
     <div id="toast" class="toast hidden"></div>
-
-<?php if (!empty($loadedProgram)): ?>
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("ID").value = "<?php echo $loadedProgram['MinorID'] ?? ''; ?>";
-        document.getElementById("deptID").value = "<?php echo $loadedProgram['DeptID'] ?? ''; ?>";
-        document.getElementById("name").value = "<?php echo $loadedProgram['MinorName'] ?? ''; ?>";;
-        document.getElementById("creditsNeeded").value = "<?php echo $loadedProgram['CreditsNeeded'] ?? ''; ?>";
-    });
-    </script>
-    <?php endif; ?>
 
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -275,7 +275,7 @@ input[type=text], input[type=date], select {
     });
 
 // Fetch dept from get_departments.php
-    const currentDept = "<?php echo $loadedProgram['DeptID']; ?>";
+    const currentDept = <?= json_encode($loadedProgram['DeptID'] ?? '') ?>;
 
     fetch(`get_departments.php?current=${currentDept}`)
     .then(response => response.json())
@@ -294,28 +294,43 @@ input[type=text], input[type=date], select {
     })
     .catch(err => console.error('Error loading departments:', err));
 
-function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.remove("hidden");
+function showToast(message, type = "success") {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
 
-    // Trigger animation
-    setTimeout(() => {
-        toast.classList.add("show");
-    }, 100);
+  toast.classList.remove("hidden", "error");
+  if (type === "error") toast.classList.add("error");
 
-    // Hide after 3 seconds
-    setTimeout(() => {
-        toast.classList.remove("show");
-        setTimeout(() => toast.classList.add("hidden"), 300);
-    }, 3000);
+  setTimeout(() => toast.classList.add("show"), 50);
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.classList.add("hidden"), 300);
+  }, 3000);
 }
-
-// Show success toast if update was successful
-<?php if (!empty($_SESSION['update_success'])): ?>
-    showToast("✅ Minor updated successfully!");
-    <?php unset($_SESSION['update_success']); ?>
-<?php endif; ?>
 </script>
+
+<?php
+$toastMsg = '';
+$toastType = 'success';
+
+if (!empty($_SESSION['success_message'])) {
+  $toastMsg = $_SESSION['success_message'];
+  $toastType = !empty($_SESSION['update_success']) ? 'success' : 'error';
+  unset($_SESSION['success_message'], $_SESSION['update_success']);
+} elseif (!empty($error_message)) {
+  $toastMsg = $error_message;
+  $toastType = 'error';
+}
+?>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const msg = <?= json_encode($toastMsg) ?>;
+  const type = <?= json_encode($toastType) ?>;
+  if (msg) showToast(msg, type);
+});
+</script>
+
 </body>
 </html>

@@ -46,6 +46,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 }
 
+switch ($userRole) {
+
+    case 'admin':
+        if ($adminType === 'update') {
+            $dashboard = 'update_admin_dashboard.php';
+            $profile   = 'admin_profile.php';
+        } else {
+            $dashboard = 'login.html';
+            $profile   = 'login.html';
+        }
+        break;
+
+    default:
+        $dashboard = 'login.html';
+        $profile   = 'login.html';
+        break;
+}
+
 $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 

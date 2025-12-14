@@ -343,7 +343,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                       'System Announcement' AS CourseName, -- Placeholder for Admin
                       'Admin' AS SenderType                -- Type for identification
                   FROM AdminAnnouncements a
-                  WHERE a.TargetGroup IN ('ALL', 'STUDENTS')
+                  WHERE a.TargetGroup IN ('ALL', 'FACULTY')
 
                   UNION ALL
 

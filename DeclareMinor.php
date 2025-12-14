@@ -91,11 +91,9 @@ if (isset($_POST['declareMinor'])) {
 
     if ($major_count >= 2) {
         $mysqli->rollback();
-        echo "<script>alert('Cannot declare a minor when 2 majors are declared.');</script>";
+        echo "<script>alert('Cannot declare a minor when 2 majors are declared.'); window.location='DeclareMinor.php';</script>";
         exit;
-        header('Location: DeclareMinor.php');
     }
-
     if ($MinorID === "") {
         // Remove minor
         $stmt = $mysqli->prepare("DELETE FROM StudentMinor WHERE StudentID = ?");

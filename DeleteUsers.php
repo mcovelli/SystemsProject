@@ -46,6 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 }
 
+$userRole = strtolower($_SESSION['role'] ?? '');
+$adminType = $_SESSION['admin_type'] ?? '';
+
 switch ($userRole) {
 
     case 'admin':

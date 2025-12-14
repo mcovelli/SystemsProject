@@ -92,6 +92,7 @@ if (isset($_POST['declareMinor'])) {
     if ($major_count >= 2) {
         $mysqli->rollback();
         echo "<script>alert('Cannot declare a minor when 2 majors are declared.');</script>";
+        header('Location: DeclareMinor.php');
         exit;
     }
 

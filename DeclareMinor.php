@@ -77,53 +77,60 @@ $user = $userres->fetch_assoc();
 $userstmt->close();
 
 if (isset($_POST['declareMinor'])) {
-    $MinorID = $_POST['MinorID'] ?? '';
-    $StudentID = $_POST['studentID'] ?? '';
-    $DateOfDeclaration = date('Y-m-d');
+    $MinorID   = $_POST['MinorID'] ?? '';
+    $StudentID = (int)($_POST['studentID'] ?? 0);
 
     $mysqli->begin_transaction();
 
-    if($MinorID === ""){
-        $sql = "
-        DELETE FROM StudentMinor WHERE StudentID = ?;
-        ";
-      $stmt = $mysqli->prepare($sql);
-      $stmt->bind_param("i", $StudentID);
-      $stmt->execute();
+    // Count majors for this student
+    $major_count_stmt = $mysqli->prepare("SELECT COUNT(*) AS cnt FROM StudentMajor WHERE StudentID = ?");
+    $major_count_stmt->bind_param("i", $StudentID);
+    $major_count_stmt->execute();
+    $major_count = (int)($major_count_stmt->get_result()->fetch_assoc()['cnt'] ?? 0);
+    $major_count_stmt->close();
 
-      $sql = "
-        UPDATE Student
-        SET MinorID = NULL
-        ";
-      $stmt = $mysqli->prepare($sql);
-      $stmt->bind_param("i", $StudentID);
+    if ($major_count >= 2) {
+        $mysqli->rollback();
+        echo "<script>alert('Cannot declare a minor when 2 majors are declared.');</script>";
+        exit;
+    }
 
-      if ($stmt->execute()) {
+    if ($MinorID === "") {
+        // Remove minor
+        $stmt = $mysqli->prepare("DELETE FROM StudentMinor WHERE StudentID = ?");
+        $stmt->bind_param("i", $StudentID);
+        $stmt->execute();
+        $stmt->close();
+
+        $stmt = $mysqli->prepare("UPDATE Student SET MinorID = NULL WHERE StudentID = ?");
+        $stmt->bind_param("i", $StudentID);
+
+        if ($stmt->execute()) {
             $mysqli->commit();
             echo "<script>alert('Minor Removed ✅');</script>";
         } else {
             $mysqli->rollback();
             echo "<script>alert('Could Not Remove Minor');</script>";
         }
+        $stmt->close();
 
     } else {
-      $sql = "
-        INSERT INTO StudentMinor (StudentID, MinorID, DateOfDeclaration)
-        VALUES (?, ?, CURRENT_DATE())
-        ON DUPLICATE KEY UPDATE
-            MinorID = VALUES(MinorID),
-            DateOfDeclaration = CURRENT_DATE()
-        ";
-      $stmt = $mysqli->prepare($sql);
-      $stmt->bind_param("ii", $StudentID, $MinorID);
-      $stmt->execute();
+        $MinorID = (int)$MinorID;
 
-      $sql = "
-        UPDATE Student
-        SET MinorID = ?
-        ";
-      $stmt = $mysqli->prepare($sql);
-      $stmt->bind_param("i", $MinorID);
+        // Declare/update minor
+        $stmt = $mysqli->prepare("
+            INSERT INTO StudentMinor (StudentID, MinorID, DateOfDeclaration)
+            VALUES (?, ?, CURRENT_DATE())
+            ON DUPLICATE KEY UPDATE
+                MinorID = VALUES(MinorID),
+                DateOfDeclaration = CURRENT_DATE()
+        ");
+        $stmt->bind_param("ii", $StudentID, $MinorID);
+        $stmt->execute();
+        $stmt->close();
+
+        $stmt = $mysqli->prepare("UPDATE Student SET MinorID = ? WHERE StudentID = ?");
+        $stmt->bind_param("ii", $MinorID, $StudentID);
 
         if ($stmt->execute()) {
             $mysqli->commit();
@@ -132,8 +139,10 @@ if (isset($_POST['declareMinor'])) {
             $mysqli->rollback();
             echo "<script>alert('Could Not Declare Minor');</script>";
         }
+        $stmt->close();
     }
 }
+
 $userRole = strtolower($_SESSION['role'] ?? '');
 switch ($userRole) {
     case 'student':

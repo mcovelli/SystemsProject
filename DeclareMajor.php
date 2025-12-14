@@ -91,7 +91,18 @@ $userstmt->close();
 if (isset($_POST['declareMajor'])) {
     $StudentID = $_POST['studentID'] ?? '';
     $selectedMajors = $_POST['majorIDs'] ?? [];
-    $selectedMajors = array_slice($selectedMajors, 0, 2); // max 2 majors
+
+    $minor_count_stmt = $mysqli->prepare("SELECT COUNT(*) AS cnt FROM StudentMinor WHERE StudentID = ?");
+    $minor_count_stmt->bind_param("i", $StudentID);
+    $minor_count_stmt->execute();
+    $minor_count = $minor_count_stmt->get_result()->fetch_assoc()['cnt'];
+    $minor_count_stmt->close();
+
+    if ($minor_count == 1){
+            $selectedMajors = array_slice($selectedMajors, 0, 2); // max 1 major if a minor exists
+    } else {
+        $selectedMajors = array_slice($selectedMajors, 0, 2); // max 2 majors if no minor exists
+    }
 
     $mysqli->begin_transaction();
     $ok = true;

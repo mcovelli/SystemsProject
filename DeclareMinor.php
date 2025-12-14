@@ -101,12 +101,6 @@ if (isset($_POST['declareMinor'])) {
         $stmt->execute();
         $stmt->close();
 
-        if ($major_count >= 2) {
-            $mysqli->rollback();
-            echo "<script>alert('Cannot declare a minor when 2 majors are declared.'); window.location='DeclareMinor.php';</script>";
-            exit;
-        }
-
         $stmt = $mysqli->prepare("UPDATE Student SET MinorID = NULL WHERE StudentID = ?");
         $stmt->bind_param("i", $StudentID);
 

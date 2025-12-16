@@ -36,7 +36,7 @@ if (!$user) {
 $sem_sql = "
     SELECT SemesterID, SemesterName, Year 
     FROM Semester 
-    WHERE CURDATE() BETWEEN StartDate AND EndDate 
+    WHERE CURDATE() BETWEEN StartDate AND (EndDate + 7)
     LIMIT 1
 ";
 $sem_stmt = $mysqli->prepare($sem_sql);

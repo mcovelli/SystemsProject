@@ -84,7 +84,10 @@ if (isset($_POST['placeHold'])) {
     $stmt = $mysqli->prepare("SELECT HoldID FROM StudentHold WHERE StudentID = ?");
     $stmt->bind_param("i", $StudentID);
     $stmt->execute();
-    $existingHolds = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'holdID');
+    $existingHolds = array_column(
+        $stmt->get_result()->fetch_all(MYSQLI_ASSOC),
+        'HoldID'
+    );
     $stmt->close();
 
     $toDelete = array_diff($existingHolds, $selectedHolds);

@@ -115,7 +115,12 @@ $gradeStmt->close();
 
 // (c) Prevent double-booking (time conflict)
 $conflictStmt = $mysqli->prepare("
-    SELECT cs.CRN, c.CourseID, p.StartTime, p.EndTime, GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days
+    SELECT
+        cs.CRN,
+        c.CourseID,
+        MIN(p.StartTime) AS StartTime,
+        MAX(p.EndTime)   AS EndTime,
+        GROUP_CONCAT(DISTINCT d.DayOfWeek ORDER BY d.DayID SEPARATOR '/') AS Days
     FROM StudentEnrollment e
     JOIN CourseSection cs ON e.CRN = cs.CRN
     JOIN Course c ON cs.CourseID = c.CourseID
@@ -124,8 +129,10 @@ $conflictStmt = $mysqli->prepare("
     JOIN Day d ON tsd.DayID = d.DayID
     JOIN TimeSlotPeriod tsp ON tsp.TS_ID = ts.TS_ID
     JOIN Period p ON tsp.PeriodID = p.PeriodID
-    WHERE e.StudentID = ? AND cs.SemesterID = ? AND e.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED')
-    GROUP BY cs.CRN
+    WHERE e.StudentID = ? 
+      AND cs.SemesterID = ?
+      AND e.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED')
+    GROUP BY cs.CRN, c.CourseID
 ");
 $conflictStmt->bind_param('is', $userId, $courseInfo['SemesterID']);
 $conflictStmt->execute();

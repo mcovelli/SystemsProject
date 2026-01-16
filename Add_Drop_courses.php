@@ -206,7 +206,7 @@ if ($selectedSemester) {
         WHERE se.StudentID = ? 
           AND se.SemesterID = ?
           AND se.Status IN ('ENROLLED', 'IN-PROGRESS', 'PLANNED')
-        GROUP BY se.CRN, c.CourseName, cs.RoomID
+        GROUP BY se.CRN, se.SemesterID, c.CourseName, cs.RoomID
         ORDER BY MIN(p.StartTime)
     ";
     $sched_stmt = $mysqli->prepare($sched_sql);

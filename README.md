@@ -2,7 +2,10 @@
 
 A web-based university management system built with PHP, HTML, CSS, JavaScript, and MySQL/MariaDB.
 
+TO VIEW THE LIVE WEBSITE:
+http://44.197.90.112/SystemsProject/login.html
 ---
+TO DOWNLOAD AND EXPLORE THE WEBSITE LOCALLY FOLLOW THE STEPS BELOW:
 
 ## Prerequisites
 

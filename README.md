@@ -18,7 +18,7 @@ Download and install **XAMPP** before getting started:
 
 ### 1. Clone the Repository
 
-Open a terminal, navigate to your XAMPP `htdocs` folder, and clone the project:
+Open a terminal or command prompt, navigate to your XAMPP `htdocs` folder, and clone the project:
 
 **Mac:**
 ```bash

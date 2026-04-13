@@ -158,8 +158,8 @@ try {
 
 } catch (Throwable $e) {
     http_response_code(500);
-    echo "<pre style='color:#b00;font-weight:700'>LOGIN ERROR: " . htmlspecialchars($e->getMessage()) . "</pre>";
-    echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+    echo "<pre style='color:#b00;font-weight:700'>LOGIN ERROR: Internal Server Error" "</pre>";
+    echo "<pre> Internal Server Error" "</pre>";
     exit;
 }
 

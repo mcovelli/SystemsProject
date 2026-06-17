@@ -20,13 +20,13 @@ Open a terminal, navigate to your XAMPP `htdocs` folder, and clone the project:
 **Mac:**
 ```bash
 cd /Applications/XAMPP/htdocs
-git clone https://github.com/theSpacePope91/SystemsProject
+git clone https://github.com/mcovelli/SystemsProject
 ```
 
 **Windows:**
 ```bash
 cd C:/xampp/htdocs
-git clone https://github.com/theSpacePope91/SystemsProject
+git clone https://github.com/mcovelli/SystemsProject
 ```
 
 ---

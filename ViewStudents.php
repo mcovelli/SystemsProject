@@ -99,17 +99,17 @@ $search = $_GET['search'] ?? '';
 $sql = "SELECT 
         s.StudentID,
         CONCAT(u.FirstName, ' ', u.LastName) AS StudentName,
-        CASE 
-          WHEN s.StudentType = 'Graduate' THEN p.ProgramName
-            ELSE m.MajorName
+        CASE
+          WHEN s.StudentType = 'Graduate' THEN ANY_VALUE(p.ProgramName)
+            ELSE GROUP_CONCAT(DISTINCT m.MajorName ORDER BY m.MajorName SEPARATOR ', ')
           END AS MajorName,
-        CASE 
+        CASE
           WHEN s.StudentType = 'Graduate' THEN 'N/A'
-            ELSE mn.MinorName
+            ELSE ANY_VALUE(mn.MinorName)
           END AS MinorName,
         u.Email,
         s.StudentType,
-        CONCAT(fu.FirstName, ' ', fu.LastName) AS AdvisorName
+        CONCAT(ANY_VALUE(fu.FirstName), ' ', ANY_VALUE(fu.LastName)) AS AdvisorName
     FROM Student s
     JOIN Users u ON s.StudentID = u.UserID
     LEFT JOIN Advisor a ON s.StudentID = a.StudentID

@@ -74,6 +74,66 @@ http://localhost/SystemsProject/login.html
 
 ---
 
+## Alternative Setup: PHP Built-in Server (No XAMPP)
+
+Don't want to install XAMPP? If you already have PHP and a local MySQL/MariaDB server (e.g. via Homebrew on Mac), you can run the site with PHP's built-in development server instead.
+
+**Prerequisites:** PHP 8+ with the `mysqli` extension, and a running local MySQL/MariaDB server.
+
+```bash
+# Mac (Homebrew) example — skip if you already have these installed
+brew install php mysql
+brew services start mysql
+```
+
+### 1. Clone the Repository
+
+The project doesn't need to live inside a web server's document root — clone it anywhere:
+
+```bash
+git clone https://github.com/mcovelli/SystemsProject
+```
+
+### 2. Set Up the Database
+
+Import the database with the `mysql` CLI instead of phpMyAdmin:
+
+```bash
+mysql -u root -p -e "CREATE DATABASE University"
+mysql -u root -p University < SystemsProject/University.sql
+```
+
+### 3. Configure the Database Connection
+
+1. Inside the project folder, copy `config.example.php` to `config.php`
+2. Update the credentials for your local setup:
+
+```php
+$DB_USER = getenv('DB_USER') ?: 'root';
+$DB_PASS = getenv('DB_PASS') ?: '';   // your local MySQL root password, if any
+```
+
+Leave `PROJECT_ROOT` set to `/SystemsProject` — the next step relies on it matching the URL path.
+
+### 4. Start the PHP Built-in Server
+
+Run the server from the **parent directory** of the cloned `SystemsProject` folder (not from inside it), so `/SystemsProject/...` URLs resolve the same way they would under XAMPP's `htdocs`:
+
+```bash
+cd /path/to/parent-folder-containing-SystemsProject
+php -S localhost:8000
+```
+
+### 5. Access the Website
+
+```
+http://localhost:8000/SystemsProject/login.html
+```
+
+Press `Ctrl+C` in that terminal to stop the server. Re-run the same `php -S localhost:8000` command any time you want to start it again — no need to reinstall or reconfigure anything.
+
+---
+
 ## Notes
 
 - `config.php` is listed in `.gitignore` and will not be pushed to GitHub — keep your credentials safe

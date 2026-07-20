@@ -152,7 +152,7 @@ $roster_sql = "
   JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
   JOIN Period p ON tsp.PeriodID = p.PeriodID
   WHERE $whereClause
-  GROUP BY se.StudentID, cs.CRN, c.CourseName, cs.RoomID
+  GROUP BY se.StudentID, se.SemesterID, se.CRN, c.CourseName, cs.RoomID
   ORDER BY c.CourseName, u.LastName, u.FirstName;
 ";
 

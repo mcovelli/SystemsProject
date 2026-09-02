@@ -67,7 +67,7 @@ if (!$user) {
 }
 
 // Fetch faculty details: ranking and office
-$fac_stmt = $mysqli->prepare("
+$fac_stmt = $mysqli->prepare("  
     SELECT 
         f.FacultyID,
         CONCAT(fu.FirstName, ' ', fu.LastName) AS FacultyName,
@@ -77,7 +77,8 @@ $fac_stmt = $mysqli->prepare("
     JOIN Users fu ON f.FacultyID = fu.UserID
     JOIN Faculty_Dept fd ON f.FacultyID = fd.FacultyID
     JOIN Department d ON fd.DeptID = d.DeptID
-    WHERE f.FacultyID = ? LIMIT 1");
+    GROUP BY f.FacultyID, fd.DeptID, f.OfficeID, f.Ranking, d.Phone, d.Email
+    HAVING f.FacultyID = ? LIMIT 1");
 $fac_stmt->bind_param('i', $facultyId);
 $fac_stmt->execute();
 $fac = $fac_stmt->get_result()->fetch_assoc();
@@ -119,7 +120,7 @@ $courses_sql = "
   JOIN TimeSlotPeriod tsp ON ts.TS_ID = tsp.TS_ID
   JOIN Period p ON tsp.PeriodID = p.PeriodID
   WHERE cs.FacultyID = ? AND cs.SemesterID = ?
-  GROUP BY cs.CRN
+  GROUP BY cs.CRN, p.StartTime
   ORDER BY p.StartTime
 ";
 $courses_stmt = $mysqli->prepare($courses_sql);
@@ -132,9 +133,9 @@ $courses_stmt->close();
 // Fetch advisees
 $advisees_sql = "
   SELECT 
+    DISTINCT u.UserID AS StudentID,
     u.FirstName,
     u.LastName,
-    u.UserID AS StudentID,
     COALESCE(p.ProgramName, m.MajorName, 'Undeclared') AS MajorName
   FROM Advisor a
   JOIN Users u ON a.StudentID = u.UserID

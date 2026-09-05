@@ -24,15 +24,42 @@ $userstmt->close();
 
 $selectedDept = $_GET['dept'] ?? '';
 
-$sql = "SELECT mn.MinorID, mn.MinorName, mn.DeptID, d.DeptName, d.Email, mn.CreditsNeeded FROM Minor mn JOIN Department d ON mn.DeptID = d.DeptID ";
+$sql = "SELECT mn.MinorID, mn.MinorName, mn.DeptID, d.DeptName, d.Email, mn.CreditsNeeded, mn.Status FROM Minor mn LEFT JOIN Department d ON mn.DeptID = d.DeptID ";
 
-if (!empty($selectedDept)) {
-    $sql .= " WHERE d.DeptName = ?";
+/* Minors are retired rather than deleted, so this list has to be able
+   to show the retired ones -- otherwise there is no way to find one and
+   reactivate it. LEFT JOIN because a minor's DeptID is nullable, and an
+   inner join silently hid those rows. */
+$selectedStatus = strtoupper($_GET['status'] ?? '');
+if (!in_array($selectedStatus, ['ACTIVE', 'INACTIVE'], true)) {
+    $selectedStatus = '';
 }
 
-$stmt = $mysqli->prepare($sql);
+$conditions = [];
+$params = [];
+$types = '';
+
 if (!empty($selectedDept)) {
-    $stmt->bind_param("s", $selectedDept);
+    $conditions[] = "d.DeptName = ?";
+    $params[] = $selectedDept;
+    $types .= 's';
+}
+
+if ($selectedStatus !== '') {
+    $conditions[] = "mn.Status = ?";
+    $params[] = $selectedStatus;
+    $types .= 's';
+}
+
+if ($conditions) {
+    $sql .= " WHERE " . implode(" AND ", $conditions);
+}
+
+$sql .= " ORDER BY mn.MinorName ASC";
+
+$stmt = $mysqli->prepare($sql);
+if ($params) {
+    $stmt->bind_param($types, ...$params);
 }
 
 $stmt->execute();
@@ -134,6 +161,13 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             <option value="">-- All Departments --</option>
           </select>
 
+          <label for="status">Status:</label>
+          <select name="status" id="status">
+            <option value=""         <?= $selectedStatus === ''         ? 'selected' : '' ?>>All</option>
+            <option value="ACTIVE"   <?= $selectedStatus === 'ACTIVE'   ? 'selected' : '' ?>>Active only</option>
+            <option value="INACTIVE" <?= $selectedStatus === 'INACTIVE' ? 'selected' : '' ?>>Retired only</option>
+          </select>
+
           <button type="submit">Apply Filters</button>
         </form>
       <p>Click ID to pull up requirements</p>
@@ -141,7 +175,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
       <div class="table-wrap">
         <table id="minorsTable" border="1" cellpadding="5" cellspacing="0">
-          <thead><tr><th>Minor ID</th><th>Minor Name</th><th>Department ID</th><th>Department Name</th><th>Credits Needed</th><th>Department Email</th></tr></thead>
+          <thead><tr><th>Minor ID</th><th>Minor Name</th><th>Department ID</th><th>Department Name</th><th>Credits Needed</th><th>Department Email</th><th>Status</th></tr></thead>
             <tbody id="minorsBody">
               <?php if (!empty($minors)): ?>
                 <?php foreach ($minors as $m): ?>
@@ -149,14 +183,19 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <td><a href="ViewMinorRequirements.php?minorID=<?= urlencode($m['MinorID']) ?>&MinorName=<?= urlencode($m['MinorName']) ?>">
                       <?= htmlspecialchars($m['MinorID']) ?> </a></td>
                     <td><?= htmlspecialchars($m['MinorName']) ?></td>
-                    <td><?= htmlspecialchars($m['DeptID']) ?></td>
-                    <td><?= htmlspecialchars($m['DeptName']) ?></td>
+                    <td><?= htmlspecialchars($m['DeptID'] ?? '—') ?></td>
+                    <td><?= htmlspecialchars($m['DeptName'] ?? '—') ?></td>
                     <td><?= htmlspecialchars($m['CreditsNeeded']) ?></td>
-                    <td><?= htmlspecialchars($m['Email']) ?></td>
+                    <td><?= htmlspecialchars($m['Email'] ?? '') ?></td>
+                    <td>
+                      <span class="status-pill <?= strtoupper($m['Status']) === 'ACTIVE' ? 'on' : 'off' ?>">
+                        <?= $m['Status'] === 'ACTIVE' ? 'Active' : 'Retired' ?>
+                      </span>
+                    </td>
                   </tr>
                 <?php endforeach; ?>
               <?php else: ?>
-                  <tr><td colspan="6">No minors found.</td></tr>
+                  <tr><td colspan="7">No minors found.</td></tr>
               <?php endif; ?>
               </tbody>
             </table>

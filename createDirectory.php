@@ -81,7 +81,7 @@ $deleteLinks = [
     ['label' => 'Delete Sections',   'href' => 'DeleteCourseSections.php',                      'icon' => 'X'],
     ['label' => 'Delete Departments',     'href' => 'DeleteDepartments.php',                      'icon' => 'x'],
     ['label' => 'Major/Minor Status',      'href' => 'DeleteMajorsMinors.php',                      'icon' => 'archive'],
-    ['label' => 'Delete Programs',      'href' => 'DeletePrograms.php',                      'icon' => 'x']
+    ['label' => 'Program Status',      'href' => 'DeletePrograms.php',                      'icon' => 'archive']
 
 ];
 

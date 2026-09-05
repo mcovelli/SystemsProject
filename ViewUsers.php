@@ -39,23 +39,45 @@ SELECT
 FROM Users
 ";
 
+/* Accounts are deactivated rather than deleted, so this list has to be
+   able to show the inactive ones -- otherwise there is no way to find
+   an account and reactivate it. */
+$selectedStatus = strtoupper($_GET['status'] ?? '');
+if (!in_array($selectedStatus, ['ACTIVE', 'INACTIVE'], true)) {
+    $selectedStatus = '';
+}
+
+$conditions = [];
+$params = [];
+$types = '';
+
 if (!empty($search)) {
-    $sql .= "
-    WHERE (
+    $conditions[] = "(
     FirstName LIKE CONCAT('%', ?, '%')
     OR LastName LIKE CONCAT('%', ?, '%')
     OR UserType LIKE CONCAT('%', ?, '%')
     OR UserID LIKE CONCAT('%', ?, '%')
-)
-    ";
+)";
+    array_push($params, $search, $search, $search, $search);
+    $types .= 'ssss';
+}
+
+if ($selectedStatus !== '') {
+    $conditions[] = "Status = ?";
+    $params[] = $selectedStatus;
+    $types .= 's';
+}
+
+if ($conditions) {
+    $sql .= " WHERE " . implode(" AND ", $conditions);
 }
 
 $sql .= " ORDER BY UserID ASC";
 
 $stmt = $mysqli->prepare($sql);
 
-if (!empty($search)) {
-    $stmt->bind_param("ssss", $search, $search, $search, $search);
+if ($params) {
+    $stmt->bind_param($types, ...$params);
 }
 
 $stmt->execute();
@@ -140,6 +162,13 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
          placeholder="Search name or department..."
          value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
 
+        <label for="status">Status:</label>
+        <select name="status" id="status">
+          <option value=""         <?= $selectedStatus === ''         ? 'selected' : '' ?>>All</option>
+          <option value="ACTIVE"   <?= $selectedStatus === 'ACTIVE'   ? 'selected' : '' ?>>Active only</option>
+          <option value="INACTIVE" <?= $selectedStatus === 'INACTIVE' ? 'selected' : '' ?>>Inactive only</option>
+        </select>
+
         <button type="submit">Search</button>
       </form>
   
@@ -170,11 +199,15 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                 <td><?= htmlspecialchars($u['DOB']) ?></td>
                 <td><?= htmlspecialchars($u['Gender']) ?></td>
                 <td><?= htmlspecialchars($u['UserType']) ?></td>
-                <td><?= htmlspecialchars($u['Status']) ?></td>
+                <td>
+                  <span class="status-pill <?= strtoupper($u['Status']) === 'ACTIVE' ? 'on' : 'off' ?>">
+                    <?= htmlspecialchars($u['Status']) ?>
+                  </span>
+                </td>
               </tr>
             <?php endforeach; ?>
           <?php else: ?>
-            <tr><td colspan="5">No Users found.</td></tr>
+            <tr><td colspan="9">No users match that search.</td></tr>
           <?php endif; ?>
         </tbody>
       </table>

@@ -24,28 +24,65 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
+/* Programs are retired, not removed. Graduate students keep the link to
+   their program and its course requirements stay attached, so a retired
+   program can be brought back exactly as it was. Retired programs are
+   simply not offered on the declaration screens. */
+$statusMessage = '';
+$statusOk = false;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $programID = $_POST['programID'] ?? '';
+    $action    = $_POST['action'] ?? '';
 
-    $mysqli->begin_transaction();
+    if (!in_array($action, ['retire', 'reactivate'], true)) {
+        $statusMessage = 'Choose Retire or Reactivate.';
+    } elseif (!ctype_digit((string)$programID)) {
+        $statusMessage = 'Choose a program.';
+    } else {
+        $newStatus = $action === 'reactivate' ? 'ACTIVE' : 'INACTIVE';
 
-   
-       $sql= "DELETE FROM Program WHERE ProgramID = ?";
-
-          $stmt = $mysqli->prepare($sql);
-          $stmt->bind_param(
-            "i",
-            $programID
+        $lookup = $mysqli->prepare(
+            "SELECT ProgramName, Status FROM Program WHERE ProgramID = ? LIMIT 1"
         );
+        $lookup->bind_param("i", $programID);
+        $lookup->execute();
+        $target = $lookup->get_result()->fetch_assoc();
+        $lookup->close();
 
-        if ($stmt -> execute()) {
-            $mysqli->commit();
-            echo "<script>alert('Program deleted ✅');</script>";
+        if (!$target) {
+            $statusMessage = 'That program no longer exists.';
+        } elseif ($target['Status'] === $newStatus) {
+            $statusMessage = $target['ProgramName'] . ' is already '
+                . ($newStatus === 'ACTIVE' ? 'active.' : 'retired.');
         } else {
-            $mysqli->rollback();
-            echo "<script>alert('Could not delete Program');</script>";
+            $mysqli->begin_transaction();
+
+            $stmt = $mysqli->prepare("UPDATE Program SET Status = ? WHERE ProgramID = ?");
+            $stmt->bind_param("si", $newStatus, $programID);
+
+            if ($stmt->execute() && $stmt->affected_rows === 1) {
+                $mysqli->commit();
+
+                $held = $mysqli->prepare("SELECT COUNT(*) AS n FROM Graduate WHERE ProgramID = ?");
+                $held->bind_param("i", $programID);
+                $held->execute();
+                $count = (int)($held->get_result()->fetch_assoc()['n'] ?? 0);
+                $held->close();
+
+                $statusMessage = $newStatus === 'ACTIVE'
+                    ? $target['ProgramName'] . ' reactivated. Students can be enrolled in it again.'
+                    : $target['ProgramName'] . " retired. It is no longer offered; $count enrolled "
+                      . ($count === 1 ? 'student keeps' : 'students keep') . ' their place.';
+                $statusOk = true;
+            } else {
+                $mysqli->rollback();
+                $statusMessage = 'Could not change that program.';
+            }
+            $stmt->close();
         }
-      }
+    }
+}
 
 $userRole = strtolower($_SESSION['role'] ?? '');
 $adminType = $_SESSION['admin_type'] ?? '';
@@ -80,7 +117,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Delete Programs</title>
+<title>Program Status</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -91,7 +128,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Delete Programs</span>
+      <span class="pill">Program Status</span>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -119,21 +156,27 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
     <main>
 
-        <h3>Delete Program</h3>
-        
+        <h3>Program Status</h3>
+        <p class="muted">Retiring stops a program being offered to new students while keeping
+           enrolled students and its course requirements, so it can be brought back unchanged.
+           Retired programs are listed here, and only here.</p>
+
         <section>
-          
-          <!-- CREATE Program FORM -->
+
           <div id = "delete-program">
-          <form id="DeleteProgram" method="POST" action="">
-            
+            <?php if ($statusMessage !== ''): ?>
+              <p class="status-note <?= $statusOk ? 'ok' : 'warn' ?>" role="status">
+                <?= htmlspecialchars($statusMessage) ?>
+              </p>
+            <?php endif; ?>
             <form id = "DeleteProgram" method = "POST" action = "">
                       <label for="programID">Program: </label>
                              <select name="programID" id="programID" required>
-                              <option>--SELECT--</option>
+                              <option value="">--SELECT--</option>
                                 </select><br>
 
-            <button type="submit" id = "submit">Delete Program</button>
+            <button type="submit" name="action" value="retire">Retire</button>
+            <button type="submit" name="action" value="reactivate">Reactivate</button>
          </form>
       </div>
         </section>
@@ -160,16 +203,19 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     });
 
      // Fetch programs from get_programs.php
-    fetch('get_programs.php')
+    // all=1 so retired programs are listed too -- without them there
+    // would be nothing to reactivate.
+    fetch('get_programs.php?all=1')
     .then(response => response.json())
     .then(data => {
         const programSelect = document.getElementById('programID');
-        const selectedProgram = new URLSearchParams(window.location.search).get('programID');
 
     data.forEach(program => {
         const opt = document.createElement('option');
+        const retired = program.status === 'INACTIVE';
         opt.value = program.id;
-        opt.textContent = program.name;
+        opt.textContent = retired ? `${program.name} — retired` : program.name;
+        if (retired) opt.className = 'retired';
         programSelect.appendChild(opt);
         });
     })

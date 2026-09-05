@@ -24,15 +24,42 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
-$sql = "SELECT p.ProgramID, p.ProgramName, p.DeptID, p.DegreeLevel, p.CreditsRequired, d.DeptName, d.Email FROM Program p JOIN Department d ON p.DeptID = d.DeptID ";
+$sql = "SELECT p.ProgramID, p.ProgramName, p.DeptID, p.DegreeLevel, p.CreditsRequired, d.DeptName, d.Email, p.Status FROM Program p LEFT JOIN Department d ON p.DeptID = d.DeptID ";
 
-if (!empty($selectedDept)) {
-    $sql .= " WHERE d.DeptName = ?";
+/* Programs are retired rather than deleted, so this list has to be able
+   to show the retired ones -- otherwise there is no way to find one and
+   reactivate it. LEFT JOIN because a program's DeptID is nullable, and an
+   inner join silently hid those rows. */
+$selectedStatus = strtoupper($_GET['status'] ?? '');
+if (!in_array($selectedStatus, ['ACTIVE', 'INACTIVE'], true)) {
+    $selectedStatus = '';
 }
 
-$stmt = $mysqli->prepare($sql);
+$conditions = [];
+$params = [];
+$types = '';
+
 if (!empty($selectedDept)) {
-    $stmt->bind_param("s", $selectedDept);
+    $conditions[] = "d.DeptName = ?";
+    $params[] = $selectedDept;
+    $types .= 's';
+}
+
+if ($selectedStatus !== '') {
+    $conditions[] = "p.Status = ?";
+    $params[] = $selectedStatus;
+    $types .= 's';
+}
+
+if ($conditions) {
+    $sql .= " WHERE " . implode(" AND ", $conditions);
+}
+
+$sql .= " ORDER BY p.ProgramName ASC";
+
+$stmt = $mysqli->prepare($sql);
+if ($params) {
+    $stmt->bind_param($types, ...$params);
 }
 
 $stmt->execute();
@@ -134,6 +161,13 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             <option value="">-- All Departments --</option>
           </select>
 
+          <label for="status">Status:</label>
+          <select name="status" id="status">
+            <option value=""         <?= $selectedStatus === ''         ? 'selected' : '' ?>>All</option>
+            <option value="ACTIVE"   <?= $selectedStatus === 'ACTIVE'   ? 'selected' : '' ?>>Active only</option>
+            <option value="INACTIVE" <?= $selectedStatus === 'INACTIVE' ? 'selected' : '' ?>>Retired only</option>
+          </select>
+
           <button type="submit">Apply Filters</button>
         </form>
         <p>Click ID to pull up requirements</p>
@@ -141,7 +175,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
       <div class="table-wrap">
         <table id="programsTable" border="1" cellpadding="5" cellspacing="0">
-          <thead><tr><th>Program ID</th><th>Program Name</th><th>Department Name</th><th>Degree Level</th><th>Credits</th><th>Department Email</th></tr></thead>
+          <thead><tr><th>Program ID</th><th>Program Name</th><th>Department Name</th><th>Degree Level</th><th>Credits</th><th>Department Email</th><th>Status</th></tr></thead>
             <tbody id="programsBody">
               <?php if (!empty($programs)): ?>
                 <?php foreach ($programs as $p): ?>
@@ -149,14 +183,19 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                     <td><a href="ViewProgramRequirements.php?ProgramID=<?= urlencode($p['ProgramID']) ?>&ProgramName=<?= urlencode($p['ProgramName']) ?>">
                       <?= htmlspecialchars($p['ProgramID']) ?> </a></td>
                     <td><?= htmlspecialchars($p['ProgramName']) ?></td>
-                    <td><?= htmlspecialchars($p['DeptName']) ?></td>
+                    <td><?= htmlspecialchars($p['DeptName'] ?? '—') ?></td>
                     <td><?= htmlspecialchars($p['DegreeLevel']) ?></td>
                     <td><?= htmlspecialchars($p['CreditsRequired']) ?></td>
-                    <td><?= htmlspecialchars($p['Email']) ?></td>
+                    <td><?= htmlspecialchars($p['Email'] ?? '') ?></td>
+                    <td>
+                      <span class="status-pill <?= strtoupper($p['Status']) === 'ACTIVE' ? 'on' : 'off' ?>">
+                        <?= $p['Status'] === 'ACTIVE' ? 'Active' : 'Retired' ?>
+                      </span>
+                    </td>
                   </tr>
                 <?php endforeach; ?>
               <?php else: ?>
-                  <tr><td colspan="6">No Programs found.</td></tr>
+                  <tr><td colspan="7">No Programs found.</td></tr>
               <?php endif; ?>
               </tbody>
             </table>

@@ -285,3 +285,16 @@ gap: 10px;
 }
 /* Retired options stay selectable so they can be reactivated */
 option.retired{ color: var(--muted); }
+
+/* Active / inactive marker in the directory tables */
+.status-pill{
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.status-pill.on{  color: #2f6b47; background: rgba(47, 107, 71, .12); }
+.status-pill.off{ color: #a05a1f; background: rgba(160, 90, 31, .14); }

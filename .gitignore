@@ -67,3 +67,7 @@ backup/
 tmp/
 temp/
 uploads/
+
+# Local database backups taken before running migrations
+University_before_keys.sql
+*_before_*.sql

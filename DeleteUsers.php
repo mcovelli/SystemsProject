@@ -24,26 +24,58 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
+/* Users are never removed. Status carries the account state instead:
+   login.php turns away anyone who is not ACTIVE, and a BEFORE DELETE
+   trigger on Users rejects a hard delete outright. Deactivating keeps
+   their enrollments, transcript and degree audit intact, which is what
+   makes reactivating possible at all. */
+$statusMessage = '';
+$statusOk = false;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userID = $_POST['userID'] ?? '';
+    $action = $_POST['action'] ?? '';
 
-    $mysqli->begin_transaction();
+    if (!in_array($action, ['deactivate', 'reactivate'], true)) {
+        $statusMessage = 'Choose Deactivate or Reactivate.';
+    } elseif (!ctype_digit((string)$userID)) {
+        $statusMessage = 'Enter a numeric User ID.';
+    } else {
+        $newStatus = $action === 'reactivate' ? 'ACTIVE' : 'INACTIVE';
 
-       $sql= "DELETE FROM Users WHERE UserID = ?";
-
-          $stmt = $mysqli->prepare($sql);
-          $stmt->bind_param(
-            "i",
-            $userID
+        $lookup = $mysqli->prepare(
+            "SELECT FirstName, LastName, Status FROM Users WHERE UserID = ? LIMIT 1"
         );
+        $lookup->bind_param("i", $userID);
+        $lookup->execute();
+        $target = $lookup->get_result()->fetch_assoc();
+        $lookup->close();
 
-        if ($stmt -> execute()) {
-            $mysqli->commit();
-            echo "<script>alert('User deleted ✅');</script>";
+        if (!$target) {
+            $statusMessage = "No user with ID $userID.";
+        } elseif ($target['Status'] === $newStatus) {
+            $name = $target['FirstName'] . ' ' . $target['LastName'];
+            $statusMessage = "$name is already " . strtolower($newStatus) . '.';
         } else {
-            $mysqli->rollback();
-            echo "<script>alert('Could not delete User');</script>";
+            $mysqli->begin_transaction();
+
+            $stmt = $mysqli->prepare("UPDATE Users SET Status = ? WHERE UserID = ?");
+            $stmt->bind_param("si", $newStatus, $userID);
+
+            if ($stmt->execute() && $stmt->affected_rows === 1) {
+                $mysqli->commit();
+                $name = $target['FirstName'] . ' ' . $target['LastName'];
+                $statusMessage = $newStatus === 'ACTIVE'
+                    ? "$name reactivated. They can sign in again."
+                    : "$name deactivated. Their records are kept and sign-in is blocked.";
+                $statusOk = true;
+            } else {
+                $mysqli->rollback();
+                $statusMessage = 'Could not change that account.';
+            }
+            $stmt->close();
         }
+    }
 }
 
 $userRole = strtolower($_SESSION['role'] ?? '');
@@ -79,7 +111,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Delete Users</title>
+<title>User Status</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -90,7 +122,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Delete Users</span>
+      <span class="pill">User Status</span>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -118,14 +150,25 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <section class="hero card">
             <div class="card-head between">
                 <div>
-                  <h1 class="card-title">Delete User</h1>
+                  <h1 class="card-title">User Status</h1>
+                  <p class="muted">Accounts are never deleted. Deactivating blocks sign-in and keeps
+                     the person's enrollments, transcript and degree audit intact, so the account
+                     can be reactivated later.</p>
                 </div>
             </div>
                 <div id = "create-section-user">
+                    <?php if ($statusMessage !== ''): ?>
+                      <p class="status-note <?= $statusOk ? 'ok' : 'warn' ?>" role="status">
+                        <?= htmlspecialchars($statusMessage) ?>
+                      </p>
+                    <?php endif; ?>
                     <form id = "DeleteUser" method = "POST" action = "">
                         <label for="userID">User ID: </label>
-                        <input type = "text" id="userID" name="userID" required placeholder = "ex. 12345">
-                        <button type="submit" id = "userDeleteSubmit" name = "userDeleteSubmit">Delete</button>
+                        <input type = "text" id="userID" name="userID" required placeholder = "ex. 12345"
+                               inputmode="numeric" pattern="[0-9]+"
+                               value="<?= htmlspecialchars($_POST['userID'] ?? '') ?>">
+                        <button type="submit" name="action" value="deactivate">Deactivate</button>
+                        <button type="submit" name="action" value="reactivate">Reactivate</button>
                     </form>
                 </div>
         </section>

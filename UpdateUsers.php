@@ -27,12 +27,12 @@ if ($adminType !== 'UPDATE') {
 }
 
 function loadMajors($mysqli) {
-    $res = $mysqli->query("SELECT MajorID, MajorName FROM Major ORDER BY MajorName");
+    $res = $mysqli->query("SELECT MajorID, MajorName FROM Major WHERE Status = 'ACTIVE' ORDER BY MajorName");
     return $res->fetch_all(MYSQLI_ASSOC);
 }
 
 function loadMinors($mysqli) {
-    $res = $mysqli->query("SELECT MinorID, MinorName FROM Minor ORDER BY MinorName");
+    $res = $mysqli->query("SELECT MinorID, MinorName FROM Minor WHERE Status = 'ACTIVE' ORDER BY MinorName");
     return $res->fetch_all(MYSQLI_ASSOC);
 }
 

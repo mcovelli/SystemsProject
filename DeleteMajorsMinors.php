@@ -24,40 +24,76 @@ $userres = $userstmt->get_result();
 $user = $userres->fetch_assoc();
 $userstmt->close();
 
+/* Majors and minors are retired, not removed. Students keep their
+   declarations and the requirements stay attached, so a retired
+   programme can be brought back exactly as it was. Retired entries are
+   simply not offered on the declaration screens. */
+$statusMessage = '';
+$statusOk = false;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $ID = $_POST['id'] ?? '';
-}
+    $ID           = $_POST['id'] ?? '';
+    $majorOrMinor = $_POST['majorOrMinor'] ?? '';
+    $action       = $_POST['action'] ?? '';
 
-$mysqli->begin_transaction();
+    $isMajor   = $majorOrMinor === 'major';
+    $table     = $isMajor ? 'Major'   : 'Minor';
+    $keyColumn = $isMajor ? 'MajorID' : 'MinorID';
+    $nameColumn= $isMajor ? 'MajorName' : 'MinorName';
 
-$majorOrMinor = $_POST['majorOrMinor'] ?? '';
+    if (!in_array($majorOrMinor, ['major', 'minor'], true)) {
+        $statusMessage = 'Choose Major or Minor.';
+    } elseif (!in_array($action, ['retire', 'reactivate'], true)) {
+        $statusMessage = 'Choose Retire or Reactivate.';
+    } elseif (!ctype_digit((string)$ID)) {
+        $statusMessage = 'Choose a ' . $majorOrMinor . '.';
+    } else {
+        $newStatus = $action === 'reactivate' ? 'ACTIVE' : 'INACTIVE';
 
-switch ($majorOrMinor){
-    case 'major':
-        $sql = "DELETE FROM Major WHERE MajorID = ?";
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param("i",$ID);
-        
-        if ($stmt->execute()) {
-            echo "alert('Major deleted ✅');";
+        $lookup = $mysqli->prepare(
+            "SELECT `$nameColumn` AS name, Status FROM `$table` WHERE `$keyColumn` = ? LIMIT 1"
+        );
+        $lookup->bind_param("i", $ID);
+        $lookup->execute();
+        $target = $lookup->get_result()->fetch_assoc();
+        $lookup->close();
+
+        if (!$target) {
+            $statusMessage = "That $majorOrMinor no longer exists.";
+        } elseif ($target['Status'] === $newStatus) {
+            $statusMessage = $target['name'] . ' is already '
+                . ($newStatus === 'ACTIVE' ? 'active.' : 'retired.');
         } else {
-            echo "alert('Could not delete Major');";
-        }
-    break;
+            $mysqli->begin_transaction();
 
-    case("minor"):
-        $sql = "DELETE FROM Minor WHERE MinorID = ?";
-            $stmt = $mysqli->prepare($sql);
-            $stmt->bind_param("i", $ID);
+            $stmt = $mysqli->prepare("UPDATE `$table` SET Status = ? WHERE `$keyColumn` = ?");
+            $stmt->bind_param("si", $newStatus, $ID);
 
-            if ($stmt->execute()) {
+            if ($stmt->execute() && $stmt->affected_rows === 1) {
                 $mysqli->commit();
-                echo "alert('Minor $name deleted ✅');";
+
+                $held = $mysqli->prepare(
+                    $isMajor
+                        ? "SELECT COUNT(*) AS n FROM StudentMajor WHERE MajorID = ?"
+                        : "SELECT COUNT(*) AS n FROM StudentMinor WHERE MinorID = ?"
+                );
+                $held->bind_param("i", $ID);
+                $held->execute();
+                $count = (int)($held->get_result()->fetch_assoc()['n'] ?? 0);
+                $held->close();
+
+                $statusMessage = $newStatus === 'ACTIVE'
+                    ? $target['name'] . ' reactivated. Students can declare it again.'
+                    : $target['name'] . " retired. It is no longer offered; $count existing "
+                      . ($count === 1 ? 'declaration is' : 'declarations are') . ' kept.';
+                $statusOk = true;
             } else {
                 $mysqli->rollback();
-                echo "alert('Could not delete Minor');";
+                $statusMessage = "Could not change that $majorOrMinor.";
             }
-        break;
+            $stmt->close();
+        }
+    }
 }
 
 $userRole = strtolower($_SESSION['role'] ?? '');
@@ -93,7 +129,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Create Majors and Minors</title>
+<title>Major and Minor Status</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -104,7 +140,7 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
     <div class="brand">
       <div class="logo"><i data-lucide="graduation-cap"></i></div>
       <h1>Northport University</h1>
-      <span class="pill">Delete Majors and Minors</span>
+      <span class="pill">Major and Minor Status</span>
     </div>
     <div class="top-actions">
       <div class="search">
@@ -134,10 +170,18 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
         <section class="hero card">
             <div class="card-head between">
                 <div>
-                  <h1 class="card-title">Delete Major/Minor</h1>
+                  <h1 class="card-title">Major and Minor Status</h1>
+                  <p class="muted">Retiring stops a programme being offered to new students while
+                     keeping existing declarations and its course requirements, so it can be
+                     brought back unchanged. Retired entries are listed here, and only here.</p>
                 </div>
             </div>
                 <div id = "delete-section-majorminor">
+                    <?php if ($statusMessage !== ''): ?>
+                      <p class="status-note <?= $statusOk ? 'ok' : 'warn' ?>" role="status">
+                        <?= htmlspecialchars($statusMessage) ?>
+                      </p>
+                    <?php endif; ?>
                     <form id = "DeleteMajorMinor" method = "POST" action = "">
                         <label for="majorOrMinor">Select Major/Minor: </label>
                             <select id="majorOrMinor" name="majorOrMinor" required>
@@ -152,7 +196,8 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
                             <select id="id" name="id" required>
                                 <option value="">-- Select --</option>
                             </select>
-                        <button type="submit" id = "submit">Delete</button>
+                        <button type="submit" name="action" value="retire">Retire</button>
+                        <button type="submit" name="action" value="reactivate">Reactivate</button>
                     </form>
                 </div>
         </section>
@@ -191,15 +236,19 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 
         if (!type) return;
 
-        const url = type === "major" ? "get_majors.php" : "get_minors.php";
+        // all=1 so retired entries are listed too -- without them there
+        // would be nothing to reactivate.
+        const url = (type === "major" ? "get_majors.php" : "get_minors.php") + "?all=1";
 
         fetch(url)
             .then(res => res.json())
             .then(data => {
                 data.forEach(item => {
                     const opt = document.createElement("option");
+                    const retired = item.status === "INACTIVE";
                     opt.value = item.id;
-                    opt.textContent = item.name;
+                    opt.textContent = retired ? `${item.name} — retired` : item.name;
+                    if (retired) opt.className = "retired";
                     select.appendChild(opt);
                 });
             })

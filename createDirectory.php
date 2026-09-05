@@ -76,11 +76,11 @@ $updateLinks = [
 ];
 
 $deleteLinks = [
-  ['label' => 'Delete User', 'href' => 'DeleteUsers.php',       'icon' => 'x'],
+  ['label' => 'User Status', 'href' => 'DeleteUsers.php',       'icon' => 'user-check'],
     ['label' => 'Delete Courses',      'href' => 'DeleteCourses.php',           'icon' => 'x'],
     ['label' => 'Delete Sections',   'href' => 'DeleteCourseSections.php',                      'icon' => 'X'],
     ['label' => 'Delete Departments',     'href' => 'DeleteDepartments.php',                      'icon' => 'x'],
-    ['label' => 'Delete Majors/Minors',      'href' => 'DeleteMajorsMinors.php',                      'icon' => 'x'],
+    ['label' => 'Major/Minor Status',      'href' => 'DeleteMajorsMinors.php',                      'icon' => 'archive'],
     ['label' => 'Delete Programs',      'href' => 'DeletePrograms.php',                      'icon' => 'x']
 
 ];

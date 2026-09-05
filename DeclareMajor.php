@@ -72,7 +72,7 @@ if (empty($loadedStudent)) {
 }
 
 // Fetch all available majors
-$maj_stmt = $mysqli->prepare("SELECT MajorID, MajorName FROM Major ORDER BY MajorName ASC");
+$maj_stmt = $mysqli->prepare("SELECT MajorID, MajorName FROM Major WHERE Status = 'ACTIVE' ORDER BY MajorName ASC");
 $maj_stmt->execute();
 $availableMajors = $maj_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $maj_stmt->close();

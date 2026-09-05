@@ -265,3 +265,23 @@ gap: 10px;
         padding: 6px 10px;
         border-bottom: 1px solid #e5e5e5;
     }
+/* Result banner for the status toggles on the admin screens */
+.status-note{
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line, #d9dee6);
+  font-size: 14px;
+}
+.status-note.ok{
+  border-color: #2f6b47;
+  color: #2f6b47;
+  background: rgba(47, 107, 71, .08);
+}
+.status-note.warn{
+  border-color: #a05a1f;
+  color: #a05a1f;
+  background: rgba(160, 90, 31, .08);
+}
+/* Retired options stay selectable so they can be reactivated */
+option.retired{ color: var(--muted); }

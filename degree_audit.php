@@ -32,8 +32,26 @@ $res = $stmt->get_result();
 $student = $res->fetch_assoc();
 $stmt->close();
 
-// What kind of student is this?
-$stype_sql = "SELECT StudentType FROM Student WHERE StudentID = ? LIMIT 1";
+/* What kind of student is this?
+
+   Student.StudentType is blank on 1,418 of 1,602 rows, so it cannot be
+   the only signal: only 77 students say 'Graduate' while the Graduate
+   subtype table holds 311. Branching on the enum alone treated 296
+   graduate students as undergraduates and showed them a major's credit
+   requirement instead of their program's.
+
+   Membership of Graduate is the reliable signal -- it is populated and
+   the foreign key keeps it honest -- so it is taken as authoritative,
+   with StudentType still honoured when it is filled in. This matches
+   UpdateDegreeAudit, so the stored audit and this page agree. */
+$stype_sql = "
+  SELECT s.StudentType,
+         EXISTS (SELECT 1 FROM Graduate g
+                  WHERE g.StudentID = s.StudentID
+                    AND g.ProgramID IS NOT NULL) AS InGraduate
+  FROM Student s
+  WHERE s.StudentID = ?
+  LIMIT 1";
 $stype_stmt = $mysqli->prepare($stype_sql);
 $stype_stmt->bind_param('i', $studentID);
 $stype_stmt->execute();
@@ -41,7 +59,8 @@ $stype = $stype_stmt->get_result()->fetch_assoc();
 $stype_stmt->close();
 
 // Determine if grad or undergrad
-$isGrad = (strcasecmp($stype['StudentType'] ?? '', 'Graduate') === 0);
+$isGrad = (strcasecmp($stype['StudentType'] ?? '', 'Graduate') === 0)
+       || !empty($stype['InGraduate']);
 
 // Initialize defaults
 $majorName = 'Undeclared';

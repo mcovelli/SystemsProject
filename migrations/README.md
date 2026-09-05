@@ -11,7 +11,7 @@ mysql -h 127.0.0.1 -u root University --table < migrations/001_preflight_checks.
 
 # 2. Back up. DDL commits implicitly, so this is the only way back.
 mysqldump -h 127.0.0.1 -u root --set-gtid-purged=OFF --single-transaction \
-  --databases University > University_before_keys.sql
+  --routines --triggers --databases University > University_before_keys.sql
 
 # 3. Apply.
 mysql -h 127.0.0.1 -u root University < migrations/002_add_keys.sql
@@ -29,7 +29,21 @@ rows deleted in Phase 2 — that needs the dump from step 2.
 | 3 | Adds 6 primary keys (2 keyless tables are scratch — drop is commented out) |
 | 4 | Adds 89 foreign keys |
 | 5 | Drops the duplicate `Users.Email_2` index |
-| 6 | Verifies: expects 89 foreign keys, 2 tables without a primary key |
+| 6 | Verifies: expects 89 foreign keys, 0 tables without a primary key |
+
+`004` corrects seven ON DELETE rules, `005` adds soft delete, and `006`
+creates the two stored procedures the PHP calls.
+
+## Always dump with --routines
+
+`mysqldump` includes triggers by default but **not** stored procedures.
+A dump taken without `--routines` silently loses `GenerateUserEmail` and
+`UpdateDegreeAudit`, and user creation then fails on a fresh install:
+
+```bash
+mysqldump -h 127.0.0.1 -u root --set-gtid-purged=OFF --single-transaction \
+  --routines --triggers --databases University > University.sql
+```
 
 ## Effect on the application
 

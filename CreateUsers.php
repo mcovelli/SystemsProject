@@ -153,6 +153,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Role-specific inserts
         switch ($userType) {
         case 'Student':
+              /* Validate before inserting, the way UserType and
+                 FacultyType already are above. With strict mode off --
+                 and this project sets no sql_mode -- MySQL does not
+                 reject an invalid ENUM value, it silently stores the
+                 empty-string member. That is how 1,418 Student rows
+                 ended up with a blank StudentType, which seven screens
+                 branch on. A CHECK constraint now refuses it at the
+                 database too; this catches it earlier and says why. */
+              if (!in_array($subType, ['Undergraduate', 'Graduate'], true)) {
+                  throw new Exception("Invalid StudentType value: " . var_export($subType, true));
+              }
+
         // Insert Student
               $q = "INSERT INTO Student (StudentID, MajorID, MinorID, StudentType)
                      VALUES (?, ?, ?, ?)";

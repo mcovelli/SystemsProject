@@ -1,0 +1,184 @@
+/* ============================================================================
+   print.css — for the pages people actually put on paper.
+   ----------------------------------------------------------------------------
+   Linked with media="print", so none of this touches the screen.
+
+   transcript.php has carried a Print button since before this rewrite; it
+   called window.print() against the full application chrome, so a transcript
+   came out with a topbar, a search box, a ☰ Menu button and a dark background.
+   The four document pages -- transcript, degree audit, roster and attendance
+   history -- are records someone hands to an advisor or a registrar, so they
+   print as documents.
+   ============================================================================ */
+
+@page {
+  size: letter portrait;
+  margin: 18mm 16mm;
+}
+
+/* Ink on paper, whatever the viewer's theme was. The tokens are redefined
+   rather than overridden per-rule, so every component follows automatically. */
+:root,
+:root[data-theme="dark"],
+:root[data-theme="light"] {
+  --nu-bg:            #FFFFFF;
+  --nu-surface:       #FFFFFF;
+  --nu-surface-sunk:  #FFFFFF;
+  --nu-text:          #000000;
+  --nu-muted:         #333333;
+  --nu-faint:         #555555;
+  --nu-border:        #999999;
+  --nu-border-strong: #666666;
+  --nu-primary:       #000000;
+  --nu-primary-text:  #000000;
+  --nu-primary-ink:   #FFFFFF;
+  --nu-primary-soft:  #FFFFFF;
+  --nu-ok:            #000000;
+  --nu-ok-bg:         #FFFFFF;
+  --nu-warn:          #000000;
+  --nu-warn-bg:       #FFFFFF;
+  --nu-danger:        #000000;
+  --nu-danger-bg:     #FFFFFF;
+  --nu-shadow:        none;
+  --nu-shadow-lift:   none;
+}
+
+body {
+  background: #FFFFFF !important;
+  color: #000000;
+  font-size: 10.5pt;
+  line-height: 1.4;
+}
+
+/* ---- chrome that has no business on paper -------------------------------- */
+.topbar,
+.footer,
+.menu,
+.dropdown,
+.search,
+.icon-btn,
+.crumb,
+.divider,
+.toast,
+.modal-scrim,
+.popup-overlay,
+.tabs-list,
+.btn,
+button,
+input[type="submit"],
+input[type="button"],
+.actions,
+.btn-row,
+.quick-grid,
+.no-print { display: none !important; }
+
+/* A Chart.js canvas is a bitmap drawn in whatever theme was active, so on
+   paper it arrives in dark-mode colours and holds its height even when empty.
+   Every figure it plots is in a table on the same page. */
+canvas,
+.chart-wrap { display: none !important; }
+
+/* A filter control is noise on paper, but the value it selected is not, so
+   the select itself prints as plain text rather than a form control. */
+select {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #000000;
+  font-weight: 600;
+}
+
+/* ---- layout: one column, full width -------------------------------------- */
+.page,
+.container,
+.wrap,
+.page-layout {
+  max-width: none !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+}
+
+.columns,
+.grid-two,
+.stats,
+.grid,
+.grid.kpi { display: block !important; }
+
+.left-card, .right-card,
+.bottom-left-card, .bottom-right-card { margin-top: 0 !important; }
+
+/* ---- cards become sections, not boxes ------------------------------------ */
+.card,
+.hero,
+.section-card,
+.announcement {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 0 10mm !important;
+  break-inside: auto;
+}
+
+.card-title,
+.card-head h2,
+h1, h2, h3 {
+  border-bottom: 1px solid #000000;
+  padding-bottom: 2mm;
+  margin-bottom: 3mm;
+  break-after: avoid;
+}
+
+/* ---- tables -------------------------------------------------------------- */
+table { width: 100%; border-collapse: collapse; break-inside: auto; }
+thead { display: table-header-group; }   /* repeat headers across pages */
+tfoot { display: table-footer-group; }
+tr    { break-inside: avoid; break-after: auto; }
+
+th, td {
+  border: 0;
+  border-bottom: 1px solid #BBBBBB;
+  padding: 2mm 3mm;
+}
+thead th {
+  border-bottom: 1.5px solid #000000;
+  background: none !important;
+  color: #000000;
+  font-size: 8.5pt;
+  letter-spacing: .06em;
+}
+tbody tr:hover { background: none !important; }
+
+/* Scroll boxes must not clip on paper. */
+.table-wrap,
+.table-scroll,
+.scroll-box,
+.course-table-container {
+  overflow: visible !important;
+  max-height: none !important;
+  border: 0 !important;
+}
+
+/* ---- status marks read without colour ------------------------------------ */
+.status-pill,
+.badge,
+.chip {
+  border: 1px solid #000000 !important;
+  background: none !important;
+  color: #000000 !important;
+  padding: 0.5mm 2mm;
+}
+
+.progress { border: 1px solid #000000; height: 4mm; }
+.progress .bar, .progress span { background: #000000 !important; }
+
+a { color: #000000; text-decoration: none; }
+
+/* Nothing should animate into place on paper. */
+*, *::before, *::after {
+  animation: none !important;
+  transition: none !important;
+}

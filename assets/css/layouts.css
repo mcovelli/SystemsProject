@@ -109,6 +109,51 @@ main .grid {
 
 .hidden { display: none !important; }
 
+/* ---- document page shells -------------------------------------------------
+   degree_audit.php and transcript.php each carried these in a <style> block in
+   their own <head>, which the shared head partial replaced. They are page
+   shells, so they live here.
+--------------------------------------------------------------------------- */
+
+/* degree_audit.php: page title beside its actions, then a row of figures */
+.doc-head,
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nu-space-4);
+  margin-bottom: var(--nu-space-4);
+  flex-wrap: wrap;
+}
+.title h1 { margin: 0; }
+.title small { display: block; color: var(--nu-muted); }
+
+.grid { display: grid; gap: var(--nu-space-4); }
+.grid.kpi { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 800px) { .grid.kpi { grid-template-columns: repeat(2, 1fr); } }
+
+.field-row { display: flex; gap: var(--nu-space-2); flex-wrap: wrap; }
+.field-row > * { flex: 1 1 220px; }
+
+/* transcript.php: two equal columns, four cards */
+.page-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nu-space-5);
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.top-row { display: contents; }
+.left-card,  .bottom-left-card  { grid-column: 1; }
+.right-card, .bottom-right-card { grid-column: 2; }
+.bottom-left-card, .bottom-right-card { margin-top: var(--nu-space-5); }
+
+@media (max-width: 820px) {
+  .page-layout { grid-template-columns: 1fr; }
+  .left-card, .right-card, .bottom-left-card, .bottom-right-card { grid-column: 1; }
+}
+
 /* ---- tables --------------------------------------------------------------- */
 
 .table-wrap,

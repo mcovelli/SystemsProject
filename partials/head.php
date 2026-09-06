@@ -37,6 +37,7 @@
 <link rel="stylesheet" href="./assets/css/base.css">
 <link rel="stylesheet" href="./assets/css/layouts.css">
 <link rel="stylesheet" href="./assets/css/components.css">
+<link rel="stylesheet" href="./assets/css/print.css" media="print">
 
 <?php /* Not deferred. Pages run lucide.createIcons() from inline scripts of
          their own, and a deferred load would not be ready in time. */ ?>

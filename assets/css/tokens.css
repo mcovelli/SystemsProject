@@ -40,6 +40,13 @@
   --nu-danger:        #A32020;
   --nu-danger-bg:     #FBE9E9;
 
+  /* Solid fills for the save/error toast. Kept dark in both themes because the
+     toast always carries white text -- --nu-ok lifts to a pale green in dark
+     mode and would drop that text to 1.8:1. */
+  --nu-toast-ok:      #0F6B3F;
+  --nu-toast-danger:  #A32020;
+  --nu-toast-ink:     #FFFFFF;
+
   --nu-ring:          rgba(11, 107, 203, .38);   /* focus ring              */
   --nu-shadow:        0 1px 2px rgba(15, 19, 25, .05);
   --nu-shadow-lift:   0 4px 14px rgba(15, 19, 25, .08);
@@ -103,6 +110,10 @@
     --nu-danger:        #F08A8A;
     --nu-danger-bg:     #2B1616;
 
+    --nu-toast-ok:      #1B7A4B;
+    --nu-toast-danger:  #B33636;
+    --nu-toast-ink:     #FFFFFF;
+
     --nu-ring:          rgba(111, 182, 240, .45);
     --nu-shadow:        0 1px 2px rgba(0, 0, 0, .32);
     --nu-shadow-lift:   0 4px 14px rgba(0, 0, 0, .40);
@@ -136,6 +147,10 @@
   --nu-warn-bg:       #2A2013;
   --nu-danger:        #F08A8A;
   --nu-danger-bg:     #2B1616;
+
+  --nu-toast-ok:      #1B7A4B;
+  --nu-toast-danger:  #B33636;
+  --nu-toast-ink:     #FFFFFF;
 
   --nu-ring:          rgba(111, 182, 240, .45);
   --nu-shadow:        0 1px 2px rgba(0, 0, 0, .32);

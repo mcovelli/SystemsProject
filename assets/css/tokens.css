@@ -3,19 +3,14 @@
    ----------------------------------------------------------------------------
    This is the one place colour, type and spacing are defined.
 
-   LOAD ORDER MATTERS. This file must be linked *after* the legacy stylesheets
-   (styles.css / stylesGrade.css / viewstyles.css / profilestyles.css /
-   announcementstyles.css). Those sheets declare their own :root and
-   [data-theme="light"] blocks; because this file comes later at equal
-   specificity, its values win, and every legacy component that reads
-   var(--panel), var(--primary), etc. picks up the new palette for free.
+   Load order: tokens.css -> base.css -> layouts.css -> components.css.
 
-   The "legacy aliases" section at the bottom exists only so those older sheets
-   keep resolving. It goes away in Phase 2, when the components are rewritten
-   against the canonical names.
+   Every token is named --nu-*. The legacy aliases that let the old sheets keep
+   resolving during Phase 1 are gone, along with the sheets themselves; nothing
+   outside assets/css/ should define a colour.
 
    Contrast: every text pair below was checked against its intended background
-   and clears WCAG AA (4.5:1 for text, 3:1 for non-text). See the Phase 1 notes.
+   and clears WCAG AA (4.5:1 for text, 3:1 for non-text).
    ============================================================================ */
 
 :root {
@@ -148,87 +143,4 @@
   --nu-scrim:         rgba(0, 0, 0, .62);
 
   --nu-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238A94A3' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
-}
-
-/* ============================================================================
-   LEGACY ALIASES — temporary, removed in Phase 2.
-   ----------------------------------------------------------------------------
-   The older sheets read these names. Pointing them at the canonical tokens is
-   what re-skins all 73 existing pages without touching their markup.
-   Declared in :root (and again for dark) so they inherit correctly in
-   every theme state.
-   ============================================================================ */
-:root,
-:root[data-theme="dark"] {
-  /* styles.css / stylesGrade.css */
-  --bg:      var(--nu-bg);
-  --surface: var(--nu-surface);
-  --panel:   var(--nu-surface);
-  --border:  var(--nu-border);
-  --text:    var(--nu-text);
-  --muted:   var(--nu-muted);
-  --primary: var(--nu-primary);
-  --pill:    var(--nu-primary-soft);
-  --shadow:  var(--nu-shadow);
-  --line:    var(--nu-border);
-
-  /* viewstyles.css */
-  --panel-2:     var(--nu-surface-sunk);
-  --ring:        var(--nu-ring);
-  --topbar-bg:   var(--nu-surface);
-  --btn-bg:      var(--nu-surface);
-  --btn-fg:      var(--nu-text);
-  --card-shadow: var(--nu-shadow);
-  --row-shadow:  var(--nu-shadow-lift);
-  --scrim:       var(--nu-scrim);
-  --chip-ok:     var(--nu-ok-bg);
-  --chip-low:    var(--nu-warn-bg);
-  --chip-full:   var(--nu-danger-bg);
-
-  /* profilestyles.css */
-  --card:   var(--nu-surface);
-  --accent: var(--nu-primary);
-  --radius: var(--nu-radius);
-
-  /* announcementstyles.css */
-  --subtext:      var(--nu-muted);
-  --system-color: var(--nu-primary-text);
-  --course-color: var(--nu-primary-text);
-  --transition:   .18s ease;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg:      var(--nu-bg);
-    --surface: var(--nu-surface);
-    --panel:   var(--nu-surface);
-    --border:  var(--nu-border);
-    --text:    var(--nu-text);
-    --muted:   var(--nu-muted);
-    --primary: var(--nu-primary);
-    --pill:    var(--nu-primary-soft);
-    --shadow:  var(--nu-shadow);
-    --line:    var(--nu-border);
-
-    --panel-2:     var(--nu-surface-sunk);
-    --ring:        var(--nu-ring);
-    --topbar-bg:   var(--nu-surface);
-    --btn-bg:      var(--nu-surface);
-    --btn-fg:      var(--nu-text);
-    --card-shadow: var(--nu-shadow);
-    --row-shadow:  var(--nu-shadow-lift);
-    --scrim:       var(--nu-scrim);
-    --chip-ok:     var(--nu-ok-bg);
-    --chip-low:    var(--nu-warn-bg);
-    --chip-full:   var(--nu-danger-bg);
-
-    --card:   var(--nu-surface);
-    --accent: var(--nu-primary);
-    --radius: var(--nu-radius);
-
-    --subtext:      var(--nu-muted);
-    --system-color: var(--nu-primary-text);
-    --course-color: var(--nu-primary-text);
-    --transition:   .18s ease;
-  }
 }

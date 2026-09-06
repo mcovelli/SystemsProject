@@ -40,6 +40,8 @@ try {
 
   <link rel="stylesheet" href="./assets/css/tokens.css" />
   <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/layouts.css" />
+  <link rel="stylesheet" href="./assets/css/components.css" />
           <style>
             body { font-family: system-ui, sans-serif; max-width: 420px; margin: 2rem auto; }
             label { display: block; margin-top: 1rem; }

@@ -201,6 +201,13 @@ label:has(+ textarea + br) {
 form br + label,
 form br + label:has(+ input) { margin-top: 2px; }
 
+/* Same scoping, applied to the control itself: without this the text inputs
+   sit at the browser's default size while a select stretches to its longest
+   option, so the column edge is ragged. (0,0,3) -- still under .search input. */
+label:has(+ input + br) + input,
+label:has(+ select + br) + select,
+label:has(+ textarea + br) + textarea { width: min(100%, 320px); }
+
 fieldset {
   border: 1px solid var(--nu-border);
   border-radius: var(--nu-radius);

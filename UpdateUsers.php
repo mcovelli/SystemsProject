@@ -352,9 +352,10 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="./stylesGrade.css" />
   <link rel="stylesheet" href="./assets/css/tokens.css" />
   <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/layouts.css" />
+  <link rel="stylesheet" href="./assets/css/components.css" />
 <style>
 /* Inline enhancements */
 .field-block {
@@ -381,7 +382,7 @@ input[type=text], input[type=date], select {
     padding: 15px;
     border-radius: 10px;
     margin-top: 10px;
-    background: var(--card-bg);
+    background: var(--nu-surface);
 }
 
 .toast {

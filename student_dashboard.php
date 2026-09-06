@@ -385,9 +385,10 @@ if ($isGrad) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Use unified dashboard styles -->
-  <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./assets/css/tokens.css" />
   <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/layouts.css" />
+  <link rel="stylesheet" href="./assets/css/components.css" />
 </head>
 <body>
   <header class="topbar">
@@ -396,7 +397,7 @@ if ($isGrad) {
       <h1>Northport University</h1>
       <span class="pill">Student Portal</span>
       <!-- Display welcome name inline -->
-      <h3 style="margin-left:16px; font-size:14px; font-weight:500; color:var(--muted)">Welcome, <?php echo htmlspecialchars($student['FirstName'] . ' ' . $student['LastName']); ?></h3>
+      <h3 style="margin-left:16px; font-size:14px; font-weight:500; color:var(--nu-muted)">Welcome, <?php echo htmlspecialchars($student['FirstName'] . ' ' . $student['LastName']); ?></h3>
     </div>
     <div class="top-actions">
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
@@ -492,11 +493,11 @@ if ($isGrad) {
               ?>
                 <ul style="list-style:none; padding:0; margin:0;">
                   <?php while ($m = $list_res->fetch_assoc()): ?>
-                    <li style="border-bottom:1px solid var(--line); padding:10px 0;">
+                    <li style="border-bottom:1px solid var(--nu-border); padding:10px 0;">
                       <strong><?= htmlspecialchars($m['Title']) ?></strong>
-                      <span style="color:var(--muted);"> — <?= htmlspecialchars($m['SenderEmail']) ?></span>
+                      <span style="color:var(--nu-muted);"> — <?= htmlspecialchars($m['SenderEmail']) ?></span>
                       <div style="margin-top:4px;"><?= nl2br(htmlspecialchars($m['Message'])) ?></div>
-                      <small style="color:var(--muted);">Posted <?= htmlspecialchars($m['DatePosted']) ?></small>
+                      <small style="color:var(--nu-muted);">Posted <?= htmlspecialchars($m['DatePosted']) ?></small>
                     </li>
                   <?php endwhile; ?>
                 </ul>
@@ -686,13 +687,13 @@ if ($isGrad) {
               ?>
                 <ul style="list-style:none; padding:0; margin:0;">
                   <?php while ($a = $res->fetch_assoc()): ?>
-                    <li style="border-bottom:1px solid var(--line); padding:10px 0;">
+                    <li style="border-bottom:1px solid var(--nu-border); padding:10px 0;">
                       <strong><?= htmlspecialchars($a['Title']) ?></strong>
-                      <span style="color:var(--muted);"> 
+                      <span style="color:var(--nu-muted);"> 
                         — <?= htmlspecialchars($a['CourseName'] . " (" . $a['SenderType'] . ")") ?>
                       </span>
                       <div style="margin-top:4px;"><?= nl2br(htmlspecialchars($a['Message'])) ?></div>
-                      <small style="color:var(--muted);">Posted <?= htmlspecialchars($a['DatePosted']) ?></small>
+                      <small style="color:var(--nu-muted);">Posted <?= htmlspecialchars($a['DatePosted']) ?></small>
                     </li>
                   <?php endwhile; ?>
                 </ul>

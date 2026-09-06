@@ -129,7 +129,7 @@ input[type=text], input[type=date], select {
     padding: 15px;
     border-radius: 10px;
     margin-top: 10px;
-    background: var(--card-bg);
+    background: var(--nu-surface);
 }
 
 .toast {
@@ -164,9 +164,10 @@ input[type=text], input[type=date], select {
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./assets/css/tokens.css" />
   <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/layouts.css" />
+  <link rel="stylesheet" href="./assets/css/components.css" />
 </head>
 <body>
   <header class="topbar">

@@ -299,6 +299,8 @@ switch ($userRole) {
 
   <link rel="stylesheet" href="./assets/css/tokens.css" />
   <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/layouts.css" />
+  <link rel="stylesheet" href="./assets/css/components.css" />
   <style>
 .page-layout {
   display: grid;

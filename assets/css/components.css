@@ -1,0 +1,629 @@
+/* ============================================================================
+   components.css — the shared component vocabulary
+   ----------------------------------------------------------------------------
+   Load order: tokens.css -> base.css -> layouts.css -> components.css
+
+   Replaces the component halves of styles.css, stylesGrade.css, viewstyles.css,
+   profilestyles.css, announcementstyles.css and loginstyles.css. Those six
+   sheets defined .btn six times, .card four times and .topbar four times, each
+   with different values; this file defines each once, in tokens.
+
+   Two conventions those sheets disagreed on, settled here:
+     - .card owns its padding. .card-head is a plain flex row inside that
+       padding, with no rule beneath it, because it is used both as a section
+       header and as the label row of a stat tile.
+     - .hero is a .card variant with more room, not a gradient panel.
+   ============================================================================ */
+
+/* ============================================================================
+   TOPBAR
+   ========================================================================== */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: var(--nu-space-4);
+  min-height: 60px;
+  padding: 10px var(--nu-space-5);
+  background: var(--nu-surface);
+  border-bottom: 1px solid var(--nu-border);
+  flex-wrap: wrap;
+}
+
+.brand { display: flex; align-items: center; gap: var(--nu-space-3); min-width: 0; }
+.brand h1 { font-size: var(--nu-text-md); font-weight: 600; margin: 0; white-space: nowrap; }
+
+.logo {
+  width: 32px; height: 32px;
+  flex: 0 0 32px;
+  border-radius: var(--nu-radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--nu-primary);
+  color: var(--nu-primary-ink);
+  font-weight: 700;
+  font-size: var(--nu-text-xs);
+  letter-spacing: .04em;
+}
+.logo i, .logo svg { width: 18px; height: 18px; }
+
+.pill {
+  font-size: var(--nu-text-xs);
+  padding: 4px 10px;
+  border-radius: var(--nu-radius-pill);
+  background: var(--nu-primary-soft);
+  color: var(--nu-primary-text);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.top-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--nu-space-2);
+  min-width: 0;
+}
+
+.search { position: relative; width: min(420px, 40vw); }
+.search input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border-radius: var(--nu-radius-sm);
+  border: 1px solid var(--nu-border-strong);
+  background: var(--nu-surface);
+  color: var(--nu-text);
+  font-size: var(--nu-text-sm);
+}
+.search .search-icon {
+  position: absolute;
+  left: 9px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--nu-faint);
+  width: 15px; height: 15px;
+}
+
+.icon-btn {
+  height: 34px; width: 34px;
+  flex: 0 0 34px;
+  border-radius: var(--nu-radius-sm);
+  border: 1px solid var(--nu-border-strong);
+  display: grid;
+  place-items: center;
+  background: var(--nu-surface);
+  color: var(--nu-text);
+  cursor: pointer;
+  padding: 0;
+}
+.icon-btn:hover { background: var(--nu-surface-sunk); border-color: var(--nu-muted); }
+.icon-btn i, .icon-btn svg { width: 17px; height: 17px; }
+
+.divider { height: 22px; width: 1px; background: var(--nu-border); flex: 0 0 1px; }
+
+.user { display: flex; align-items: center; gap: var(--nu-space-2); min-width: 0; }
+.user-meta { min-width: 0; }
+.user-meta .name { font-size: var(--nu-text-sm); font-weight: 600; white-space: nowrap; }
+.user-meta .sub { margin-top: 0; font-size: var(--nu-text-xs); }
+
+.avatar {
+  width: 32px; height: 32px;
+  flex: 0 0 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--nu-surface-sunk);
+  color: var(--nu-text);
+  border: 1px solid var(--nu-border);
+  font-size: var(--nu-text-xs);
+  font-weight: 600;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.crumb { white-space: nowrap; }
+.crumb a { color: var(--nu-muted); text-decoration: none; font-size: var(--nu-text-sm); }
+.crumb a:hover { color: var(--nu-primary-text); text-decoration: underline; }
+
+/* ---- the ☰ Menu dropdown (and viewstyles' .dropdown twin) ---------------- */
+
+.menu, .dropdown { position: relative; display: inline-block; }
+
+.menu > button,
+.dropdown > button {
+  background: var(--nu-surface-sunk);
+  color: var(--nu-text);
+  border: 1px solid var(--nu-border-strong);
+  padding: 7px 12px;
+  border-radius: var(--nu-radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: var(--nu-text-sm);
+}
+.menu > button:hover,
+.dropdown > button:hover { background: var(--nu-border); }
+
+.menu-content, .dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  left: auto;
+  top: calc(100% + 4px);
+  min-width: 168px;
+  background: var(--nu-surface);
+  border: 1px solid var(--nu-border);
+  box-shadow: var(--nu-shadow-lift);
+  border-radius: var(--nu-radius);
+  z-index: 200;
+  overflow: hidden;
+  padding: var(--nu-space-1);
+}
+.dropdown-content { right: auto; left: 0; }
+
+.menu-content a, .dropdown-content a {
+  display: block;
+  padding: 8px 12px;
+  color: var(--nu-text);
+  text-decoration: none;
+  border-radius: var(--nu-radius-sm);
+  font-size: var(--nu-text-sm);
+}
+.menu-content a:hover, .dropdown-content a:hover {
+  background: var(--nu-surface-sunk);
+  text-decoration: none;
+}
+.menu:hover .menu-content,
+.dropdown:hover .dropdown-content,
+.menu-content.open, .dropdown-content.open { display: block; }
+
+.notification-area {
+  position: absolute;
+  background: var(--nu-surface);
+  color: var(--nu-text);
+  border: 1px solid var(--nu-border);
+  border-radius: var(--nu-radius);
+  padding: 10px;
+  box-shadow: var(--nu-shadow-lift);
+}
+
+/* ============================================================================
+   CARDS
+   ========================================================================== */
+
+.card {
+  background: var(--nu-surface);
+  border: 1px solid var(--nu-border);
+  border-radius: var(--nu-radius);
+  box-shadow: var(--nu-shadow);
+  padding: var(--nu-space-4);
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: var(--nu-text-md);
+  letter-spacing: -.01em;
+  margin: 0 0 var(--nu-space-2);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nu-space-3);
+  margin-bottom: var(--nu-space-2);
+}
+.card-head .card-title { margin-bottom: 0; }
+
+.card-body { padding-top: var(--nu-space-2); }
+
+.hero { padding: 20px; }
+.hero h2 { margin: 0 0 var(--nu-space-1); }
+
+.section-card { background: var(--nu-surface); border: 1px solid var(--nu-border);
+                border-radius: var(--nu-radius); padding: var(--nu-space-4); }
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+  margin-top: var(--nu-space-1);
+  line-height: 1.15;
+}
+
+/* ============================================================================
+   BUTTONS
+   ========================================================================== */
+
+.btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nu-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--nu-radius-sm);
+  padding: 8px 14px;
+  background: var(--nu-primary);
+  color: var(--nu-primary-ink);
+  font-family: inherit;
+  font-size: var(--nu-text-sm);
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn:hover { background: var(--nu-primary-hover); text-decoration: none; }
+.btn i, .btn svg { width: 15px; height: 15px; }
+
+.btn.outline,
+.btn.ghost {
+  background: transparent;
+  color: var(--nu-text);
+  border-color: var(--nu-border-strong);
+}
+.btn.outline:hover,
+.btn.ghost:hover { background: var(--nu-surface-sunk); border-color: var(--nu-muted); }
+
+.btn.primary, .btn-primary { background: var(--nu-primary); color: var(--nu-primary-ink); border-color: transparent; }
+
+/* viewstyles used .btn.gradient for its one emphasised action */
+.btn.gradient { background: var(--nu-primary); color: var(--nu-primary-ink); border: 0; }
+
+.btn:disabled,
+.disabled-btn {
+  background: var(--nu-surface-sunk);
+  color: var(--nu-faint);
+  border-color: var(--nu-border);
+  cursor: not-allowed;
+}
+
+.btn-row, .actions { display: flex; gap: var(--nu-space-2); flex-wrap: wrap; align-items: center; }
+
+/* ============================================================================
+   BADGES, CHIPS, PILLS AND STATUS
+   ========================================================================== */
+
+.badges, .chips { display: flex; flex-wrap: wrap; gap: var(--nu-space-2); margin-top: var(--nu-space-2); }
+
+.badge, .chip {
+  display: inline-block;
+  font-size: var(--nu-text-xs);
+  padding: 4px 10px;
+  border-radius: var(--nu-radius-pill);
+  background: var(--nu-surface-sunk);
+  border: 1px solid var(--nu-border);
+  color: var(--nu-text);
+  white-space: nowrap;
+}
+.chip.ok   { background: var(--nu-ok-bg);     color: var(--nu-ok);     border-color: transparent; }
+.chip.low  { background: var(--nu-warn-bg);   color: var(--nu-warn);   border-color: transparent; }
+.chip.full { background: var(--nu-danger-bg); color: var(--nu-danger); border-color: transparent; }
+
+/* Active / retired marker in the directory tables */
+.status-pill {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: var(--nu-radius-pill);
+  font-size: var(--nu-text-xs);
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.status-pill.on  { color: var(--nu-ok);   background: var(--nu-ok-bg); }
+.status-pill.off { color: var(--nu-warn); background: var(--nu-warn-bg); }
+
+/* Result banner after the activate/deactivate toggles */
+.status-note {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: var(--nu-radius-sm);
+  border: 1px solid var(--nu-border);
+  font-size: var(--nu-text-base);
+}
+.status-note.ok   { border-color: var(--nu-ok);   color: var(--nu-ok);   background: var(--nu-ok-bg); }
+.status-note.warn { border-color: var(--nu-warn); color: var(--nu-warn); background: var(--nu-warn-bg); }
+
+/* Retired options stay selectable so they can be reactivated */
+option.retired { color: var(--nu-muted); }
+
+/* ============================================================================
+   TABS
+   ========================================================================== */
+
+.tabs { display: block; }
+.tabs-list { display: grid; grid-template-columns: 1fr 1fr; gap: var(--nu-space-2); margin-bottom: var(--nu-space-2); }
+
+.tab {
+  padding: 8px 12px;
+  border: 1px solid var(--nu-border-strong);
+  border-radius: var(--nu-radius-sm);
+  background: var(--nu-surface);
+  color: var(--nu-text);
+  font-family: inherit;
+  font-size: var(--nu-text-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+.tab:hover { background: var(--nu-surface-sunk); }
+.tab.active {
+  background: var(--nu-primary-soft);
+  border-color: var(--nu-primary);
+  color: var(--nu-primary-text);
+  font-weight: 600;
+}
+
+.tab-panels .tab-panel { display: none; }
+.tab-panels .tab-panel.active { display: block; }
+
+/* ============================================================================
+   PROGRESS
+   ========================================================================== */
+
+.progress {
+  height: 8px;
+  background: var(--nu-surface-sunk);
+  border: 1px solid var(--nu-border);
+  border-radius: var(--nu-radius-pill);
+  overflow: hidden;
+  margin: var(--nu-space-3) 0;
+}
+.progress .bar,
+.progress span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: var(--nu-radius-pill);
+  background: var(--nu-primary);
+  transition: width .4s ease;
+}
+.progress[data-progress="0"] .bar { width: 0 !important; background: transparent; }
+
+/* ============================================================================
+   QUICK LINKS  (createDirectory.php builds .ql / .ul / .ol / .dl in JS)
+   ========================================================================== */
+
+.quick-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--nu-space-2); }
+@media (max-width: 640px) { .quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.quick-grid .ql,
+.quick-grid .ul,
+.quick-grid .ol,
+.quick-grid .dl {
+  display: flex;
+  align-items: center;
+  gap: var(--nu-space-2);
+  border: 1px solid var(--nu-border);
+  border-radius: var(--nu-radius-sm);
+  background: var(--nu-surface);
+  cursor: pointer;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: var(--nu-text-sm);
+}
+.quick-grid .ql:hover,
+.quick-grid .ul:hover,
+.quick-grid .ol:hover,
+.quick-grid .dl:hover { background: var(--nu-surface-sunk); border-color: var(--nu-muted); }
+
+/* ============================================================================
+   FILTER CONTROLS
+   ========================================================================== */
+
+.controls { display: flex; flex-wrap: wrap; gap: var(--nu-space-2); align-items: center; }
+.semester-selector, .form-row { display: flex; flex-wrap: wrap; gap: var(--nu-space-2); align-items: center; }
+.field { margin-bottom: 10px; }
+.help-text { font-size: var(--nu-text-xs); color: var(--nu-muted); }
+.subtotal { display: flex; align-items: center; justify-content: space-between; padding: var(--nu-space-2) var(--nu-space-3); }
+.selected { background: var(--nu-primary-soft); }
+
+/* ============================================================================
+   TABLE VARIANTS
+   ----------------------------------------------------------------------------
+   .table and .course-table need no class rules of their own -- they sit on
+   <table> elements, which base.css already styles. What did need carrying over
+   is the scroll box around the prerequisite pickers, and the row toggle
+   grade.php drives from JS.
+   ========================================================================== */
+
+.course-table-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--nu-border);
+  border-radius: var(--nu-radius-sm);
+  margin-top: 10px;
+}
+.course-table th,
+.course-table td { padding: 6px 10px; }
+
+/* grade.php: each course row expands to reveal its roster underneath.
+   The row starts hidden and JS clears the class -- keep the !important, the
+   inline table styling in that page fights it otherwise. */
+table tr.roster { display: none !important; }
+table tr.roster.open { display: table-row !important; }
+.inner-roster { display: block; width: 100%; }
+
+.cs td {
+  background: var(--nu-surface);
+  cursor: pointer;
+  transition: background-color .25s ease;
+}
+.cs:hover td { background: var(--nu-primary-soft); }
+
+/* ============================================================================
+   MODALS AND POPUPS
+   ========================================================================== */
+
+body.modal-open { overflow: hidden; }
+
+.modal-scrim, .popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--nu-scrim);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.modal-scrim.open, .popup-overlay.open { display: flex; }
+
+.modal, .popup-card {
+  width: min(720px, 92vw);
+  border: 1px solid var(--nu-border);
+  border-radius: var(--nu-radius-lg);
+  background: var(--nu-surface);
+  color: var(--nu-text);
+  box-shadow: var(--nu-shadow-lift);
+  overflow: hidden;
+  position: relative;
+}
+.popup-card { max-width: 480px; padding: 24px 28px; }
+
+.modal-head, .modal-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--nu-space-3);
+  padding: var(--nu-space-3) var(--nu-space-4);
+}
+.modal-head { justify-content: space-between; border-bottom: 1px solid var(--nu-border); }
+.modal-foot { justify-content: flex-end; border-top: 1px solid var(--nu-border); }
+.modal-title { font-weight: 600; }
+.modal-body { padding: var(--nu-space-4); display: grid; gap: 10px; }
+
+.close-btn {
+  position: absolute;
+  top: 10px; right: 14px;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--nu-muted);
+  background: none;
+  border: 0;
+  padding: 4px;
+  cursor: pointer;
+}
+.close-btn:hover { color: var(--nu-text); background: none; }
+
+.form-grid { display: grid; gap: 14px; margin-top: var(--nu-space-5); }
+.form-grid label { display: flex; flex-direction: column; text-align: left; gap: 6px; }
+
+/* ============================================================================
+   PROFILE PAGES
+   ========================================================================== */
+
+.profile { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--nu-space-3); }
+.profile .avatar {
+  width: 116px; height: 116px;
+  flex: 0 0 116px;
+  font-size: 44px;
+  border: 2px solid var(--nu-primary);
+}
+.profile .name { font-size: var(--nu-text-xl); font-weight: 600; }
+
+.kv {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: var(--nu-space-3);
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--nu-border);
+}
+.kv:last-child { border-bottom: 0; }
+.kv > div:last-child { word-break: break-word; overflow-wrap: anywhere; white-space: normal; }
+@media (max-width: 600px) { .kv { grid-template-columns: 1fr; gap: var(--nu-space-1); } }
+
+.label { font-weight: 600; color: var(--nu-muted); font-size: var(--nu-text-sm); }
+.links a { display: inline-block; margin-right: 10px; color: var(--nu-primary-text); text-decoration: none; }
+.links a:hover { text-decoration: underline; }
+
+/* ============================================================================
+   ANNOUNCEMENTS  (announcements.php)
+   ========================================================================== */
+
+body.page {
+  display: block;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: var(--nu-bg);
+}
+
+.announcement {
+  background: var(--nu-surface);
+  border: 1px solid var(--nu-border);
+  border-radius: var(--nu-radius);
+  box-shadow: var(--nu-shadow);
+  padding: 18px 22px;
+  margin-bottom: var(--nu-space-4);
+}
+
+.announcement-header {
+  margin-bottom: var(--nu-space-3);
+  padding-bottom: var(--nu-space-2);
+  border-bottom: 1px solid var(--nu-border);
+}
+.announcement-header h3 { margin: 0; font-size: var(--nu-text-lg); font-weight: 600; }
+.announcement-header.course h3 { color: var(--nu-primary-text); }
+.announcement-header.admin h3  { color: var(--nu-warn); }
+
+.announcement-message { font-size: var(--nu-text-md); line-height: 1.6; margin: 10px 0 var(--nu-space-4); white-space: pre-line; }
+.announcement-footer { display: block; color: var(--nu-muted); font-size: var(--nu-text-sm); }
+
+/* ============================================================================
+   LOGIN  (login.html)
+   ========================================================================== */
+
+/* login.html's body carries no class, so the page is identified by what it
+   holds. The old sheet centred the card with a 100vh flex body; this keeps
+   that without needing a hook in the markup. */
+body:has(> .login-container),
+body:has(> .auth-container) {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--nu-space-5);
+}
+
+.login-container, .auth-container {
+  background: var(--nu-surface);
+  border: 1px solid var(--nu-border);
+  padding: 28px;
+  border-radius: var(--nu-radius-lg);
+  box-shadow: var(--nu-shadow-lift);
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  margin: 0 auto;
+}
+.login-container label { display: block; margin: 10px 0 5px; font-weight: 600; color: var(--nu-text); }
+.login-container input { width: 100%; margin-bottom: var(--nu-space-3); }
+.login-container button { width: 100%; }
+.login-container p { font-size: var(--nu-text-sm); color: var(--nu-muted); }
+
+#login-title { text-align: center; margin-bottom: var(--nu-space-5); }
+
+#checkBox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--nu-text-base);
+  font-weight: 400;
+  margin: 10px 0 var(--nu-space-3);
+}
+#checkBox input[type="checkbox"] { width: auto; margin: 0; }
+
+#forgotPassword { color: var(--nu-primary-text); background: none; border: 0; cursor: pointer; }
+#error-message, .error-box { color: var(--nu-danger); text-align: center; margin-top: 10px; }
+
+/* ============================================================================
+   FOOTER
+   ========================================================================== */
+
+.footer {
+  border-top: 1px solid var(--nu-border);
+  text-align: center;
+  padding: var(--nu-space-5);
+  font-size: var(--nu-text-sm);
+  color: var(--nu-muted);
+}
+.footer .link, .footer a { color: inherit; }
+.footer-note { text-align: center; margin: var(--nu-space-5) 0; color: var(--nu-muted); }

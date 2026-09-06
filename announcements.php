@@ -126,9 +126,10 @@ switch ($userRole) {
 <head>
   <meta charset='UTF-8'>
   <title>All Announcements</title>
-  <link rel='stylesheet' href='announcementstyles.css'>
   <link rel="stylesheet" href="./assets/css/tokens.css" />
   <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/layouts.css" />
+  <link rel="stylesheet" href="./assets/css/components.css" />
 </head>
 <body class='page'>
   <div class='wrap'>

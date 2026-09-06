@@ -249,9 +249,10 @@ if (!empty($studentHolds)){
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Northport University — Add / Drop Courses (Single File)</title>
-  <link rel="stylesheet" href="./viewstyles.css" />
   <link rel="stylesheet" href="./assets/css/tokens.css" />
   <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/layouts.css" />
+  <link rel="stylesheet" href="./assets/css/components.css" />
 </head>
 <body>
   <header class="topbar">

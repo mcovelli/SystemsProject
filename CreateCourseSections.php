@@ -55,7 +55,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fac_count_sql = "
       SELECT
         COUNT(cs.CRN) AS cnt,
-        COALESCE(ftf.MaxCourses, ptf.MaxCourses, 1) AS maxAllowed
+        /* COUNT makes this an aggregate with no GROUP BY, so MaxCourses has to
+           be aggregated too or ONLY_FULL_GROUP_BY -- on by default in MySQL 8,
+           and config.php does not override it -- rejects the statement at
+           prepare time. MAX is exact rather than arbitrary here: FacultyID is
+           unique in both subtype tables and no faculty appears in both, so
+           there is only ever one value to pick. */
+        COALESCE(MAX(ftf.MaxCourses), MAX(ptf.MaxCourses), 1) AS maxAllowed
       FROM Faculty f
       LEFT JOIN FullTimeFaculty ftf ON ftf.FacultyID = f.FacultyID
       LEFT JOIN PartTimeFaculty ptf ON ptf.FacultyID = f.FacultyID
@@ -294,8 +300,13 @@ sem.addEventListener("change", loadRooms);
     })
     .catch(err => console.error('Error loading times:', err));
 
-    // Fetch semesters from get_semesters.php
-    fetch('get_open_semesters.php')
+    /* get_open_semesters.php returns only semesters inside the student add/drop
+       window -- from 90 days before a term starts until 7 days after. Sections
+       are planned outside that window, so an admin was routinely offered an
+       empty list, and because loadRooms() bails while the semester is unset,
+       the Room dropdown stayed empty with it. UpdateCourseSections.php and
+       ViewCourseSections.php already read the full list. */
+    fetch('get_semesters.php')
     .then(response => response.json())
     .then(data => {
         const semesterSelect = document.getElementById('semesterID');

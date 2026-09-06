@@ -17,10 +17,6 @@ $sql = "
     ORDER BY Year DESC, SemesterName DESC
 ";
 
- if (empty($semesters)) {
-    $semesters[] = ['SemesterID' => '', 'SemesterName' => 'No open semesters', 'Year' => ''];
-}
-
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param('ss', $today, $today);
 $stmt->execute();
@@ -33,6 +29,13 @@ while ($row = $result->fetch_assoc()) {
         'SemesterName' => $row['SemesterName'],
         'Year' => $row['Year']
     ];
+}
+
+/* This ran above the query, against a $semesters that did not exist yet, and
+   the assignment below then discarded whatever it appended -- so callers got a
+   bare [] and rendered an empty dropdown with nothing to explain it. */
+if (empty($semesters)) {
+    $semesters[] = ['SemesterID' => '', 'SemesterName' => 'No open semesters', 'Year' => ''];
 }
 
 echo json_encode($semesters);

@@ -84,7 +84,9 @@ if (isset($_POST['updateCourseSection'])) {
     $fac_count_sql = "
       SELECT
         COUNT(cs.CRN) AS cnt,
-        COALESCE(ftf.MaxCourses, ptf.MaxCourses, 1) AS maxAllowed
+        /* Aggregated with no GROUP BY, so MaxCourses must be aggregated too --
+           see the matching note in CreateCourseSections.php. */
+        COALESCE(MAX(ftf.MaxCourses), MAX(ptf.MaxCourses), 1) AS maxAllowed
       FROM Faculty f
       LEFT JOIN FullTimeFaculty ftf ON ftf.FacultyID = f.FacultyID
       LEFT JOIN PartTimeFaculty ptf ON ptf.FacultyID = f.FacultyID
@@ -94,7 +96,11 @@ if (isset($_POST['updateCourseSection'])) {
       WHERE f.FacultyID = ?
     ";
     $fac_count_stmt = $mysqli->prepare($fac_count_sql);
-    $fac_count_stmt->bind_param('si', $SemesterId, $FacultyId);
+    /* Was binding $SemesterId and $FacultyId, which this block never defines --
+       it reads $Semester and $FacultyID from the POST above. Both bound as
+       null, so the WHERE matched nothing, $max came back 0 and every update
+       stopped at "Faculty type/max courses not set." */
+    $fac_count_stmt->bind_param('si', $Semester, $FacultyID);
     $fac_count_stmt->execute();
     $fac_count = $fac_count_stmt->get_result()->fetch_assoc();
     $fac_count_stmt->close();
@@ -313,7 +319,7 @@ fetch('get_semesters.php')
             opt.textContent = semester.SemesterName + ' ' + semester.Year;
             // Store the year as a data attribute
             opt.setAttribute('data-year', semester.Year);
-            if (String(semester.SemesterID) === "<?php echo $loadedCourseSection['SemesterID']; ?>") {
+            if (String(semester.SemesterID) === "<?php echo $loadedCourseSection['SemesterID'] ?? ''; ?>") {
                 opt.selected = true;
             }
             semesterSelect.appendChild(opt);
@@ -331,10 +337,10 @@ fetch('get_semesters.php')
     .catch(err => console.error('Error loading semesters:', err));
 
       // Fetch faculty from get_faculty.php
-    const timeSlotID = "<?php echo $loadedCourseSection['TimeSlotID']; ?>";
-    const semester   = "<?php echo $loadedCourseSection['SemesterID']; ?>";
-    const year       = "<?php echo $loadedCourseSection['Year']; ?>";
-    const currentFac = "<?php echo $loadedCourseSection['FacultyID']; ?>";
+    const timeSlotID = "<?php echo $loadedCourseSection['TimeSlotID'] ?? ''; ?>";
+    const semester   = "<?php echo $loadedCourseSection['SemesterID'] ?? ''; ?>";
+    const year       = "<?php echo $loadedCourseSection['Year'] ?? ''; ?>";
+    const currentFac = "<?php echo $loadedCourseSection['FacultyID'] ?? ''; ?>";
 
     fetch(`get_available_faculty.php?timeSlotID=${timeSlotID}&semester=${semester}&year=${year}&current=${currentFac}`)
     .then(response => response.json())
@@ -358,7 +364,7 @@ fetch('get_semesters.php')
     .then(response => response.json())
     .then(data => {
         const timeSelect = document.getElementById('timeSlotID');
-        const currentTime = "<?php echo $loadedCourseSection['TimeSlotID']; ?>";
+        const currentTime = "<?php echo $loadedCourseSection['TimeSlotID'] ?? ''; ?>";
         timeSelect.innerHTML = "";
 
     data.forEach(time => {
@@ -372,16 +378,16 @@ fetch('get_semesters.php')
     .catch(err => console.error('Error loading times:', err));
 
     // Fetch classrooms from get_classrooms.php
-    const room_timeSlotID = "<?php echo $loadedCourseSection['TimeSlotID']; ?>";
-    const room_semester   = "<?php echo $loadedCourseSection['SemesterID']; ?>";
-    const room_year       = "<?php echo $loadedCourseSection['Year']; ?>";
-    const room_currentRoom= "<?php echo $loadedCourseSection['RoomID']; ?>";
+    const room_timeSlotID = "<?php echo $loadedCourseSection['TimeSlotID'] ?? ''; ?>";
+    const room_semester   = "<?php echo $loadedCourseSection['SemesterID'] ?? ''; ?>";
+    const room_year       = "<?php echo $loadedCourseSection['Year'] ?? ''; ?>";
+    const room_currentRoom= "<?php echo $loadedCourseSection['RoomID'] ?? ''; ?>";
 
     fetch(`get_classrooms.php?timeSlotID=${room_timeSlotID}&semester=${room_semester}&year=${room_year}&current=${room_currentRoom}`)
     .then(response => response.json())
     .then(data => {
         const roomSelect = document.getElementById('roomID');
-        const selectedRoom = "<?php echo $loadedCourseSection['RoomID']; ?>";
+        const selectedRoom = "<?php echo $loadedCourseSection['RoomID'] ?? ''; ?>";
         roomSelect.innerHTML = "";
 
         data.forEach(room => {

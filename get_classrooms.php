@@ -25,7 +25,12 @@ $sql = "
             WHERE TimeSlotID = ?
               AND SemesterID = ?
               AND Year = ?
-              AND RoomID <> ?
+              /* COALESCE because CreateCourseSections.php sends no 'current' --
+                 there is no existing room to keep selectable. Compared against
+                 a bare NULL this is never true, the subquery returns nothing,
+                 and NOT IN (empty) then admits every room, so the booked ones
+                 were offered and rejected again on submit. */
+              AND RoomID <> COALESCE(?, '')
         )
 ";
 

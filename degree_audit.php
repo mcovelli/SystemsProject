@@ -235,91 +235,9 @@ $standing = ($gpa > 2.99) ? 'Good Standing' : 'Needs Improvement';
 
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Degree Audit • Northport University</title>
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <style>
-    /* Minimal, content-first layout that leans on your styles.css tokens */
-    :root{--gap:16px; --text:#111827}
-    body{font-family:Inter,system-ui,Arial,sans-serif; color:var(--nu-text); background:linear-gradient(135deg,#4f46e5 0%, #3b82f6 100%); min-height:100svh;}
-    .page{max-width:1100px;margin:24px auto;padding:0 16px}
-    .header{display:flex;align-items:center;justify-content:space-between;gap:var(--gap);margin-bottom:var(--gap)}
-    .title h1{font-size:1.5rem;margin:0;color:#fff}
-    .title small{display:block;color:rgba(255,255,255,.92)}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{border:1px solid var(--nu-border,#e5e7eb);padding:8px 12px;border-radius:8px;background:#fff;cursor:pointer;color:var(--nu-text)}
-    .btn.primary{background:#111827;color:#fff;border-color:#111827}
-    .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
-    .grid{display:grid;gap:var(--gap)}
-    .grid.kpi{grid-template-columns:repeat(4,minmax(0,1fr))}
-    @media (max-width:800px){.grid.kpi{grid-template-columns:repeat(2,1fr)}}
-    .card{border:1px solid var(--nu-border,#e5e7eb);border-radius:12px;background:#fff;color:var(--nu-text)}
-    .card .card-head{display:flex;align-items:baseline;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--nu-border,#e5e7eb)}
-    .card .card-body{padding:16px}
-    /* Ensure text is not gray by default */
-    .muted{color:inherit}
-    thead th{font-size:.85rem;color:inherit;font-weight:600}
-    .stat{display:flex;flex-direction:column;gap:4px}
-    .stat .big{font-size:1.75rem;font-weight:700}
-    .progress{height:8px;background:#f3f4f6;border-radius:999px;overflow:hidden}
-    .progress .bar{height:100%;background:#6366f1;width:0}
-    .field-row{display:flex;gap:8px;flex-wrap:wrap}
-    .field-row > *{flex:1 1 220px}
-    select,input[type="text"]{width:100%;border:1px solid var(--nu-border,#e5e7eb);border-radius:8px;padding:8px 12px;background:#fff;color:var(--nu-text)}
-    table{width:100%;border-collapse:separate;border-spacing:0}
-    th,td{padding:10px 12px;border-bottom:1px solid var(--nu-border,#e5e7eb);text-align:left}
-    tbody tr:hover{background:#fafafa}
-    .badge{font-size:.75rem;padding:2px 8px;border-radius:999px;border:1px solid var(--nu-border,#e5e7eb)}
-    .ok{background:#ecfdf5;border-color:#10b981;color:#065f46}
-    .warn{background:#fffbeb;border-color:#f59e0b;color:#92400e}
-    .bad{background:#fef2f2;border-color:#ef4444;color:#991b1b}
-    .accordion details{border-top:1px solid var(--nu-border,#e5e7eb)}
-    .accordion summary{cursor:pointer;list-style:none;padding:12px 0;font-weight:600}
-    .accordion summary::-webkit-details-marker{display:none}
-    tbody tr:hover{background:#f8fafc}
-    .footer-note{ text-align:center; margin:24px 0; opacity:.9; color:var(--nu-text) }
-  </style>
-</head>
+<?php $nu_title = 'Degree Audit'; require __DIR__ . '/partials/head.php'; ?>
 <body>
-    <header>
-    
-    <?php
-      $role = $_SESSION['role'] ?? '';
-
-      switch ($role) {
-          case 'faculty':
-              $dashboard = 'faculty_dashboard.php';
-              $profile = 'faculty_profile.php';
-              break;
-          case 'admin':
-              $dashboard = 'admin_dashboard.php';
-              $profile = 'admin_profile.php';
-              break;
-          case 'student':
-              $dashboard = 'student_dashboard.php';
-              $profile = 'student_profile.php';
-              break;
-          default:
-              $dashboard = 'login.html';
-              $profile = 'login.html';
-              break;
-      }
-    ?>
-    <button class="btn">
-      <a href="<?= htmlspecialchars($dashboard) ?>">← Back to Dashboard</a>
-    </button>
-
-    <h1>Northport University Degree Audit</h1>
-  </header>
+    <?php $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
   <div class="page">
     <!-- Header -->

@@ -83,14 +83,7 @@ switch ($userRole) {
 ?>
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Messages</title>
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-  <link rel="stylesheet" href="./mailstyles.css" />
-</head>
+<?php $nu_title = 'Messages'; require __DIR__ . '/partials/head.php'; ?>
 <body>
 
 <div class="layout">
@@ -241,7 +234,7 @@ switch ($userRole) {
     </div>
 </main>
 </div>
-<footer class="footer">© <span id="year"></span> Northport University</footer>
+<?php require __DIR__ . '/partials/footer.php'; ?>
 
 <script>
     // Populate the year in the footer

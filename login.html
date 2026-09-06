@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Login | Northport University</title>
+  <script>
+  /* Same bootstrap as partials/head.php. login.html cannot include the PHP
+     partial, so the sign-in page would otherwise ignore a saved dark theme. */
+  (function () {
+    try {
+      var t = localStorage.getItem('nu-theme');
+      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+  </script>
   <link rel="stylesheet" href="./assets/css/tokens.css" />
   <link rel="stylesheet" href="./assets/css/base.css" />
   <link rel="stylesheet" href="./assets/css/layouts.css" />

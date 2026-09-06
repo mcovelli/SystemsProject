@@ -341,90 +341,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
-
 ?>
 
 
 
 <!doctype html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Create User • Northport University</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-  <style>
-    .toast {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #28a745;
-    color: white;
-    padding: 12px 18px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: translateY(-15px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    z-index: 9999;
-}
-
-.toast.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.toast.hidden {
-    display: none;
-}
-.toast.error {
-  background: #dc2626;
-}
-  </style>
-</head>
+<html lang="en">
+<?php $nu_title = 'Create User'; require __DIR__ . '/partials/head.php'; ?>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo"><i data-lucide="graduation-cap"></i></div>
-      <h1>Northport University</h1>
-      <span class="pill">Create User Portal</span>
-    </div>
-    <div class="top-actions">
-      <div class="search">
-        <i class="search-icon" data-lucide="search"></i>
-        <input type="text" placeholder="Search courses, people, anything…" />
-      </div>
-      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
-      <div class="divider"></div>
-      <div class="user">
-        <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
-        <div class="user-meta">
-          <div class="name"><?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?></div>
-        </div>
-        <div class="header-left">
-          <div class="menu">
-            <button>☰ Menu</button>
-            <div class="menu-content">
-              <a href="admin_profile.php">Profile</a>
-              <a href="update_admin_dashboard.php">Dashboard</a>
-              <a href="viewDirectory.php">View Directory</a>
-              <a href="createDirectory.php">Create Directory</a>
-              <a href="logout.php">Logout</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+  <?php $nu_page = 'Create User Portal'; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
   <div id="toast" class="toast hidden"></div>
 
@@ -540,29 +465,16 @@ $initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
             <button type="submit" id="submit">Submit</button>
           </form>
         </div>
+      </div>
       </section>
     </main>
 
-      <footer class="footer">
-    © <span id="year"></span> Northport University • All rights reserved • <a href="#" class="link">Privacy</a>
-  </footer>
+      <?php require __DIR__ . '/partials/footer.php'; ?>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script>
     // Create icons on load
     lucide.createIcons();
      document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      // Swap the icon
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      lucide.createIcons();
-    });
 
     function showToast(message, type = "success") {
       const toast = document.getElementById("toast");

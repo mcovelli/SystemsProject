@@ -31,53 +31,12 @@ if ($userRole === 'faculty') {
     $stmt->close();
 }
 
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-    case 'faculty':
-        $dashboard = 'faculty_dashboard.php';
-        $profile = 'faculty_profile.php';
-        break;
-    case 'admin':
-        if (($_SESSION['admin_type'] ?? '') === 'update') {
-            $dashboard = 'update_admin_dashboard.php';
-            $profile = 'admin_profile.php';
-        } else {
-            $dashboard = 'view_admin_dashboard.php';
-            $profile = 'admin_profile.php';
-        }
-        break;
-    default:
-        $dashboard = 'login.html'; // fallback
-        $profile = 'login.html';
-}
 
 ?>
 <!doctype html>
-<html lang="en" data-theme="light">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Announcements • Northport University</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-</head>
-<header class="topbar">
-    <div class="brand">
-        <div class="logo">NU</div>
-        <h1>Northport University</h1>
-    </div>
-    <div class="top-actions">
-        <button class="btn outline" id="themeToggle" title="Toggle theme">🌙</button>
-        <div class="top-actions">
-            <a href='<?= $dashboard ?>' class='btn outline'>← Back to Dashboard</a>
-        </div>
-    </div>
-</header>
+<html lang="en">
+<?php $nu_title = 'Announcements'; require __DIR__ . '/partials/head.php'; ?>
+<?php $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 <body>
     <h1>Send Announcement</h1>
 
@@ -131,26 +90,14 @@ switch ($userRole) {
         </section>
     </main>
 
-    <footer class="footer">
-        © <span id="year"></span> Northport University • All rights reserved
-    </footer>
+    <?php require __DIR__ . '/partials/footer.php'; ?>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
   <script>
     // Create icons on load
     lucide.createIcons();
     // Set footer year
     document.getElementById('year').textContent = new Date().getFullYear();
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      lucide.createIcons();
-    });
   </script>
 </body>
 </html>

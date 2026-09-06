@@ -11,7 +11,7 @@ $rooms = [];
 while ($row = $result->fetch_assoc()) {
     $rooms[] = [
         'id' => (int)$row['RoomID'],
-    ] 
+    ];
 }
 
 echo json_encode($rooms);

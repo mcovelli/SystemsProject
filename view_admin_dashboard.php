@@ -38,53 +38,10 @@ $quickLinks = [
 ?>
 
 <!doctype html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Dashboard • Northport University</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-</head>
+<html lang="en">
+<?php $nu_title = 'Admin Dashboard'; require __DIR__ . '/partials/head.php'; ?>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo"><i data-lucide="graduation-cap"></i></div>
-      <h1>Northport University</h1>
-      <span class="pill">Admin Portal</span>
-    </div>
-    <div class="top-actions">
-      <div class="search">
-        <i class="search-icon" data-lucide="search"></i>
-        <input type="text" placeholder="Search courses, people, anything…" />
-      </div>
-      <div id="notificationArea" class="notification-area"></div>
-      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
-      <div class="divider"></div>
-      <div class="user">
-        <img class="avatar" src="https://i.pravatar.cc/64?img=20" alt="avatar" />
-        <div class="user-meta">
-          <div class="name"><?php echo htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']); ?></div>
-          <div class="sub"><?php echo htmlspecialchars($admin['SecurityType']); ?></div>
-        </div>
-        <div class="header-left">
-          <div class="menu">
-            <button>☰ Menu</button>
-            <div class="menu-content">
-              <a href="admin_profile.php">Profile</a>
-              <a href="viewDirectory.php">View Directory</a>
-              <a href="logout.php">Logout</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+  <?php $nu_page = 'Admin Portal'; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
   <main class="container">
     <section class="left">
@@ -256,9 +213,8 @@ $quickLinks = [
     </aside>
   </main>
 
-<footer class="footer">© <span id="year"></span> Northport University • All rights reserved</footer>
+<?php require __DIR__ . '/partials/footer.php'; ?>
 
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
  <script>
     // Immediately create Lucide icons
@@ -266,17 +222,6 @@ $quickLinks = [
 
     // Populate the year in the footer
     document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      // Swap the icon
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-if (window.lucide) lucide.createIcons();
-    });
 
     // Tab switching
     document.querySelectorAll('.tabs .tab').forEach(tab => {

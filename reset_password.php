@@ -34,20 +34,7 @@ try {
         ?>
         <!DOCTYPE html>
         <html lang="en">
-        <head>
-          <meta charset="utf-8">
-          <title>Reset Password | Northport University</title>
-
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-          <style>
-            body { font-family: system-ui, sans-serif; max-width: 420px; margin: 2rem auto; }
-            label { display: block; margin-top: 1rem; }
-            input[type=password], input[type=submit] { width: 100%; padding: .6rem; margin-top: .3rem; }
-          </style>
-        </head>
+        <?php $nu_title = 'Reset Password'; require __DIR__ . '/partials/head.php'; ?>
         <body>
           <h1>Reset Your Password</h1>
           <form method="post" action="reset_password.php">

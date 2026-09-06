@@ -2,6 +2,23 @@
 
 A web-based university management system built with PHP, HTML, CSS, JavaScript, and MySQL/MariaDB.
 
+## Test accounts
+
+### Student
+
+email: elizabeth.s.smith@nu.edu  
+password: hashed_pw  
+  
+### Admin
+
+email: donna.a.jones@nu.edu  
+password: hashed_pw  
+  
+### Faculty  
+
+email: joshua.t.taylor@nu.edu'
+password: hashed_pw  
+  
 TO DOWNLOAD AND EXPLORE THE WEBSITE LOCALLY FOLLOW THE STEPS BELOW:
 
 ## Prerequisites

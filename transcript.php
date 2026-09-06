@@ -264,95 +264,14 @@ if (!$student) {
     exit;
 }
 
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-    case 'student':
-        $dashboard = 'student_dashboard.php';
-        break;
-    case 'faculty':
-        $dashboard = 'faculty_dashboard.php';
-        break;
-    case 'admin':
-        if (($_SESSION['admin_type'] ?? '') === 'update') {
-            $dashboard = 'update_admin_dashboard.php';
-        } else {
-            $dashboard = 'view_admin_dashboard.php';
-        }
-        break;
-    case 'statstaff':
-        $dashboard = 'statstaff_dashboard.php';
-        break;
-    default:
-        $dashboard = 'login.html'; // fallback
-}
 
 ?>
 
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>User Profile • Northport University</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Optional Google Font (remove if you prefer system fonts) -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-  <style>
-.page-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* two equal columns */
-  gap: 20px;
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.top-row {
-  display: contents; /* allow the two cards to occupy the grid columns */
-}
-
-.left-card {
-  grid-column: 1; /* left */
-  width: 100%;
-}
-
-.right-card {
-  grid-column: 2; /* right */
-  width: 100%;
-}
-
-.bottom-left-card {
-  grid-column: 1; /* left */
-  margin-top: 20px;
-}
-.bottom-right-card {
-  grid-column: 2; /* right */
-  margin-top: 20px;
-}
-  </style>
-</head>
+<?php $nu_title = 'User Profile'; require __DIR__ . '/partials/head.php'; ?>
 <body>
-  <header>
-    <div class="wrap topbar">
-      <div class="brand">
-        <div class="logo">NU</div>
-        <div>Northport University</div>
-      </div><br>
-      <div class="top-actions">
-      <div class="crumb"><a href="<?= htmlspecialchars($dashboard) ?>" aria-label="Back to Dashboard">← Back to Dashboard</a></div>
-
-      <div class="actions">
-        <button class="btn ghost" id="printBtn">Print</button>
-      </div>
-
-      <div class="divider"></div>
-    </div>
-  </div>
-  </header>
+  <?php $nu_crumb = ['@dashboard', '← Back to Dashboard']; $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
   <main>
     <br>
@@ -449,30 +368,17 @@ switch ($userRole) {
 
     </div>
 
-    <footer class="footer">© <span id="year"></span> Northport University</footer>
+    <?php require __DIR__ . '/partials/footer.php'; ?>
   </main>
 </body>
 
 
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script>
     // Immediately create Lucide icons
     lucide.createIcons();
 
     // Populate the year in the footer
     document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      // Swap the icon
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      lucide.createIcons();
-    });
-
 
     document.getElementById('printBtn').addEventListener('click', ()=>window.print());
 

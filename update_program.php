@@ -50,36 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!doctype html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Northport University — Update Graduate Program</title>
-  <style>
-    .hidden {
-      display: none;
-    }
-  </style>
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-</head>
+<html lang="en">
+<?php $nu_title = 'Update Graduate Program'; require __DIR__ . '/partials/head.php'; ?>
   <body>
-    <header class="topbar">
-    <div class="brand">
-      <div class="logo">NU</div>
-      <h1>Northport University</h1>
-    </div>
-    <div class="top-actions">
-      <div class="search" style="width: min(360px, 40vw)">
-        <i class="search-icon" data-lucide="search"></i>
-        <input id="q" type="text" placeholder="Search code, title, instructor…" />
-      </div>
-      <button class="btn outline" id="themeToggle" title="Toggle theme">🌙</button>
-      <div class="crumb"><a href="update_admin_dashboard.php" aria-label="Back to Dashboard">← Back to Dashboard</a></div>
-    </div>
-  </header>
+    <?php $nu_crumb = ['update_admin_dashboard.php', '← Back to Dashboard']; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
     <main class="page">
         <section class="hero card">
@@ -114,27 +88,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </main>
 </body>
 
- <footer class="footer">© 2025 Northport University • All rights reserved</footer>
+ <?php require __DIR__ . '/partials/footer.php'; ?>
 
- <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script>
     // Immediately create Lucide icons
     lucide.createIcons();
 
     // Populate the year in the footer
     document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      // Swap the icon
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      lucide.createIcons();
-    });
-
 
     // Fetch departments from get_grad_degree_level.php
     fetch('get_grad_degree_level.php')

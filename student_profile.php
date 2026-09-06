@@ -13,17 +13,6 @@ $userId = $_SESSION['user_id'];
 $role = strtolower($_SESSION['role'] ?? '');
 
 // Determine back dashboard
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-    case 'student':  $dashboard = 'student_dashboard.php'; break;
-    case 'faculty':  $dashboard = 'faculty_dashboard.php'; break;
-    case 'admin':
-        $dashboard = ($_SESSION['admin_type'] ?? '') === 'update'
-            ? 'update_admin_dashboard.php'
-            : 'view_admin_dashboard.php';
-        break;
-    default: $dashboard = 'login.php';
-}
 
 // If not logged in
 if (!$role) {
@@ -310,33 +299,9 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
 
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>User Profile • Northport University</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-</head>
+<?php $nu_title = 'User Profile'; require __DIR__ . '/partials/head.php'; ?>
 <body>
-  <header>
-    <div class="wrap topbar">
-      <div class="brand">
-        <div class="logo">NU</div>
-        <div>Northport University</div>
-      </div>
-      <div class="dropdown">
-          <button>☰ Menu</button>
-          <div class="dropdown-content">
-            <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
-            <a href="verify_identity.php">Reset Password</a>
-            <a href="logout.php">Logout</a>
-          </div>
-        </div>
-    </div>
-  </header>
+  <?php $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
 
   <!-- Edit Profile Popup -->
@@ -577,27 +542,15 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
       </section>
     </div>
 
-    <footer class="footer">© <span id="year"></span> Northport University</footer>
+    <?php require __DIR__ . '/partials/footer.php'; ?>
   </main>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script>
     // Immediately create Lucide icons
     lucide.createIcons();
 
     // Populate the year in the footer
     document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      // Swap the icon
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      lucide.createIcons();
-    });
 
     // Placeholder button handlers
     document.getElementById('changePhotoBtn').addEventListener('click', () => {

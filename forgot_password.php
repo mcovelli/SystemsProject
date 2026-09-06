@@ -5,19 +5,7 @@ require_once __DIR__ . '/config.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Forgot Password | Northport University</title>
-
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-  <style>
-            body { font-family: system-ui, sans-serif; max-width: 480px; margin: 2rem auto; }
-            input, button { width: 100%; padding: .6rem; margin-top: .6rem; }
-          </style>
-</head>
+<?php $nu_title = 'Forgot Password'; require __DIR__ . '/partials/head.php'; ?>
 <body>
   <h1>Forgot Password</h1>
   <p>To reset your password, please verify your identity.</p>

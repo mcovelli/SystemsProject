@@ -123,14 +123,7 @@ switch ($userRole) {
 
 <!DOCTYPE html>
 <html lang='en'>
-<head>
-  <meta charset='UTF-8'>
-  <title>All Announcements</title>
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-</head>
+<?php $nu_title = 'All Announcements'; require __DIR__ . '/partials/head.php'; ?>
 <body class='page'>
   <div class='wrap'>
     <h1>All Announcements</h1>
@@ -165,19 +158,10 @@ switch ($userRole) {
     <a href='<?= $dashboard ?>' class='btn outline'>← Back to Dashboard</a>
   </div>
   
-  <footer class="footer">© <span id="year"></span> Northport University</footer>
+  <?php require __DIR__ . '/partials/footer.php'; ?>
   <script>
   // Minimal JS for year and initials fallback
     document.getElementById('year').textContent = new Date().getFullYear();
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      lucide.createIcons();
-    });
 </script>
 </body>
 </html>

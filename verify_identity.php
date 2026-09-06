@@ -12,19 +12,7 @@ try {
         ?>
         <!DOCTYPE html>
         <html lang="en">
-        <head>
-          <meta charset="utf-8">
-          <title>Verify Identity | Northport University</title>
-
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-          <style>
-            body { font-family: system-ui, sans-serif; max-width: 480px; margin: 2rem auto; }
-            input, button { width: 100%; padding: .6rem; margin-top: .6rem; }
-          </style>
-        </head>
+        <?php $nu_title = 'Verify Identity'; require __DIR__ . '/partials/head.php'; ?>
         <body>
           <h1>Verify Your Identity</h1>
           <p>Please provide your details to verify your account before resetting your password.</p>
@@ -95,14 +83,7 @@ try {
     ?>
     <!DOCTYPE html>
     <html lang="en">
-    <head>
-      <meta charset="utf-8">
-      <title>Identity Verified</title>
-      <style>
-        body { font-family: system-ui, sans-serif; max-width: 480px; margin: 2rem auto; text-align: center; }
-        a { color: #0055cc; font-weight: bold; }
-      </style>
-    </head>
+    <?php $nu_title = 'Verify Identity'; require __DIR__ . '/partials/head.php'; ?>
     <body>
       <h1>Identity Verified</h1>
       <p>Your identity has been confirmed.</p>

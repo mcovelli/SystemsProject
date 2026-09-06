@@ -23,24 +23,6 @@ $userId = $_SESSION['user_id'];
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-
-    case 'student' :
-      $dashboard = 'student_dashboard.php';
-      break;
-
-    case 'admin':
-        // if you have update/view admin types:
-        if (($_SESSION['admin_type'] ?? '') === 'update') {
-            $dashboard = 'update_admin_dashboard.php';
-        } else {
-            $dashboard = 'login.html';
-        }
-        break;
-    default:
-        $dashboard = 'login.html'; // fallback
-}
 
 $selectedDept = $_GET['dept'] ?? ($_POST['dept'] ?? '');
 $selectedSemester = $_GET['Semester'] ?? ($_GET['semester'] ?? ($_POST['Semester'] ?? ($_POST['semester'] ?? '')));
@@ -244,32 +226,10 @@ if (!empty($studentHolds)){
 ?>
 
 <!doctype html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Northport University — Add / Drop Courses (Single File)</title>
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-</head>
+<html lang="en">
+<?php $nu_title = 'Add / Drop Courses (Single File)'; require __DIR__ . '/partials/head.php'; ?>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">NU</div>
-      <h1>Northport University</h1>
-      <span class="pill">Add / Drop</span>
-    </div>
-    <div class="top-actions">
-      <div class="search" style="width: min(360px, 40vw)">
-        <i class="search-icon" data-lucide="search"></i>
-        <input id="q" type="text" placeholder="Search code, title, instructor…" />
-      </div>
-      <button class="btn outline" id="themeToggle" title="Toggle theme">🌙</button>
-      <a href="<?= htmlspecialchars($dashboard) ?>" aria-label="Back to Dashboard">← Back to Dashboard</a></div>
-    </div>
-  </header>
+  <?php $nu_page = 'Add / Drop'; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
 
   <main class="page">
@@ -298,6 +258,9 @@ if (!empty($studentHolds)){
         <div class="progress">
           <span id="progBar" style="width:<?= min(100, ($totalCredits / max(1, $maxCredits)) * 100) ?>%"></span>
         </div>
+    </div>
+    </div>
+    </div>
     </section>
 
     <section class="card">
@@ -517,7 +480,7 @@ if (!empty($studentHolds)){
       </div>
     </div>
   </div>
-  <footer class="footer">© <span id="year"></span> Northport University</footer>
+  <?php require __DIR__ . '/partials/footer.php'; ?>
 
   <script>
     // Fetch departments from get_departments.php
@@ -550,21 +513,9 @@ if (!empty($studentHolds)){
           });
         });
     
-  // ===== Theme toggle =====
-    (function(){
-      const root = document.documentElement;
-      const btn = document.getElementById('themeToggle');
-      const getStored = () => localStorage.getItem('nu-theme');
-      const apply = (t) => { root.setAttribute('data-theme', t); if(btn) btn.textContent = t==='dark' ? '☀️' : '🌙'; };
-      const preferred = getStored() || root.getAttribute('data-theme') || 'light';
-      apply(preferred);
-      if(btn){
-        btn.addEventListener('click', ()=>{
-          const next = (root.getAttribute('data-theme')==='dark') ? 'light' : 'dark';
-          apply(next); localStorage.setItem('nu-theme', next);
-        });
-      }
-    })();
+  // The theme toggle lives in assets/js/app.js. This page had its own copy --
+  // the only one that persisted -- and it used the same 'nu-theme' key, so
+  // nothing is lost by removing it.
   </script>
 
   <script>
@@ -575,7 +526,6 @@ if (!empty($studentHolds)){
     bar.style.width = Math.min(100, (total / 12) * 100) + '%';
   });
   </script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script> if(window.lucide) lucide.createIcons(); </script>
   
 </body>

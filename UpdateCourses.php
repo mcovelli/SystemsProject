@@ -81,130 +81,17 @@ if (isset($_POST['updateCourse'])) {
     $_SESSION['update_success'] = true;
 }
 
-$userRole = strtolower($_SESSION['role'] ?? '');
-switch ($userRole) {
-    case 'admin':
-        // if you have update/view admin types:
-        if (($_SESSION['admin_type'] ?? '') === 'update') {
-            $dashboard = 'update_admin_dashboard.php';
-            $profile = 'admin_profile.php';
-        } else {
-            $dashboard = 'view_admin_dashboard.php';
-            $profile = 'admin_profile.php';
-        }
-        break;
-    default:
-        $dashboard = 'login.html'; // fallback
-        $profile = 'login.html';
-}
 
-$initials = substr($user['FirstName'], 0, 1) . substr($user['LastName'], 0, 1);
 ?>
 
 
 <!doctype html>
-<html lang="en" data-theme="light">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Update Courses • Northport University</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-<style>
-/* Inline enhancements */
-.field-block {
-    margin-bottom: 12px;
-}
-label {
-    font-weight: 600;
-    display: block;
-    margin-bottom: 3px;
-}
-input[type=text], input[type=date], select {
-    width: 280px;
-    padding: 6px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-}
-.multiselect {
-    height: 120px;
-    width: 300px;
-    padding: 6px;
-}
-.section-card {
-    border: 1px solid #ddd;
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 10px;
-    background: var(--nu-surface);
-}
-
-.toast {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #28a745;
-    color: white;
-    padding: 12px 18px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: translateY(-15px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    z-index: 9999;
-}
-
-.toast.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.toast.hidden {
-    display: none;
-}
-</style>
-</head>
+<html lang="en">
+<?php $nu_title = 'Update Courses'; require __DIR__ . '/partials/head.php'; ?>
 
 <body>
 
-<header class="topbar">
-    <div class="brand">
-      <div class="logo"><i data-lucide="graduation-cap"></i></div>
-      <h1>Northport University</h1>
-      <span class="pill">Update Courses</span>
-    </div>
-    <div class="top-actions">
-      <div class="search">
-        <i class="search-icon" data-lucide="search"></i>
-        <input type="text" placeholder="Search courses, people, anything…" />
-      </div>
-      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
-      <div class="divider"></div>
-      <div class="crumb"><a href="createDirectory.php" aria-label="Back to Directory">← Back to Directory</a></div>
-    </div>
-
-    <div class="avatar" aria-hidden="true"><span id="initials"><?php echo $initials ?: 'NU'; ?></span></div>
-        <div class="user-meta"><div class="name"><?php echo htmlspecialchars($user['UserType']) ?></div></div>
-        <div class="menu">
-          <button>☰ Menu</button>
-          <div class="menu-content">
-            <a href="<?= htmlspecialchars($dashboard) ?>">Dashboard</a>
-            <a href="<?= htmlspecialchars($profile) ?>">Profile</a>
-            <a href="logout.php">Logout</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+<?php $nu_page = 'Update Courses'; $nu_crumb = ['createDirectory.php', '← Back to Directory']; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
 <div id="toast" class="toast hidden">Course updated successfully!</div>
 
@@ -288,6 +175,7 @@ input[type=text], input[type=date], select {
 
     </form>
 
+</div>
 </section>
 
 <?php endif; ?>
@@ -295,11 +183,8 @@ input[type=text], input[type=date], select {
 
 </main>
 
-<footer class="footer">
-    © <span id="year"></span> Northport University • All rights reserved
-</footer>
+<?php require __DIR__ . '/partials/footer.php'; ?>
 
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 <script>
 lucide.createIcons();
 document.getElementById('year').textContent = new Date().getFullYear();
@@ -309,15 +194,6 @@ document.getElementById('year').textContent = new Date().getFullYear();
 /* ============================================================================
    THEME TOGGLE
 ============================================================================ */
-const themeToggle = document.getElementById('themeToggle');
-themeToggle.addEventListener('click', () => {
-    const root = document.documentElement;
-    const cur = root.getAttribute('data-theme') || 'light';
-    root.setAttribute('data-theme', cur === 'light' ? 'dark' : 'light');
-    themeToggle.querySelector('i').setAttribute('data-lucide', cur === 'light' ? 'sun' : 'moon');
-    lucide.createIcons();
-});
-
 // Fetch faculty from get_departments.php
     fetch('get_departments.php')
     .then(response => response.json())

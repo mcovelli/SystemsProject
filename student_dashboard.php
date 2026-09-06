@@ -378,53 +378,10 @@ if ($isGrad) {
 }
 
 ?><!doctype html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Northport University — Student Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Use unified dashboard styles -->
-  <link rel="stylesheet" href="./assets/css/tokens.css" />
-  <link rel="stylesheet" href="./assets/css/base.css" />
-  <link rel="stylesheet" href="./assets/css/layouts.css" />
-  <link rel="stylesheet" href="./assets/css/components.css" />
-</head>
+<html lang="en">
+<?php $nu_title = 'Student Dashboard'; require __DIR__ . '/partials/head.php'; ?>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo"><i data-lucide="graduation-cap"></i></div>
-      <h1>Northport University</h1>
-      <span class="pill">Student Portal</span>
-      <!-- Display welcome name inline -->
-      <h3 style="margin-left:16px; font-size:14px; font-weight:500; color:var(--nu-muted)">Welcome, <?php echo htmlspecialchars($student['FirstName'] . ' ' . $student['LastName']); ?></h3>
-    </div>
-    <div class="top-actions">
-      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
-      <div class="divider"></div>
-      <div class="user">
-        <!-- For now, use placeholder avatar -->
-        <img class="avatar" src="https://i.pravatar.cc/64?img=15" alt="avatar" />
-        <div class="user-meta">
-          <div class="name"><?php echo htmlspecialchars($student['FirstName'] . ' ' . $student['LastName']); ?></div>
-          <div class="sub"><?php echo htmlspecialchars($majorName); ?></div>
-        </div>
-        <div class="header-left">
-          <div class="menu">
-            <button>☰ Menu</button>
-            <div class="menu-content">
-              <a href="student_profile.php">Profile</a>
-              <a href="degree_audit.php">Degree Audit</a>
-              <a href="viewDirectory.php">View Directory</a>
-              <a href="logout.php">Logout</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+  <?php $nu_page = 'Student Portal'; $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
   <main class="container">
     <section class="left">
@@ -711,35 +668,20 @@ if ($isGrad) {
           </div>
         </div>
       </div>
-      </div>
     </aside>
   </main>
 
-  <footer class="footer">
-    © <span id="year"></span> Northport University • All rights reserved • <a href="#" class="link">Privacy</a>
-  </footer>
+  <?php require __DIR__ . '/partials/footer.php'; ?>
 
   <!-- Chart.js for GPA line chart -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <!-- Lucide icons -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script>
     // Immediately create Lucide icons
     lucide.createIcons();
 
     // Populate the year in the footer
     document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Theme toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const root = document.documentElement;
-      const current = root.getAttribute('data-theme') || 'light';
-      root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-      // Swap the icon
-      themeToggle.querySelector('i').setAttribute('data-lucide', current === 'light' ? 'sun' : 'moon');
-      lucide.createIcons();
-    });
 
     // Tab switching
     document.querySelectorAll('.tabs .tab').forEach(tab => {

@@ -14,36 +14,12 @@
    and why the avatar, user name and menu sat outside .top-actions and pushed
    the page into a horizontal scroll.
 
-   This file also resolves $dashboard and $profile, which 26 pages each carried
-   their own copy of. Nothing reads them after the header, so owning them here
-   is safe.
+   $dashboard and $profile come from partials/user_context.php, which 35 pages
+   each carried their own copy of. A page that needs them before the header
+   renders can require that file directly.
    ============================================================================ */
 
-$nu_role = strtolower($_SESSION['role'] ?? '');
-
-switch ($nu_role) {
-    case 'student':
-        $dashboard = 'student_dashboard.php';
-        $profile   = 'student_profile.php';
-        break;
-    case 'faculty':
-        $dashboard = 'faculty_dashboard.php';
-        $profile   = 'faculty_profile.php';
-        break;
-    case 'admin':
-        $dashboard = (($_SESSION['admin_type'] ?? '') === 'update')
-                   ? 'update_admin_dashboard.php'
-                   : 'view_admin_dashboard.php';
-        $profile   = 'admin_profile.php';
-        break;
-    case 'statstaff':
-        $dashboard = 'statstaff_dashboard.php';
-        $profile   = 'admin_profile.php';
-        break;
-    default:
-        $dashboard = 'login.html';
-        $profile   = 'login.html';
-}
+require_once __DIR__ . '/user_context.php';
 
 /* Pages that already queried Users pass $user; the rest fall back to what
    login.php put in the session, so no page needs a query just for the header. */

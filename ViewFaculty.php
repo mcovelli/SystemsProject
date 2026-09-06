@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/partials/user_context.php';
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 

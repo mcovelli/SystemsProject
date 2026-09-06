@@ -16,9 +16,11 @@ password: hashed_pw
   
 ### Faculty  
 
-email: joshua.t.taylor@nu.edu'
+email: joshua.t.taylor@nu.edu. 
 password: hashed_pw  
   
+
+
 TO DOWNLOAD AND EXPLORE THE WEBSITE LOCALLY FOLLOW THE STEPS BELOW:
 
 ## Prerequisites

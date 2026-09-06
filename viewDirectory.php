@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/config.php';
 
+require_once __DIR__ . '/partials/user_context.php';
 if (!isset($_SESSION['user_id'])) {
     redirect(PROJECT_ROOT . "/login.html");
 }

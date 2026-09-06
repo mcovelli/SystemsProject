@@ -5,6 +5,7 @@ ini_set('display_errors', 1);
 session_start();
 require_once __DIR__ . '/config.php';
 
+require_once __DIR__ . '/partials/user_context.php';
 $mysqli = get_db();
 $mysqli->set_charset('utf8mb4');
 

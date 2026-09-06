@@ -62,13 +62,9 @@ $update = $mysqli->prepare(
 $update->bind_param("sii", $grade, $studentId, $crn);
 $update->execute();
 
-// Insert StudentHistory
-$insert = $mysqli->prepare(
-    "INSERT INTO StudentHistory (StudentID, CRN, SemesterID, Grade, CourseID)
-     VALUES (?, ?, ?, ?, ?)"
-);
-$insert->bind_param("iisss", $studentId, $crn, $semester, $grade, $courseId);
-$insert->execute();
+/* The UPDATE above is the whole write. StudentHistory used to receive a
+   duplicate of it, and re-grading appended a second row instead of
+   correcting the first. */
 
 $mysqli->commit();
 

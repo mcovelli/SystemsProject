@@ -31,8 +31,57 @@ rows deleted in Phase 2 — that needs the dump from step 2.
 | 5 | Drops the duplicate `Users.Email_2` index |
 | 6 | Verifies: expects 89 foreign keys, 0 tables without a primary key |
 
-`004` corrects seven ON DELETE rules, `005` adds soft delete, and `006`
-creates the two stored procedures the PHP calls.
+`004` corrects seven ON DELETE rules, `005` adds soft delete, `006`
+creates the two stored procedures the PHP calls, `007` rebuilds
+`Student.StudentType`, and `008` retires `StudentHistory`.
+
+## 008 changes the numbers, not just the schema
+
+`StudentHistory` held 6,696 rows against `StudentEnrollment`'s 31,056,
+every one of them mirrored by a `COMPLETED` enrolment with the same
+grade — a strict subset, recorded twice. The degree audit read the
+smaller copy, so 8,931 graded courses and 865 students were invisible to
+it.
+
+`008` points `UpdateDegreeAudit` at `StudentEnrollment WHERE Status =
+'COMPLETED'` and drops the table. `009` then rebuilds every stored
+`DegreeAudit` row, because `008` replaces the procedure without calling
+it — immediately after `008`, 1,081 of 1,602 rows still held the figure
+computed from `StudentHistory`. Run both:
+
+```bash
+# Back up first. DROP TABLE commits implicitly.
+mysqldump -h 127.0.0.1 -u root --set-gtid-purged=OFF --single-transaction \
+  --routines --triggers --databases University > University_before_008.sql
+
+mysql -h 127.0.0.1 -u root University < migrations/008_retire_studenthistory.sql
+mysql -h 127.0.0.1 -u root University < migrations/009_recompute_degree_audits.sql
+```
+
+`008` refuses to run if any `StudentHistory` row is not mirrored by a
+`COMPLETED` enrolment carrying the same grade, and stops before the drop
+rather than after it. `009` refuses to run against the pre-`008`
+procedure, and is safe to re-run — the upsert converges.
+
+Then regenerate `University.sql` with `--routines`, or the recreated
+procedure is lost.
+
+### Verified
+
+Applied to a clone of the live database on 2026-09-06. Of 1,602
+students, 475 were unchanged, 1,127 gained credits and 838 went from
+zero to a real figure. **No student lost credits**, which is what a
+strict subset predicts. GPAs stayed inside 0.00–4.00, no
+`Credits_Remaining` went negative, and one student was checked by hand
+against their enrolment rows (24 credits, 2.70 GPA — matched). The guard
+was tested by diverging a single grade: it raised `SQLSTATE 45000` and
+left the table in place.
+
+Both then applied to `University` itself the same day. Audits carrying
+credits went from 521 to 1,358 — matching the 1,358 students who have a
+`COMPLETED` enrolment — and the average GPA from 1.037 to 2.408, the
+same figure the clone produced. All four post-conditions in `009`
+returned zero.
 
 ## Always dump with --routines
 

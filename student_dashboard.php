@@ -166,11 +166,12 @@ SELECT
         ROUND(SUM(gs.GradeValue * c.Credits) / NULLIF(SUM(c.Credits), 0), 3),
         0.00
     ) AS SemesterGPA
-FROM StudentHistory sh
+FROM StudentEnrollment sh
 JOIN GradingScale gs ON sh.Grade = gs.GradeLetter
 JOIN Course c ON sh.CourseID = c.CourseID
 WHERE sh.StudentID = ?
   AND sh.SemesterID = ?
+  AND sh.Status = 'COMPLETED'
   AND sh.Grade IS NOT NULL
   AND gs.GradeValue IS NOT NULL
 ";
@@ -214,10 +215,11 @@ $gpa_history_sql = "
     SELECT 
         sh.SemesterID,
         ROUND(SUM(gs.GradeValue * c.Credits) / SUM(c.Credits), 2) AS GPA
-    FROM StudentHistory sh
+    FROM StudentEnrollment sh
     JOIN GradingScale gs ON sh.Grade = gs.GradeLetter
     JOIN Course c ON sh.CourseID = c.CourseID
     WHERE sh.StudentID = ?
+      AND sh.Status = 'COMPLETED'
       AND sh.Grade IS NOT NULL
     GROUP BY sh.SemesterID
     ORDER BY sh.SemesterID DESC

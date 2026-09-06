@@ -55,9 +55,10 @@ $updateSeats = $mysqli->prepare("
 
 $checkPrior = $mysqli->prepare("
     SELECT 1
-    FROM StudentHistory
+    FROM StudentEnrollment
     WHERE StudentID = ?
       AND CourseID = ?
+      AND Status = 'COMPLETED'
       AND Grade IN ('A', 'A-', 'B+', 'B', 'B-', 'C+', 'C')
     LIMIT 1
 ");
@@ -67,9 +68,10 @@ $missingPrereq = $mysqli->prepare("
         cp.PrerequisiteCourseID,
         cp.MinGradeRequired
     FROM CoursePrerequisite cp
-    LEFT JOIN StudentHistory sh 
-        ON sh.StudentID = ? 
+    LEFT JOIN StudentEnrollment sh
+        ON sh.StudentID = ?
        AND sh.CourseID = cp.PrerequisiteCourseID
+       AND sh.Status = 'COMPLETED'
     LEFT JOIN GradingScale gs_req 
         ON gs_req.GradeLetter = cp.MinGradeRequired
     LEFT JOIN GradingScale gs_got 

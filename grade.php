@@ -109,10 +109,9 @@ $mysqli->begin_transaction();
   $stmt->bind_param("sii", $grade, $studentId, $crn );
   $stmt->execute();
     
-$sqlSH = "INSERT INTO StudentHistory (StudentID, CRN, SemesterID, Grade, CourseID) VALUES (?, ?, ?, ?, ?)";
-  $stmtSH = $mysqli->prepare($sqlSH);
-  $stmtSH->bind_param("iisss", $studentId, $crn, $semester, $grade, $courseId);
-  $stmtSH->execute();
+  /* The UPDATE above is the whole write. StudentHistory used to receive a
+     duplicate of it, and re-grading a student appended a second row rather
+     than correcting the first. */
 
 $mysqli->commit();
 echo "<script>alert('Grade Submitted ✅');</script>";

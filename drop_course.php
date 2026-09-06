@@ -61,15 +61,11 @@ try {
     $drop->bind_param('iis', $userId, $crn, $semester);
     $drop->execute();
 
-    // Remove from history
-    $delete = $mysqli->prepare("
-        DELETE FROM StudentHistory
-        WHERE StudentID = ?
-          AND CRN = ?
-    ");
-    $delete->bind_param('ii', $userId, $crn);
-    $delete->execute();
-    $delete->close();
+    /* The StudentEnrollment row above is the drop -- there is no second
+       table to clean up. The DELETE that used to sit here was also unsafe:
+       it matched on StudentID and CRN with no semester, so dropping a
+       section this term removed the completed record of the same CRN taken
+       in an earlier one. */
 
     if ($drop->affected_rows > 0) {
 

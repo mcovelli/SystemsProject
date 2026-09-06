@@ -71,3 +71,7 @@ uploads/
 # Local database backups taken before running migrations
 University_before_keys.sql
 *_before_*.sql
+
+# Local-only scratch files. Anything named __dev* forges a session so pages can
+# be rendered without signing in -- it must never reach a branch.
+__dev*.php

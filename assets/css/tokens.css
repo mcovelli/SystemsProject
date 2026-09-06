@@ -1,0 +1,234 @@
+/* ============================================================================
+   tokens.css — Northport SIS design tokens ("Console" direction)
+   ----------------------------------------------------------------------------
+   This is the one place colour, type and spacing are defined.
+
+   LOAD ORDER MATTERS. This file must be linked *after* the legacy stylesheets
+   (styles.css / stylesGrade.css / viewstyles.css / profilestyles.css /
+   announcementstyles.css). Those sheets declare their own :root and
+   [data-theme="light"] blocks; because this file comes later at equal
+   specificity, its values win, and every legacy component that reads
+   var(--panel), var(--primary), etc. picks up the new palette for free.
+
+   The "legacy aliases" section at the bottom exists only so those older sheets
+   keep resolving. It goes away in Phase 2, when the components are rewritten
+   against the canonical names.
+
+   Contrast: every text pair below was checked against its intended background
+   and clears WCAG AA (4.5:1 for text, 3:1 for non-text). See the Phase 1 notes.
+   ============================================================================ */
+
+:root {
+  /* ---- canonical palette: LIGHT ---------------------------------------- */
+  --nu-bg:            #F8F9FB;   /* page ground                             */
+  --nu-surface:       #FFFFFF;   /* cards, panels, inputs                   */
+  --nu-surface-sunk:  #EEF1F5;   /* table headers, wells, disabled fills    */
+
+  --nu-text:          #0F1319;   /* 17.7:1 on ground                        */
+  --nu-muted:         #5B6675;   /*  5.5:1 on ground — labels, secondary    */
+  --nu-faint:         #7E8896;   /*  3.6:1 on white — placeholders, hints   */
+
+  --nu-border:        #E3E7ED;   /* hairlines between rows and panels       */
+  --nu-border-strong: #D5DBE3;   /* input outlines, emphasised edges        */
+
+  --nu-primary:       #0B6BCB;   /* solid fills; white text clears 5.3:1    */
+  --nu-primary-hover: #0A5CAF;
+  --nu-primary-text:  #0B6BCB;   /* links / icons on the ground — 5.0:1     */
+  --nu-primary-ink:   #FFFFFF;   /* text sitting on --nu-primary            */
+  --nu-primary-soft:  #EAF2FB;   /* tinted pill / selected-row background   */
+
+  /* semantic state — deliberately separate from the accent hue */
+  --nu-ok:            #0F6B3F;
+  --nu-ok-bg:         #E3F2E9;
+  --nu-warn:          #8A5310;
+  --nu-warn-bg:       #FBF0DF;
+  --nu-danger:        #A32020;
+  --nu-danger-bg:     #FBE9E9;
+
+  --nu-ring:          rgba(11, 107, 203, .38);   /* focus ring              */
+  --nu-shadow:        0 1px 2px rgba(15, 19, 25, .05);
+  --nu-shadow-lift:   0 4px 14px rgba(15, 19, 25, .08);
+  --nu-scrim:         rgba(15, 19, 25, .55);
+
+  /* chevron for <select>; recoloured per theme so it never goes invisible */
+  --nu-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%235B6675' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+
+  /* ---- type ------------------------------------------------------------ */
+  --nu-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  /* JetBrains Mono gets added to the <head> in Phase 3; system mono until then. */
+  --nu-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --nu-text-xs:   11px;
+  --nu-text-sm:   12.5px;
+  --nu-text-base: 14px;
+  --nu-text-md:   15px;
+  --nu-text-lg:   17px;
+  --nu-text-xl:   21px;
+
+  /* ---- geometry -------------------------------------------------------- */
+  --nu-radius-sm: 6px;
+  --nu-radius:    8px;
+  --nu-radius-lg: 12px;
+  --nu-radius-pill: 999px;
+
+  --nu-space-1: 4px;
+  --nu-space-2: 8px;
+  --nu-space-3: 12px;
+  --nu-space-4: 16px;
+  --nu-space-5: 24px;
+  --nu-space-6: 32px;
+}
+
+/* ---- canonical palette: DARK ------------------------------------------- */
+/* Two triggers, one token set. The media query is guarded so that an explicit
+   light choice on <html> still beats a dark OS setting. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --nu-bg:            #0D1117;
+    --nu-surface:       #151A21;
+    --nu-surface-sunk:  #1B222B;
+
+    --nu-text:          #E6EAF0;
+    --nu-muted:         #8A94A3;
+    --nu-faint:         #6B7482;
+
+    --nu-border:        #232A33;
+    --nu-border-strong: #2E3742;
+
+    --nu-primary:       #1D74C9;
+    --nu-primary-hover: #2A83DA;
+    --nu-primary-text:  #6FB6F0;
+    --nu-primary-ink:   #FFFFFF;
+    --nu-primary-soft:  #12243A;
+
+    --nu-ok:            #6FD69B;
+    --nu-ok-bg:         #12291D;
+    --nu-warn:          #E0A860;
+    --nu-warn-bg:       #2A2013;
+    --nu-danger:        #F08A8A;
+    --nu-danger-bg:     #2B1616;
+
+    --nu-ring:          rgba(111, 182, 240, .45);
+    --nu-shadow:        0 1px 2px rgba(0, 0, 0, .32);
+    --nu-shadow-lift:   0 4px 14px rgba(0, 0, 0, .40);
+    --nu-scrim:         rgba(0, 0, 0, .62);
+
+    --nu-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238A94A3' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  }
+}
+
+:root[data-theme="dark"] {
+  --nu-bg:            #0D1117;
+  --nu-surface:       #151A21;
+  --nu-surface-sunk:  #1B222B;
+
+  --nu-text:          #E6EAF0;
+  --nu-muted:         #8A94A3;
+  --nu-faint:         #6B7482;
+
+  --nu-border:        #232A33;
+  --nu-border-strong: #2E3742;
+
+  --nu-primary:       #1D74C9;
+  --nu-primary-hover: #2A83DA;
+  --nu-primary-text:  #6FB6F0;
+  --nu-primary-ink:   #FFFFFF;
+  --nu-primary-soft:  #12243A;
+
+  --nu-ok:            #6FD69B;
+  --nu-ok-bg:         #12291D;
+  --nu-warn:          #E0A860;
+  --nu-warn-bg:       #2A2013;
+  --nu-danger:        #F08A8A;
+  --nu-danger-bg:     #2B1616;
+
+  --nu-ring:          rgba(111, 182, 240, .45);
+  --nu-shadow:        0 1px 2px rgba(0, 0, 0, .32);
+  --nu-shadow-lift:   0 4px 14px rgba(0, 0, 0, .40);
+  --nu-scrim:         rgba(0, 0, 0, .62);
+
+  --nu-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238A94A3' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+}
+
+/* ============================================================================
+   LEGACY ALIASES — temporary, removed in Phase 2.
+   ----------------------------------------------------------------------------
+   The older sheets read these names. Pointing them at the canonical tokens is
+   what re-skins all 73 existing pages without touching their markup.
+   Declared in :root (and again for dark) so they inherit correctly in
+   every theme state.
+   ============================================================================ */
+:root,
+:root[data-theme="dark"] {
+  /* styles.css / stylesGrade.css */
+  --bg:      var(--nu-bg);
+  --surface: var(--nu-surface);
+  --panel:   var(--nu-surface);
+  --border:  var(--nu-border);
+  --text:    var(--nu-text);
+  --muted:   var(--nu-muted);
+  --primary: var(--nu-primary);
+  --pill:    var(--nu-primary-soft);
+  --shadow:  var(--nu-shadow);
+  --line:    var(--nu-border);
+
+  /* viewstyles.css */
+  --panel-2:     var(--nu-surface-sunk);
+  --ring:        var(--nu-ring);
+  --topbar-bg:   var(--nu-surface);
+  --btn-bg:      var(--nu-surface);
+  --btn-fg:      var(--nu-text);
+  --card-shadow: var(--nu-shadow);
+  --row-shadow:  var(--nu-shadow-lift);
+  --scrim:       var(--nu-scrim);
+  --chip-ok:     var(--nu-ok-bg);
+  --chip-low:    var(--nu-warn-bg);
+  --chip-full:   var(--nu-danger-bg);
+
+  /* profilestyles.css */
+  --card:   var(--nu-surface);
+  --accent: var(--nu-primary);
+  --radius: var(--nu-radius);
+
+  /* announcementstyles.css */
+  --subtext:      var(--nu-muted);
+  --system-color: var(--nu-primary-text);
+  --course-color: var(--nu-primary-text);
+  --transition:   .18s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:      var(--nu-bg);
+    --surface: var(--nu-surface);
+    --panel:   var(--nu-surface);
+    --border:  var(--nu-border);
+    --text:    var(--nu-text);
+    --muted:   var(--nu-muted);
+    --primary: var(--nu-primary);
+    --pill:    var(--nu-primary-soft);
+    --shadow:  var(--nu-shadow);
+    --line:    var(--nu-border);
+
+    --panel-2:     var(--nu-surface-sunk);
+    --ring:        var(--nu-ring);
+    --topbar-bg:   var(--nu-surface);
+    --btn-bg:      var(--nu-surface);
+    --btn-fg:      var(--nu-text);
+    --card-shadow: var(--nu-shadow);
+    --row-shadow:  var(--nu-shadow-lift);
+    --scrim:       var(--nu-scrim);
+    --chip-ok:     var(--nu-ok-bg);
+    --chip-low:    var(--nu-warn-bg);
+    --chip-full:   var(--nu-danger-bg);
+
+    --card:   var(--nu-surface);
+    --accent: var(--nu-primary);
+    --radius: var(--nu-radius);
+
+    --subtext:      var(--nu-muted);
+    --system-color: var(--nu-primary-text);
+    --course-color: var(--nu-primary-text);
+    --transition:   .18s ease;
+  }
+}

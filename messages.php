@@ -86,6 +86,8 @@ switch ($userRole) {
 <head>
     <title>Messages</title>
     <link rel="stylesheet" href="./mailstyles.css">
+  <link rel="stylesheet" href="./assets/css/tokens.css" />
+  <link rel="stylesheet" href="./assets/css/base.css" />
 </head>
 <body>
 

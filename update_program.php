@@ -61,6 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   </style>
   <link rel="stylesheet" href="./viewstyles.css" />
+  <link rel="stylesheet" href="./assets/css/tokens.css" />
+  <link rel="stylesheet" href="./assets/css/base.css" />
 </head>
   <body>
     <header class="topbar">

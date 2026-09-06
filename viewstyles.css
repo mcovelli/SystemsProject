@@ -35,7 +35,10 @@
     .stack{display:grid; gap:16px}
 
     /* === Cards & buttons === */
-    .card{border:1px solid var(--border); border-radius:16px; background:linear-gradient(180deg, color-mix(in srgb, var(--panel) 92%, transparent), var(--panel)); box-shadow:var(--card-shadow); align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border)}
+    .card{border:1px solid var(--border); border-radius:16px; background:linear-gradient(180deg, color-mix(in srgb, var(--panel) 92%, transparent), var(--panel)); box-shadow:var(--card-shadow)}
+    /* These declarations were sitting inside .card, where they did nothing --
+       .card-head is the element that actually wants them. */
+    .card-head{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border)}
     .card-title{font-weight:800}
     .sub{font-size:.92rem}
     .between{display:flex; align-items:center; justify-content:space-between}
@@ -59,7 +62,10 @@
     .table thead th{padding:6px 8px; font-size:.85rem; color:var(--muted); font-weight:600; text-align:left}
     .table td{vertical-align:middle}
     .row-item{background:linear-gradient(180deg, color-mix(in srgb, var(--panel) 90%, transparent), var(--panel)); border:1px solid var(--border); border-radius:14px; transition:transform .08s ease, box-shadow .15s ease}
-    .row-item:hover{transform:translateY(-1px); box-shadow:var(--row-shadow); padding:4px 10px; border-radius:999px; border:1px solid var(--border); font-size:.85rem}
+    .row-item:hover{transform:translateY(-1px); box-shadow:var(--row-shadow)}
+    /* The .chip base rule had been pasted into .row-item:hover above, so only
+       the .ok/.low/.full modifiers were ever reaching a chip. */
+    .chip{display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid var(--border); font-size:.85rem}
     .chip.ok{background:var(--chip-ok)}
     .chip.low{background:var(--chip-low)}
     .chip.full{background:var(--chip-full)}

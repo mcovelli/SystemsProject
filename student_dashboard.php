@@ -386,6 +386,8 @@ if ($isGrad) {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Use unified dashboard styles -->
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./assets/css/tokens.css" />
+  <link rel="stylesheet" href="./assets/css/base.css" />
 </head>
 <body>
   <header class="topbar">

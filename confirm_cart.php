@@ -192,6 +192,9 @@ switch ($userRole) {
 <head>
   <meta charset="utf-8">
   <title>Enrollment Confirmation</title>
+
+  <link rel="stylesheet" href="./assets/css/tokens.css" />
+  <link rel="stylesheet" href="./assets/css/base.css" />
   <style>
     body { font-family: system-ui, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 2rem; }
     .card { background: white; padding: 2rem; border-radius: 12px; max-width: 600px; margin: 2rem auto; box-shadow: 0 6px 20px rgba(0,0,0,.1); }

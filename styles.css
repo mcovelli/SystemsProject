@@ -97,7 +97,7 @@ body{
 .row{display:flex; align-items:center}
 .between{justify-content:space-between}
 .gap{gap:10px}
-.small{font-size:1px}
+.small{font-size:14px}
 .pt-8{padding-top:8px}
 .vstack{display:flex; flex-direction:column}
 .table-wrap{overflow:auto}
@@ -192,25 +192,23 @@ gap: 10px;
 
 /* Quick Links */
 .quick-grid {
-  display:block; 
-  grid-template-columns: 
-  repeat(3, 
-  minmax(0,1fr)); 
-  gap:8px}
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
 .quick-grid .ql,
 .quick-grid .ul,
 .quick-grid .ol,
 .quick-grid .dl {
-  display: block;
+  display: flex;
   align-items: center;
   gap: 8px;
   border: 1px solid var(--border);
-  padding: 8px;
   border-radius: 10px;
   background: var(--panel);
   cursor: pointer;
-  width: 60%;
-  padding: 8px 18px;
+  width: 100%;
+  padding: 6px 8px;
   font-size: 12px;
 }
 

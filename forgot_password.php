@@ -8,6 +8,9 @@ require_once __DIR__ . '/config.php';
 <head>
   <meta charset="utf-8">
   <title>Forgot Password | Northport University</title>
+
+  <link rel="stylesheet" href="./assets/css/tokens.css" />
+  <link rel="stylesheet" href="./assets/css/base.css" />
   <style>
             body { font-family: system-ui, sans-serif; max-width: 480px; margin: 2rem auto; }
             input, button { width: 100%; padding: .6rem; margin-top: .6rem; }

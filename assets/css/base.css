@@ -1,0 +1,276 @@
+/* ============================================================================
+   base.css — element-level defaults for the Northport SIS
+   ----------------------------------------------------------------------------
+   Load AFTER tokens.css, which is itself loaded after the legacy sheets.
+
+   Everything here is deliberately kept at low specificity — bare element
+   selectors, mostly (0,0,1) — so that existing class rules still win:
+
+       .btn            (0,1,0)  beats  button          (0,0,1)
+       .search input   (0,1,1)  beats  input           (0,0,1)
+       .table thead th (0,1,2)  beats  thead th        (0,0,2)
+
+   That is the whole point of this file. Not one of the 207 <input> elements in
+   this codebase carries a class, so styling the bare elements restyles every
+   form on all 73 pages without editing any markup.
+   ============================================================================ */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--nu-bg);
+  color: var(--nu-text);
+  font-family: var(--nu-font-sans);
+  font-size: var(--nu-text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--nu-primary-text); }
+a:hover { text-decoration: underline; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--nu-border);
+  margin: var(--nu-space-4) 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Form controls
+   The legacy Create/Update screens render these completely unstyled today.
+--------------------------------------------------------------------------- */
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: var(--nu-text-sm);
+  line-height: 1.4;
+  color: var(--nu-text);
+  background: var(--nu-surface);
+  border: 1px solid var(--nu-border-strong);
+  border-radius: var(--nu-radius-sm);
+  padding: 8px 10px;
+  max-width: 100%;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+input::placeholder,
+textarea::placeholder { color: var(--nu-faint); }
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+  display: block;
+  width: 100%;
+}
+
+/* Native select loses its arrow under appearance:none, so we supply one. */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: var(--nu-select-arrow);
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 15px;
+  padding-right: 30px;
+  cursor: pointer;
+}
+
+input:hover,
+select:hover,
+textarea:hover { border-color: var(--nu-muted); }
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: var(--nu-primary);
+  box-shadow: 0 0 0 3px var(--nu-ring);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: var(--nu-surface-sunk);
+  color: var(--nu-faint);
+  cursor: not-allowed;
+}
+
+input:read-only:not([type="checkbox"]):not([type="radio"]) {
+  background: var(--nu-surface-sunk);
+  color: var(--nu-muted);
+}
+
+/* Checkboxes and radios must escape the text-input treatment above.
+   [type=...] is (0,1,1), so these win over the bare `input` rule. */
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  accent-color: var(--nu-primary);
+  vertical-align: middle;
+}
+
+input[type="color"] { padding: 4px; min-width: 44px; }
+input[type="file"] { border-style: dashed; cursor: pointer; }
+
+/* ---------------------------------------------------------------------------
+   Buttons
+--------------------------------------------------------------------------- */
+
+button {
+  font-family: inherit;
+  font-size: var(--nu-text-sm);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--nu-primary-ink);
+  background: var(--nu-primary);
+  border: 1px solid transparent;
+  border-radius: var(--nu-radius-sm);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+button:hover { background: var(--nu-primary-hover); }
+
+input[type="submit"],
+input[type="button"],
+input[type="reset"] {
+  font-weight: 600;
+  color: var(--nu-primary-ink);
+  background: var(--nu-primary);
+  border-color: transparent;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover,
+input[type="button"]:hover,
+input[type="reset"]:hover { background: var(--nu-primary-hover); }
+
+button:disabled,
+input[type="submit"]:disabled {
+  background: var(--nu-surface-sunk);
+  color: var(--nu-faint);
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+input[type="submit"]:focus-visible,
+input[type="button"]:focus-visible,
+input[type="reset"]:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--nu-primary);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   Labels and fieldsets
+--------------------------------------------------------------------------- */
+
+label {
+  font-size: var(--nu-text-sm);
+  color: var(--nu-muted);
+}
+
+/* The legacy CRUD pattern is:  <label>…</label> <input> <br>
+   Giving those labels a fixed measure lines the controls up into a column
+   without touching the markup. Scoped by the trailing <br> so the pages that
+   already lay their labels out properly (messages.php, login.html) are
+   untouched. Degrades to plain inline labels where :has() is unsupported. */
+label:has(+ input + br),
+label:has(+ select + br),
+label:has(+ textarea + br) {
+  display: inline-block;
+  min-width: 170px;
+  padding: 6px 8px 6px 0;
+  vertical-align: middle;
+  font-weight: 600;
+  color: var(--nu-text);
+}
+
+form br + label,
+form br + label:has(+ input) { margin-top: 2px; }
+
+fieldset {
+  border: 1px solid var(--nu-border);
+  border-radius: var(--nu-radius);
+  padding: var(--nu-space-4);
+  margin: 0 0 var(--nu-space-4);
+}
+
+legend {
+  font-size: var(--nu-text-sm);
+  font-weight: 600;
+  color: var(--nu-muted);
+  padding: 0 var(--nu-space-2);
+}
+
+/* ---------------------------------------------------------------------------
+   Tables
+   15 pages still carry border="1" cellpadding="5". Author CSS outranks those
+   presentational attributes, so the rules below neutralise them.
+--------------------------------------------------------------------------- */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--nu-text-sm);
+}
+
+th,
+td {
+  border: 0;
+  border-bottom: 1px solid var(--nu-border);
+  padding: 9px 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+td { font-variant-numeric: tabular-nums; }
+
+thead th {
+  background: var(--nu-surface-sunk);
+  color: var(--nu-muted);
+  font-size: var(--nu-text-xs);
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: var(--nu-surface-sunk); }
+
+/* ---------------------------------------------------------------------------
+   Headings — trim the default margins that fight the card padding
+--------------------------------------------------------------------------- */
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 var(--nu-space-2);
+  line-height: 1.25;
+  letter-spacing: -.015em;
+  text-wrap: balance;
+}
+
+code, pre, kbd, samp { font-family: var(--nu-font-mono); }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

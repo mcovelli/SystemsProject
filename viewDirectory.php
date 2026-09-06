@@ -59,7 +59,7 @@ if ($userRole === 'admin') {
 <body>
   <?php $nu_page = 'View Directory'; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="container">
+  <main id="main" tabindex="-1" class="container">
       <div class="card">
         <div class="card-title">Quick Actions</div>
         <div class="quick-grid" id="adminQuickLinks"></div>

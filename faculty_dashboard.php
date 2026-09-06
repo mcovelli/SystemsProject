@@ -163,7 +163,7 @@ $quickLinks = [
 <body>
   <?php $nu_page = 'Faculty Portal'; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="container">
+  <main id="main" tabindex="-1" class="container">
     <section class="left">
       <div class="stats">
         <div class="card stat">
@@ -237,11 +237,11 @@ $quickLinks = [
           <table>
             <thead>
               <tr>
-                <th class="w-90">CRN</th>
-                <th>Course</th>
-                <th>Days</th>
-                <th>Time</th>
-                <th>Location</th>
+                <th scope="col" class="w-90">CRN</th>
+                <th scope="col">Course</th>
+                <th scope="col">Days</th>
+                <th scope="col">Time</th>
+                <th scope="col">Location</th>
               </tr>
             </thead>
             <tbody>

@@ -168,7 +168,7 @@ $stmt->close();
 <body>
   <?php $nu_page = 'Student Directory'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="page">
+  <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>
@@ -190,13 +190,13 @@ $stmt->close();
       <table border="1" cellpadding="5" cellspacing="0">
         <thead>
           <tr>
-            <th>Student Type</th>
-            <th>Student ID</th>
-            <th>Student Name</th>
-            <th>Email</th>
-            <th>Major</th>
-            <th>Minor</th>
-            <th>Advisor</th>
+            <th scope="col">Student Type</th>
+            <th scope="col">Student ID</th>
+            <th scope="col">Student Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Major</th>
+            <th scope="col">Minor</th>
+            <th scope="col">Advisor</th>
           </tr>
         </thead>
         <tbody>
@@ -224,6 +224,7 @@ $stmt->close();
       </table>
     </div>
   </section>
+</main>
 <?php require __DIR__ . '/partials/footer.php'; ?>
   <script>
     // Immediately create Lucide icons

@@ -257,6 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php $nu_title = 'Attendance'; require __DIR__ . '/partials/head.php'; ?>
 <body>
   <?php $nu_page = 'Attendance Portal'; require __DIR__ . '/partials/header.php'; ?>
+  <main id="main" tabindex="-1">
 
   <div class="card" style="margin-top:16px; margin-left:10px; margin-right:10px">
     <div class="card-head"><div>Track Attendance</div></div>
@@ -299,9 +300,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <table id="daily-schedule">
             <thead>
               <tr>
-                <th>Student Name</th>
+                <th scope="col">Student Name</th>
                 <?php foreach ($days as $d): ?>
-                  <th><?= $d['label'] ?> (<?= $d['display'] ?>)</th>
+                  <th scope="col"><?= $d['label'] ?> (<?= $d['display'] ?>)</th>
                 <?php endforeach; ?>
               </tr>
             </thead>
@@ -342,6 +343,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   <?php endif; ?>
 
+  </main>
   <?php require __DIR__ . '/partials/footer.php'; ?>
 
   <script>

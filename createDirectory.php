@@ -75,32 +75,38 @@ $otherLinks = [
 <body>
   <?php $nu_page = 'Create Directory'; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="container">
+  <?php /* Was four sibling <main> elements. A document may only have one, and a
+           screen reader offered four "main content" regions. Each block keeps its
+           own .container so the grid measurements are unchanged; only the element
+           name differs. */ ?>
+  <main id="main" tabindex="-1">
+    <section class="container">
       <div class="card">
         <div class="card-title">Create Actions</div>
         <div class="quick-grid" id="adminQuickLinks"></div>
       </div>
-  </main>
+    </section>
 
-    <main class="container">
+    <section class="container">
       <div class="card">
         <div class="card-title">Update Actions</div>
         <div class="quick-grid" id="adminUpdateLinks"></div>
       </div>
-  </main>
+    </section>
 
-  <main class="container">
+    <section class="container">
       <div class="card">
         <div class="card-title">Delete Actions</div>
         <div class="quick-grid" id="adminDeleteLinks"></div>
       </div>
-  </main>
+    </section>
 
-   <main class="container">
+    <section class="container">
       <div class="card">
         <div class="card-title">Other Actions</div>
         <div class="quick-grid" id="adminOtherLinks"></div>
       </div>
+    </section>
   </main>
 
 <?php require __DIR__ . '/partials/footer.php'; ?>

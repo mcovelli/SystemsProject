@@ -188,7 +188,7 @@ if ($stmt->execute()) {
 
 <div id="toast" class="toast hidden">Course Section Updated Successfully!</div>
 
-<main class="page">
+<main id="main" tabindex="-1" class="page">
 
 <!-- SEARCH Course CARD -->
 <section class="hero card">
@@ -198,8 +198,8 @@ if ($stmt->execute()) {
 
     <form method="POST" style="margin-top: 10px;">
         <div class="field-block">
-            <label>CRN</label>
-            <input type="text" name="searchID" required placeholder="Enter CRN...">
+            <label for="crn">CRN</label>
+            <input id="crn" type="text" name="searchID" required placeholder="Enter CRN...">
         </div>
 
         <button type="submit" name="searchCourseSection" class="btn">Search</button>
@@ -223,55 +223,55 @@ if ($stmt->execute()) {
             <h3>Basic Information</h3>
 
             <div class="field-block">
-                <label>CRN</label>
-                <input type="number" name="crn" value="<?php echo $loadedCourseSection['CRN']; ?>" readonly>
+                <label for="crn-2">CRN</label>
+                <input id="crn-2" type="number" name="crn" value="<?php echo $loadedCourseSection['CRN']; ?>" readonly>
             </div>
 
             <div class="field-block">
-                <label>CourseID</label>
-                <input type="text" name="courseID" value="<?php echo $loadedCourseSection['CourseID']; ?>">
+                <label for="courseid">CourseID</label>
+                <input id="courseid" type="text" name="courseID" value="<?php echo $loadedCourseSection['CourseID']; ?>">
             </div>
 
             <div class="field-block">
-                <label>Course Section No.</label>
-                <input type="text" name="sectionNo" value="<?php echo $loadedCourseSection['CourseSectionNo']; ?>">
+                <label for="course-section-no">Course Section No.</label>
+                <input id="course-section-no" type="text" name="sectionNo" value="<?php echo $loadedCourseSection['CourseSectionNo']; ?>">
             </div>
 
             <div class="field-block">
-                <label>Faculty</label>
+                <label for="facultyID">Faculty</label>
                 <select name="facultyID" id="facultyID">
                                     <option value="<?php echo $loadedCourseSection['FacultyID']?>"><?php echo $loadedCourseSection['FacultyID']; ?></option>
                                 </select><br>
             </div>
 
             <div class="field-block">
-                <label>Time Slot</label>
+                <label for="timeSlotID">Time Slot</label>
                 <select name="timeSlotID" id="timeSlotID">
                                     <option value="<?php echo $loadedCourseSection['TimeSlotID']; ?>"><?php echo $loadedCourseSection['TimeSlotID']; ?></option>
                                 </select><br>
             </div>
 
             <div class="field-block">
-                <label>Room</label>
+                <label for="roomID">Room</label>
                 <select name="roomID" id="roomID">
                                     <option value="<?php echo $loadedCourseSection['RoomID']; ?>"><?php echo $loadedCourseSection['RoomID']; ?></option>
                                 </select><br>
             </div>
 
             <div class="field-block">
-                <label for ="year"></label>
+                <label for="year"></label>
                 <input type="hidden" name="year" value="<?php echo $loadedCourseSection['Year']; ?>">
             </div>
 
             <div class="field-block">
-                <label>Semester</label>
+                <label for="semester">Semester</label>
                 <select name="semester" id="semester">
                                     <option value="<?php echo $loadedCourseSection['SemesterID']; ?>"><?php echo $loadedCourseSection['SemesterID']; ?></option>
                                 </select><br>
             </div>
 
             <div class="field-block">
-                <label>Status</label>
+                <label for="status">Status</label>
                 <select name="status" id="status">
                                     <option value="<?php echo $loadedCourseSection['Status']; ?>"><?php echo $loadedCourseSection['Status']; ?></option>
                                     <option value="PLANNED">PLANNED</option>

@@ -156,7 +156,7 @@ $adv_stmt->close();
   <?php if ($_SESSION['user_id'] === $facultyId): ?>
   <div id="editProfilePopup" class="popup-overlay">
     <div class="popup-card">
-      <span class="close-btn" onclick="closePopup()">&times;</span>
+      <button type="button" class="close-btn" onclick="closePopup()" aria-label="Close">&times;</button>
       <h2>Edit Profile</h2>
 
       <form id="editProfileForm" method="post" action="update_profile.php" class="form-grid">
@@ -197,7 +197,7 @@ $adv_stmt->close();
   </div>
 <?php endif; ?>
 
-  <main>
+  <main id="main" tabindex="-1">
     <div class="wrap grid">
       <!-- LEFT: Profile Card -->
       <aside class="card profile">
@@ -213,7 +213,7 @@ $adv_stmt->close();
         <div class="chips">
           <span class="chip" id="research1">Office: <?php echo htmlspecialchars($office) ?></span>
           <span class="chip" id="research2">Faculty</span>
-          <span class="chip" id="research2">ID: <?= $facultyId ?></span>
+          <span class="chip">ID: <?= $facultyId ?></span>
         </div>
         <div class="btn-row">
           <a class="btn primary" href="mailto:<?php echo htmlspecialchars($user['Email']); ?>">Email</a>
@@ -243,7 +243,6 @@ $adv_stmt->close();
             </div>
           </div>
         </div>
-      </div>
       </aside>
 
       <!-- RIGHT: Details -->
@@ -258,7 +257,7 @@ $adv_stmt->close();
             <div class="label">Roles</div>
             <div id="roles"><?php echo htmlspecialchars($ranking); ?></div>
             <div class="label">Depts</div>
-            <div id="roles"><?php echo htmlspecialchars($fac['DeptNames']); ?></div>
+            <div><?php echo htmlspecialchars($fac['DeptNames']); ?></div>
           </div>
         </div><br>
 
@@ -295,12 +294,12 @@ $adv_stmt->close();
           <table>
             <thead>
               <tr>
-                <th class="w-90">CRN</th>
-                <th>Course</th>
-                <th>Days</th>
-                <th>Time</th>
-                <th>Location</th>
-                <th>Status</th>
+                <th scope="col" class="w-90">CRN</th>
+                <th scope="col">Course</th>
+                <th scope="col">Days</th>
+                <th scope="col">Time</th>
+                <th scope="col">Location</th>
+                <th scope="col">Status</th>
               </tr>
             </thead>
             <tbody id="facultyScheduleBody">
@@ -347,7 +346,7 @@ $adv_stmt->close();
         </div>
         <div class="table-wrap">
           <table aria-label="Advisees">
-            <thead><tr><th>Name</th><th>Program</th></tr></thead>
+            <thead><tr><th scope="col">Name</th><th scope="col">Program</th></tr></thead>
             <tbody id="advisees">
               <?php if (empty($advisees)): ?>
                 <tr><td colspan="2">No advisees assigned.</td></tr>

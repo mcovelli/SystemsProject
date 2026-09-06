@@ -340,7 +340,7 @@ $userstmt->close();
     </script>
 <?php endif; ?>
 
-<main class="page">
+<main id="main" tabindex="-1" class="page">
 
 <!-- SEARCH USER CARD -->
 <section class="hero card">
@@ -350,8 +350,8 @@ $userstmt->close();
 
     <form method="POST" style="margin-top: 10px;">
         <div class="field-block">
-            <label>UserID</label>
-            <input type="text" name="searchID" required placeholder="Enter UserID...">
+            <label for="userid">UserID</label>
+            <input id="userid" type="text" name="searchID" required placeholder="Enter UserID...">
         </div>
 
         <button type="submit" name="searchUser" class="btn">Search</button>
@@ -375,76 +375,76 @@ $userstmt->close();
         <h3>Basic Information</h3>
 
         <div class="field-block">
-            <label>UserID (Read Only)</label>
-            <input type="text" value="<?php echo $loadedUser['UserID']; ?>" readonly>
+            <label for="userid-read-only">UserID (Read Only)</label>
+            <input id="userid-read-only" type="text" value="<?php echo $loadedUser['UserID']; ?>" readonly>
         </div>
 
         <div class="field-block">
-            <label>Email (Read Only)</label>
-            <input type="text" value="<?php echo $loadedUser['Email']; ?>" readonly>
+            <label for="email-read-only">Email (Read Only)</label>
+            <input id="email-read-only" type="text" value="<?php echo $loadedUser['Email']; ?>" readonly>
         </div>
 
         <div class="field-block">
-            <label>First Name</label>
-            <input type="text" name="FirstName" value="<?php echo $loadedUser['FirstName']; ?>">
+            <label for="first-name">First Name</label>
+            <input id="first-name" type="text" name="FirstName" value="<?php echo $loadedUser['FirstName']; ?>">
         </div>
 
         <div class="field-block">
-            <label>Middle Name</label>
-            <input type="text" name="MiddleName" value="<?php echo $loadedUser['MiddleName']; ?>">
+            <label for="middle-name">Middle Name</label>
+            <input id="middle-name" type="text" name="MiddleName" value="<?php echo $loadedUser['MiddleName']; ?>">
         </div>
 
         <div class="field-block">
-            <label>Last Name</label>
-            <input type="text" name="LastName" value="<?php echo $loadedUser['LastName']; ?>">
+            <label for="last-name">Last Name</label>
+            <input id="last-name" type="text" name="LastName" value="<?php echo $loadedUser['LastName']; ?>">
         </div>
 
         <div class="field-block">
-            <label>House Number</label>
-            <input type="text" name="HouseNumber" value="<?php echo $loadedUser['HouseNumber']; ?>">
+            <label for="house-number">House Number</label>
+            <input id="house-number" type="text" name="HouseNumber" value="<?php echo $loadedUser['HouseNumber']; ?>">
         </div>
 
         <div class="field-block">
-            <label>Street</label>
-            <input type="text" name="Street" value="<?php echo $loadedUser['Street']; ?>">
+            <label for="street">Street</label>
+            <input id="street" type="text" name="Street" value="<?php echo $loadedUser['Street']; ?>">
         </div>
 
         <div class="field-block">
-            <label>City</label>
-            <input type="text" name="City" value="<?php echo $loadedUser['City']; ?>">
+            <label for="city">City</label>
+            <input id="city" type="text" name="City" value="<?php echo $loadedUser['City']; ?>">
         </div>
 
         <div class="field-block">
-            <label>State</label>
-            <input type="text" name="State" value="<?php echo $loadedUser['State']; ?>">
+            <label for="state">State</label>
+            <input id="state" type="text" name="State" value="<?php echo $loadedUser['State']; ?>">
         </div>
 
         <div class="field-block">
-            <label>ZIP</label>
-            <input type="text" name="ZIP" value="<?php echo $loadedUser['ZIP']; ?>">
+            <label for="zip">ZIP</label>
+            <input id="zip" type="text" name="ZIP" value="<?php echo $loadedUser['ZIP']; ?>">
         </div>
 
         <div class="field-block">
-            <label>Phone Number</label>
-            <input type="text" name="PhoneNumber" value="<?php echo $loadedUser['PhoneNumber']; ?>">
+            <label for="phone-number">Phone Number</label>
+            <input id="phone-number" type="text" name="PhoneNumber" value="<?php echo $loadedUser['PhoneNumber']; ?>">
         </div>
 
         <div class="field-block">
-            <label>Date of Birth</label>
-            <input type="date" name="DOB" value="<?php echo $loadedUser['DOB']; ?>">
+            <label for="date-of-birth">Date of Birth</label>
+            <input id="date-of-birth" type="date" name="DOB" value="<?php echo $loadedUser['DOB']; ?>">
         </div>
 
         <div class="field-block">
-          <label>Status</label>
-             <select name="Status">
+          <label for="status">Status</label>
+             <select id="status" name="Status">
                 <option value="ACTIVE" <?php if ($loadedUser['Status'] === 'ACTIVE') echo 'selected'; ?>>ACTIVE</option>
                 <option value="INACTIVE" <?php if ($loadedUser['Status'] === 'INACTIVE') echo 'selected'; ?>>INACTIVE</option>
             </select>
         </div>
 
         <div class="field-block">
-            <label>Gender</label>
-            <select name="Gender">
+            <label for="gender">Gender</label>
+            <select id="gender" name="Gender">
                 <option value="M" <?php if ($loadedUser['Gender'] === 'M') echo 'selected'; ?>>Male</option>
                 <option value="F" <?php if ($loadedUser['Gender'] === 'F') echo 'selected'; ?>>Female</option>
             </select>
@@ -458,7 +458,7 @@ $userstmt->close();
         <h3>Student Information</h3>
 
         <div class="field-block">
-            <label>Student Type</label>
+            <label for="StudentType">Student Type</label>
             <select name="StudentType" id="StudentType">
                 <option value="Undergraduate" <?php if ($studentData['StudentType'] === "Undergraduate") echo "selected"; ?>>Undergraduate</option>
                 <option value="Graduate" <?php if ($studentData['StudentType'] === "Graduate") echo "selected"; ?>>Graduate</option>
@@ -466,7 +466,7 @@ $userstmt->close();
         </div>
 
         <div class="field-block">
-            <label>Major</label>
+            <label for="MajorID">Major</label>
             <select name="MajorID" id="MajorID">
                 <?php foreach (loadMajors($mysqli) as $m): ?>
                     <option value="<?php echo $m['MajorID']; ?>"
@@ -478,8 +478,8 @@ $userstmt->close();
         </div>
 
         <div class="field-block" id="MinorBlock">
-            <label>Minor</label>
-            <select name="MinorID">
+            <label for="minor">Minor</label>
+            <select id="minor" name="MinorID">
                 <option value="">None</option>
                 <?php foreach (loadMinors($mysqli) as $n): ?>
                     <option value="<?php echo $n['MinorID']; ?>"
@@ -493,8 +493,8 @@ $userstmt->close();
         <!-- Undergrad sub-options -->
         <?php if ($studentData['StudentType'] === 'Undergraduate') : ?>
         <div class="field-block" id="UGTypeBlock">
-            <label>Undergrad Type</label>
-            <select name="UGStudentType">
+            <label for="undergrad-type">Undergrad Type</label>
+            <select id="undergrad-type" name="UGStudentType">
                 <option value="FullTimeUG" <?php if ($studentData['UG']['UGStudentType'] === 'FullTimeUG') echo 'selected'; ?>>Full Time UG</option>
                 <option value="PartTimeUG" <?php if ($studentData['UG']['UGStudentType'] === 'PartTimeUG') echo 'selected'; ?>>Part Time UG</option>
             </select>
@@ -504,16 +504,16 @@ $userstmt->close();
         <!-- Graduate sub-options -->
         <?php if ($studentData['StudentType'] === 'Graduate') : ?>
         <div class="field-block" id="GradTypeBlock">
-            <label>Grad Enrollment Type</label>
-            <select name="GradStudentType">
+            <label for="grad-enrollment-type">Grad Enrollment Type</label>
+            <select id="grad-enrollment-type" name="GradStudentType">
                 <option value="FullTimeGrad" <?php if ($studentData['GR']['GradStudentType'] === 'FullTimeGrad') echo 'selected'; ?>>Full Time Grad</option>
                 <option value="PartTimeGrad" <?php if ($studentData['GR']['GradStudentType'] === 'PartTimeGrad') echo 'selected'; ?>>Part Time Grad</option>
             </select>
         </div>
 
         <div class="field-block" id="ProgramBlock">
-            <label>Graduate Program</label>
-            <select name="ProgramID">
+            <label for="graduate-program">Graduate Program</label>
+            <select id="graduate-program" name="ProgramID">
                 <?php foreach (loadPrograms($mysqli) as $p): ?>
                     <option value="<?php echo $p['ProgramID']; ?>"
                         <?php if ($studentData['GR']['ProgramID'] == $p['ProgramID']) echo 'selected'; ?>>
@@ -534,16 +534,16 @@ $userstmt->close();
         <h3>Faculty Information</h3>
 
         <div class="field-block">
-            <label>Faculty Type</label>
-            <select name="FacultyType">
+            <label for="faculty-type">Faculty Type</label>
+            <select id="faculty-type" name="FacultyType">
                 <option value="FullTimeFaculty" <?php if ($facultyData['FacultyType'] === 'FullTimeFaculty') echo 'selected'; ?>>Full Time Faculty</option>
                 <option value="PartTimeFaculty" <?php if ($facultyData['FacultyType'] === 'PartTimeFaculty') echo 'selected'; ?>>Part Time Faculty</option>
             </select>
         </div>
 
         <div class="field-block">
-            <label>Office</label>
-            <select name="OfficeID">
+            <label for="office">Office</label>
+            <select id="office" name="OfficeID">
                 <?php foreach (loadOffices($mysqli) as $o): ?>
                     <option value="<?php echo $o['RoomID']; ?>"
                         <?php if ($facultyData['OfficeID'] == $o['RoomID']) echo 'selected'; ?>>
@@ -554,8 +554,8 @@ $userstmt->close();
         </div>
 
         <div class="field-block">
-            <label>Ranking</label>
-            <select name="Ranking">
+            <label for="ranking">Ranking</label>
+            <select id="ranking" name="Ranking">
                 <option value="Dr." <?php if ($facultyData['Ranking'] === "Dr.") echo 'selected'; ?>>Dr.</option>
                 <option value="Asst Prof" <?php if ($facultyData['Ranking'] === "Asst Prof") echo 'selected'; ?>>Asst Prof</option>
                 <option value="Assoc Prof" <?php if ($facultyData['Ranking'] === "Assoc Prof") echo 'selected'; ?>>Assoc Prof</option>
@@ -564,13 +564,13 @@ $userstmt->close();
         </div>
 
         <div class="field-block">
-            <label>Specialty</label>
-            <input type="text" name="Specialty" value="<?php echo $facultyData['Specialty']; ?>">
+            <label for="specialty">Specialty</label>
+            <input id="specialty" type="text" name="Specialty" value="<?php echo $facultyData['Specialty']; ?>">
         </div>
 
         <div class="field-block">
-            <label>Departments (Multi-Select)</label>
-            <select name="Departments[]" class="multiselect" multiple>
+            <label for="departments-multi-select">Departments (Multi-Select)</label>
+            <select id="departments-multi-select" name="Departments[]" class="multiselect" multiple>
                 <?php foreach (loadDepartments($mysqli) as $d): ?>
                 <option value="<?php echo $d['DeptID']; ?>"
                     <?php if (in_array($d['DeptID'], $facultyDepartments)) echo "selected"; ?>>
@@ -590,8 +590,8 @@ $userstmt->close();
         <h3>Admin Options</h3>
 
         <div class="field-block">
-            <label>Security Type</label>
-            <select name="SecurityType">
+            <label for="security-type">Security Type</label>
+            <select id="security-type" name="SecurityType">
                 <option value="VIEW" <?php if ($adminData['SecurityType'] === 'VIEW') echo 'selected'; ?>>View Admin</option>
                 <option value="UPDATE" <?php if ($adminData['SecurityType'] === 'UPDATE') echo 'selected'; ?>>Update Admin</option>
             </select>

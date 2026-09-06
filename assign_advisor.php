@@ -95,6 +95,7 @@ $mysqli->commit();
 <?php $nu_title = 'Assign Advisor'; require __DIR__ . '/partials/head.php'; ?>
 <body>
   <?php $nu_page = 'Admin Portal'; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
+  <main id="main" tabindex="-1">
 
   <section class="hero card">
           <div class="card-head between">
@@ -106,15 +107,16 @@ $mysqli->commit();
 
   <div>
     <form name = "assignStudent" method = "POST" action = "">
-        <label for = "studentID" required>StudentID: </label>
+        <label for="studentID" required>StudentID: </label>
           <input type="text" id="studentID" name="studentID" placeholder="Enter StudentID"><br>
-          <label for = "facultyID" required>Faculty: </label>
+          <label for="facultyID" required>Faculty: </label>
           <select name="facultyID" id ="facultyID">
             <option value="">-- Select Faculty--</option>
           </select><br>
       <button type="submit">Assign</button>
     </form>
  </div>
+  </main>
  <?php require __DIR__ . '/partials/footer.php'; ?>
 
 

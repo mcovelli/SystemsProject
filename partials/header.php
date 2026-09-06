@@ -43,6 +43,12 @@ if (!empty($nu_crumb[0])) {
     elseif ($nu_crumb[0] === '@profile') { $nu_crumb[0] = $profile; }
 }
 ?>
+<?php /* First thing in the tab order. Every page opens with the same topbar --
+         wordmark, search box, bell, theme toggle, crumb, menu -- so reaching the
+         page's own content by keyboard meant tabbing past all of it, on all 69
+         pages. The link is off-screen until it takes focus. */ ?>
+<a class="skip-link" href="#main">Skip to main content</a>
+
 <header class="topbar">
   <div class="brand">
     <div class="logo"><i data-lucide="graduation-cap"></i></div>
@@ -84,8 +90,8 @@ if (!empty($nu_crumb[0])) {
         <div class="user-meta"><div class="name"><?= htmlspecialchars($nu_type, ENT_QUOTES) ?></div></div>
       <?php endif; ?>
       <div class="menu">
-        <button type="button" aria-haspopup="true">☰ Menu</button>
-        <div class="menu-content">
+        <button type="button" aria-haspopup="true" aria-controls="nu-user-menu">☰ Menu</button>
+        <div class="menu-content" id="nu-user-menu">
           <a href="<?= htmlspecialchars($dashboard, ENT_QUOTES) ?>">Dashboard</a>
           <a href="<?= htmlspecialchars($profile, ENT_QUOTES) ?>">Profile</a>
           <a href="logout.php">Logout</a>

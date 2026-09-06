@@ -273,7 +273,7 @@ if (!$student) {
 <body>
   <?php $nu_crumb = ['@dashboard', '← Back to Dashboard']; $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-  <main>
+  <main id="main" tabindex="-1">
     <br>
     <div class="page-layout">
 
@@ -303,9 +303,9 @@ if (!$student) {
         <table>
             <thead>
               <tr>
-                <th>Course</th>
-                <th>Grade</th>
-                <th>Semester</th>
+                <th scope="col">Course</th>
+                <th scope="col">Grade</th>
+                <th scope="col">Semester</th>
               </tr>
             </thead>
             <tbody>
@@ -327,7 +327,7 @@ if (!$student) {
         <table>
             <thead>
               <tr>
-                <th>Course</th>
+                <th scope="col">Course</th>
               </tr>
             </thead>
             <tbody>
@@ -368,9 +368,9 @@ if (!$student) {
 
     </div>
 
-    <?php require __DIR__ . '/partials/footer.php'; ?>
   </main>
-</body>
+
+  <?php require __DIR__ . '/partials/footer.php'; ?>
 
 
   <script>

@@ -58,7 +58,7 @@ if (!$user) {
   <?php if ($_SESSION['user_id'] === $adminId): ?>
   <div id="editProfilePopup" class="popup-overlay">
     <div class="popup-card">
-      <span class="close-btn" onclick="closePopup()">&times;</span>
+      <button type="button" class="close-btn" onclick="closePopup()" aria-label="Close">&times;</button>
       <h2>Edit Profile</h2>
 
       <form id="editProfileForm" method="post" action="update_profile.php" class="form-grid">
@@ -99,7 +99,7 @@ if (!$user) {
   </div>
 <?php endif; ?>
 
-  <main>
+  <main id="main" tabindex="-1">
     <div class="wrap grid">
       <!-- LEFT: Profile Card -->
       <aside class="card profile">
@@ -136,8 +136,6 @@ if (!$user) {
           </div>
         </div>
       </aside>
-
-      </section>
     </div>
   </main>
 

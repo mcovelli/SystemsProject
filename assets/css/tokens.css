@@ -21,10 +21,15 @@
 
   --nu-text:          #0F1319;   /* 17.7:1 on ground                        */
   --nu-muted:         #5B6675;   /*  5.5:1 on ground — labels, secondary    */
-  --nu-faint:         #7E8896;   /*  3.6:1 on white — placeholders, hints   */
+  --nu-faint:         #7E8896;   /*  3.6:1 — NON-TEXT only, see below       */
+
+  /* --nu-faint tops out at 3.6:1, so it is a non-text token: idle icon strokes
+     and nothing else. Placeholder and disabled text are real text a reader has
+     to make out, so both take --nu-muted, which clears 4.5:1 on every ground. */
 
   --nu-border:        #E3E7ED;   /* hairlines between rows and panels       */
-  --nu-border-strong: #D5DBE3;   /* input outlines, emphasised edges        */
+
+  --nu-border-strong: #828C9A;   /* control edges — 3.4:1 on white (1.4.11) */
 
   --nu-primary:       #0B6BCB;   /* solid fills; white text clears 5.3:1    */
   --nu-primary-hover: #0A5CAF;
@@ -95,7 +100,7 @@
     --nu-faint:         #6B7482;
 
     --nu-border:        #232A33;
-    --nu-border-strong: #2E3742;
+    --nu-border-strong: #646F7F;
 
     --nu-primary:       #1D74C9;
     --nu-primary-hover: #2A83DA;
@@ -133,7 +138,7 @@
   --nu-faint:         #6B7482;
 
   --nu-border:        #232A33;
-  --nu-border-strong: #2E3742;
+  --nu-border-strong: #646F7F;
 
   --nu-primary:       #1D74C9;
   --nu-primary-hover: #2A83DA;

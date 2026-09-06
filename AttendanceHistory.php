@@ -113,7 +113,7 @@ if (!empty($attendance)) {
 <body>
   <?php $nu_page = 'Attendance History'; $nu_crumb = ['@profile', '← Back to Profile']; $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="page">
+  <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div class="table-wrap"><div><strong>StudentID: </strong><?= htmlspecialchars($studentID) ?></div>
@@ -141,19 +141,19 @@ if (!empty($attendance)) {
 
                     <!-- Spacer between different courses -->
                     <?php if ($lastCRN !== null): ?>
-                        <tr><td colspan="4" style="height:12px; background:#e9e9e9;"></td></tr>
+                        <tr><td colspan="4" style="height:12px; background: var(--nu-surface-sunk);"></td></tr>
                     <?php endif; ?>
-                    <tr class = "crn-header" style="background:#dfe6ff; font-weight:bold;">
+                    <tr class="crn-header" style="background: var(--nu-primary-soft); font-weight:bold;">
                         <td colspan="4">
                             CRN: <?= htmlspecialchars($a['CRN']) ?> —
                             Course: <?= htmlspecialchars($a['CourseID']) ?>
                         </td>
                     </tr>
 
-                    <tr class="section-labels" style="background:#f7f7f7;">
-                        <th>Date</th>
-                        <th>Present/Absent</th>
-                        <th>Semester</th>
+                    <tr class="section-labels" style="background: var(--nu-surface-sunk);">
+                        <th scope="col">Date</th>
+                        <th scope="col">Present/Absent</th>
+                        <th scope="col">Semester</th>
                     </tr>
 
                 <?php endif; ?>

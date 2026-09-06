@@ -77,7 +77,7 @@ $stmt->close();
 <body>
   <?php $nu_page = 'Program Directory'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; require __DIR__ . '/partials/header.php'; ?>
 
- <main class="page">
+ <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>
@@ -106,7 +106,7 @@ $stmt->close();
 
       <div class="table-wrap">
         <table id="programsTable" border="1" cellpadding="5" cellspacing="0">
-          <thead><tr><th>Program ID</th><th>Program Name</th><th>Department Name</th><th>Degree Level</th><th>Credits</th><th>Department Email</th><th>Status</th></tr></thead>
+          <thead><tr><th scope="col">Program ID</th><th scope="col">Program Name</th><th scope="col">Department Name</th><th scope="col">Degree Level</th><th scope="col">Credits</th><th scope="col">Department Email</th><th scope="col">Status</th></tr></thead>
             <tbody id="programsBody">
               <?php if (!empty($programs)): ?>
                 <?php foreach ($programs as $p): ?>
@@ -132,6 +132,7 @@ $stmt->close();
             </table>
         </div>
     </section>
+    </main>
     <?php require __DIR__ . '/partials/footer.php'; ?>
   <script>
     // Immediately create Lucide icons

@@ -95,7 +95,7 @@ $stmt->close();
 <body>
   <?php $nu_page = 'User Directory'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="page">
+  <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>
@@ -123,15 +123,15 @@ $stmt->close();
       <table border="1" cellpadding="5" cellspacing="0">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Address</th>
-            <th>Phone</th>
-            <th>Email</th>
-            <th>Date of Birth</th>
-            <th>Gender</th>
-            <th>Type</th>
-            <th>Status</th>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Address</th>
+            <th scope="col">Phone</th>
+            <th scope="col">Email</th>
+            <th scope="col">Date of Birth</th>
+            <th scope="col">Gender</th>
+            <th scope="col">Type</th>
+            <th scope="col">Status</th>
           </tr>
         </thead>
         <tbody>

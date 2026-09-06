@@ -49,7 +49,7 @@ $major_requirement_stmt->close();
 <body>
   <?php $nu_page = 'Major Requirements'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="page">
+  <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>
@@ -62,7 +62,7 @@ $major_requirement_stmt->close();
     <section>
       <div class="hero card">
         <table id="majorRequirementsTable" cellpadding="10" cellspacing="50">
-          <thead><tr><th>MajorID</th><th>MajorName</th><th>CourseID</th><th>CourseName</th><th>Description</th><th>Course Type</th><th>Credits</th></tr></thead>
+          <thead><tr><th scope="col">MajorID</th><th scope="col">MajorName</th><th scope="col">CourseID</th><th scope="col">CourseName</th><th scope="col">Description</th><th scope="col">Course Type</th><th scope="col">Credits</th></tr></thead>
             <tbody id="majorRequirementsBody">
               <?php if (!empty($major_requirement)): ?>
                 <?php foreach ($major_requirement as $mr): ?>

@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <body>
     <?php $nu_crumb = ['update_admin_dashboard.php', '← Back to Dashboard']; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-    <main class="page">
+    <main id="main" tabindex="-1" class="page">
         <section class="hero card">
             <div class="card-head between">
                 <div>
@@ -64,11 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
                 <div id = "create-section-program">
                   <form id = "UpdateProgram" method = "POST" action = "">
-                    <label for ="degreeLevel">Degree Level: </label>
+                    <label for="degreeLevel">Degree Level: </label>
                       <select name="degreeLevel" id="degreeLevel" required>
                         <option value="">-</option>
                       </select><br>
-                    <label for ="dept">Department: </label>
+                    <label for="dept">Department: </label>
                        <select name="dept" id="dept" required>
                           <option value="">-</option>
                        </select><br>

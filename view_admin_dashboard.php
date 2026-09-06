@@ -43,7 +43,7 @@ $quickLinks = [
 <body>
   <?php $nu_page = 'Admin Portal'; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="container">
+  <main id="main" tabindex="-1" class="container">
     <section class="left">
       <div class="stats">
       

@@ -275,16 +275,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UpdateRequirements'])
 <body>
   <?php $nu_page = 'Add/Delete Requirements'; $nu_crumb = ['createDirectory.php', '← Back to Directory']; $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-    <main class="page">
+    <main id="main" tabindex="-1" class="page">
 
         <section class="hero card">
         <h2>Search Existing Major / Minor / Program</h2>
 
         <form method="POST">
-            <label>Search by Name or ID:</label>
-            <input type="text" name="searchName" required placeholder="e.g. Biology, MATH, MBA">
+            <label for="search-by-name-or-id">Search by Name or ID:</label>
+            <input id="search-by-name-or-id" type="text" name="searchName" required placeholder="e.g. Biology, MATH, MBA">
             
-            <select name="searchType" required>
+            <label class="sr-only" for="searchType">Search type</label>
+            <select id="searchType" name="searchType" required>
                 <option value="">-- Select Type --</option>
                 <option value="major">Major</option>
                 <option value="minor">Minor</option>
@@ -376,12 +377,12 @@ document.addEventListener("DOMContentLoaded", ()=>{
                           <table class="course-table" id="courseTable">
                             <thead>
                               <tr>
-                                <th>Select</th>
-                                <th>Course ID</th>
-                                <th>Course Name</th>
-                                <th>Dept</th>
-                                <th>Credits</th>
-                                <th>Level</th>
+                                <th scope="col">Select</th>
+                                <th scope="col">Course ID</th>
+                                <th scope="col">Course Name</th>
+                                <th scope="col">Dept</th>
+                                <th scope="col">Credits</th>
+                                <th scope="col">Level</th>
                               </tr>
                             </thead>
                             <tbody></tbody>
@@ -392,6 +393,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
             <button type="submit" name="UpdateRequirements">Submit</button>
         </form>
     </div>
+
+  </main>
 
 <?php require __DIR__ . '/partials/footer.php'; ?>
 
@@ -565,7 +568,8 @@ function showToast(message) {
     <?php unset($_SESSION['update_success']); ?>
 <?php endif; ?>
 </script>
-</body>
-</main>
 
- 
+<?php /* Was `</body></main>` -- closed in the wrong order, with no </html> at
+         all. The footer and the page scripts sat after </body>. */ ?>
+</body>
+</html>

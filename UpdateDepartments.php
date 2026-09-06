@@ -102,7 +102,7 @@ if (isset($_POST['UpdateDepartment'])) {
 <body>
   <?php $nu_page = 'Update Departments'; $nu_crumb = ['createDirectory.php', '← Back to Directory']; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-    <main class="page">
+    <main id="main" tabindex="-1" class="page">
         <section class="hero card">
             <div class="card-head between">
                 <div>
@@ -114,8 +114,8 @@ if (isset($_POST['UpdateDepartment'])) {
                 <h2>Search Department</h2>
 
                 <form method="POST" style="margin-top: 10px;">
-                    <label>Search by Dept Name or Dept ID</label>
-                    <input type="text" name="searchID" required placeholder="ex. MATH or Mathematics">
+                    <label for="search-by-dept-name-or-dept-id">Search by Dept Name or Dept ID</label>
+                    <input id="search-by-dept-name-or-dept-id" type="text" name="searchID" required placeholder="ex. MATH or Mathematics">
                     <button type="submit" name="searchDepartments">Search</button>
                 </form>
             </section>
@@ -124,7 +124,7 @@ if (isset($_POST['UpdateDepartment'])) {
             <?php if (!empty($loadedDepartments)) : ?>
                 <div id = "update-section-department">
                     <form id = "UpdateDepartment" method = "POST" action = "">
-                      <label for = "deptID" hidden></label>
+                      <label for="deptID" hidden></label>
                             <input type = "hidden" id = "deptID" name="deptID" placeholder="ex. MATH"><br>
                         <div class = "field-block">
                             <label for="deptName">Department Name: </label>
@@ -137,12 +137,12 @@ if (isset($_POST['UpdateDepartment'])) {
                             <label for="deptPhone">Department Phone: </label>
                                  <input type = "tel" id="deptPhone" name="deptPhone" placeholder="ex. (555) 123-4567"><br>
 
-                            <label for ="roomID">Room ID: </label>
+                            <label for="roomID">Room ID: </label>
                                 <select name="roomID" id="roomID">
                                     <option value="<?php echo $loadedDepartments['RoomID']; ?>"><?php echo $loadedDepartments['RoomID']; ?></option>
                                 </select><br>
 
-                            <label for = "chairID">Chair:</label>
+                            <label for="chairID">Chair:</label>
                                 <select name="chairID" id="chairID">
                                     <option value="<?php echo $loadedDepartments['ChairID']; ?>"><?php echo $loadedDepartments['ChairName']; ?></option>
                                 </select><br>
@@ -152,8 +152,11 @@ if (isset($_POST['UpdateDepartment'])) {
                             </div>
                     </form>
                 </div>
-        </section>
         <?php endif; ?>
+        <?php /* This </section> closes the outer .hero card, which opens before the
+                 conditional -- so leaving it inside meant the card never closed on
+                 the search screen, and everything after it landed inside the card. */ ?>
+        </section>
     </main>
 
     <?php if (!empty($loadedDepartments)): ?>

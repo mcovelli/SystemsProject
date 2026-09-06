@@ -65,7 +65,7 @@ $deptName = $dept['DeptName'];
 <body>
   <?php $nu_page = 'Department Profile'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="page">
+  <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>

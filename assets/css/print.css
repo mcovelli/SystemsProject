@@ -51,6 +51,7 @@ body {
 }
 
 /* ---- chrome that has no business on paper -------------------------------- */
+.skip-link,
 .topbar,
 .footer,
 .menu,

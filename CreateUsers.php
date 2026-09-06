@@ -353,7 +353,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <div id="toast" class="toast hidden"></div>
 
-      <main class="page">
+      <main id="main" tabindex="-1" class="page">
         <section class="hero card">
           <div class="card-head between">
             <div>

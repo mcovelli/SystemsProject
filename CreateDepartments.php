@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
   <?php $nu_page = 'Create Departments'; $nu_crumb = ['createDirectory.php', '← Back to Directory']; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-    <main class="page">
+    <main id="main" tabindex="-1" class="page">
         <section class="hero card">
             <div class="card-head between">
                 <div>
@@ -75,12 +75,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="deptPhone">Department Phone: </label>
                              <input type = "tel" id="deptPhone" name="deptPhone" required placeholder="ex. (555) 123-4567"><br>
 
-                        <label for ="roomID">Room ID: </label>
+                        <label for="roomID">Room ID: </label>
                             <select name="roomID" id="roomID">
                                 <option value="">-- Select Office --</option>
                             </select><br>
 
-                        <label for = "chairID">Chair:</label>
+                        <label for="chairID">Chair:</label>
                             <select name="chairID" id="chairID">
                                 <option value="">-- Select Chair --</option>
                             </select><br>

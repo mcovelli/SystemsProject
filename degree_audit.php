@@ -238,6 +238,7 @@ $standing = ($gpa > 2.99) ? 'Good Standing' : 'Needs Improvement';
 <?php $nu_title = 'Degree Audit'; require __DIR__ . '/partials/head.php'; ?>
 <body>
     <?php $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
+  <main id="main" tabindex="-1">
 
   <div class="page">
     <!-- Header -->
@@ -280,8 +281,8 @@ $standing = ($gpa > 2.99) ? 'Good Standing' : 'Needs Improvement';
       <div class="card-head"><div>Courses Needed</div><div></div></div>
       <div class="card-body">
         <div class="table-wrap">
-          <table id="coursesTable">
-            <thead><tr><th>Course</th></tr></thead>
+          <table>
+            <thead><tr><th scope="col">Course</th></tr></thead>
              <tbody>
               <?php
                 // Convert Courses_Needed string into lines
@@ -320,8 +321,8 @@ $standing = ($gpa > 2.99) ? 'Good Standing' : 'Needs Improvement';
       <div class="card-head"><div>Courses (Completed & In‑Progress)</div><div>Most recent first</div></div>
       <div class="card-body">
         <div class="table-wrap">
-          <table id="coursesTable">
-            <thead><tr><th>Term</th><th>CRN</th><th>Course</th><th>Title</th><th>Credits</th><th>Grade</th><th>Status</th></tr></thead>
+          <table>
+            <thead><tr><th scope="col">Term</th><th scope="col">CRN</th><th scope="col">Course</th><th scope="col">Title</th><th scope="col">Credits</th><th scope="col">Grade</th><th scope="col">Status</th></tr></thead>
             <tbody id="coursesBody">
               <?php if (!empty($courses)): ?>
                 <?php foreach ($courses as $c): ?>
@@ -344,8 +345,10 @@ $standing = ($gpa > 2.99) ? 'Good Standing' : 'Needs Improvement';
       </div>
     </div>
 
-    <footer class="footer-note">© <span id="year"></span> Northport University</footer>
   </div>
+  </main>
+
+  <footer class="footer-note">© <span id="year"></span> Northport University</footer>
 
   <script>
     // ------- Populate header/KPIs from PHP -------

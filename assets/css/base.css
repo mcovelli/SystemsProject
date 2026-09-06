@@ -59,7 +59,7 @@ textarea {
 }
 
 input::placeholder,
-textarea::placeholder { color: var(--nu-faint); }
+textarea::placeholder { color: var(--nu-muted); }
 
 textarea {
   min-height: 120px;
@@ -92,11 +92,15 @@ textarea:focus-visible {
   box-shadow: 0 0 0 3px var(--nu-ring);
 }
 
+/* WCAG exempts disabled controls from the contrast minimum, but a disabled
+   <select> still shows the value that was chosen for you, and at 3.2:1 it was
+   a guess. The sunk fill and the cursor carry the disabled signal on their own,
+   so the text can afford to be legible. */
 input:disabled,
 select:disabled,
 textarea:disabled {
   background: var(--nu-surface-sunk);
-  color: var(--nu-faint);
+  color: var(--nu-muted);
   cursor: not-allowed;
 }
 
@@ -160,7 +164,7 @@ input[type="reset"]:hover { background: var(--nu-primary-hover); }
 button:disabled,
 input[type="submit"]:disabled {
   background: var(--nu-surface-sunk);
-  color: var(--nu-faint);
+  color: var(--nu-muted);
   cursor: not-allowed;
 }
 

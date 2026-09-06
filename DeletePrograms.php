@@ -114,7 +114,7 @@ switch ($userRole) {
 <body>
   <?php $nu_page = 'Program Status'; $nu_crumb = ['createDirectory.php', '← Back to Directory']; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-    <main>
+    <main id="main" tabindex="-1">
 
         <h3>Program Status</h3>
         <p class="muted">Retiring stops a program being offered to new students while keeping

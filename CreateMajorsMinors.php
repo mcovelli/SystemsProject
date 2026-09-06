@@ -72,7 +72,7 @@ switch ($majorOrMinor){
 <body>
   <?php $nu_page = 'Create Majors and Minors'; $nu_crumb = ['createDirectory.php', '← Back to Directory']; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-    <main class="page">
+    <main id="main" tabindex="-1" class="page">
         <section class="hero card">
             <div class="card-head between">
                 <div>
@@ -88,13 +88,13 @@ switch ($majorOrMinor){
                             <option value="minor">Minor</option>
                         </select>
                         <br>
-                        <label for="dept">Department: </label>
+                        <label for="deptID">Department: </label>
                              <select name="deptID" id="deptID">
                                 <option value="">-- All Departments --</option>
                                 </select><br>
-                        <label id="typeLabel" for ="major_name">Name: </label>
+                        <label for="name" id="typeLabel">Name: </label>
                         <input type = "text" id="name" name="name" required><br>
-                        <label id="Credits" for ="credits_needed">Credits Needed: </label>
+                        <label for="credits_needed" id="Credits">Credits Needed: </label>
                         <input type = "number" id="credits_needed" name="credits_needed" required><br>
                         
 

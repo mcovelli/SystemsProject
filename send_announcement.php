@@ -40,7 +40,7 @@ if ($userRole === 'faculty') {
 <body>
     <h1>Send Announcement</h1>
 
-    <main class="container">
+    <main id="main" tabindex="-1" class="container">
         <section class="left">
             <div class="card">
                 <form method="post" action="process_announcement.php" class="form-grid">

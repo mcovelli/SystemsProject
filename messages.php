@@ -82,9 +82,14 @@ switch ($userRole) {
 }
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <?php $nu_title = 'Messages'; require __DIR__ . '/partials/head.php'; ?>
 <body>
+
+<?php /* messages.php builds its own shell rather than using partials/header.php,
+         so it needs its own copy of the skip link. The sidebar is what stands
+         between the top of the page and the message list. */ ?>
+<a class="skip-link" href="#main">Skip to main content</a>
 
 <div class="layout">
 
@@ -111,7 +116,7 @@ switch ($userRole) {
 </aside>
 
 <!-- MAIN CONTENT -->
-<main class="content">
+<main id="main" tabindex="-1" class="content">
     <div class="toolbar">
         <h2 id="current-folder-label"><?= ucfirst(strtolower($folderSQL)) ?></h2>
     </div>
@@ -125,8 +130,8 @@ switch ($userRole) {
                 <table>
                     <thead>
                         <tr>
-                            <th>From</th>
-                            <th>Title</th>
+                            <th scope="col">From</th>
+                            <th scope="col">Title</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -204,23 +209,23 @@ switch ($userRole) {
                 <div id="compose-section" class="hidden">
                     <form method="POST" action="send_message.php">
                         <div class="field">
-                            <label>From</label>
-                            <input type="email" name="senderEmail" value="<?= htmlspecialchars($userEmail) ?>" readonly>
+                            <label for="from">From</label>
+                            <input id="from" type="email" name="senderEmail" value="<?= htmlspecialchars($userEmail) ?>" readonly>
                         </div>
 
                         <div class="field">
-                            <label>To</label>
-                            <input type="email" name="recipientEmail" required>
+                            <label for="to">To</label>
+                            <input id="to" type="email" name="recipientEmail" required>
                         </div>
 
                         <div class="field">
-                            <label>Title</label>
-                            <input type="text" name="title" required>
+                            <label for="title">Title</label>
+                            <input id="title" type="text" name="title" required>
                         </div>
 
                         <div class="field">
-                            <label>Message</label>
-                            <textarea name="body" required></textarea>
+                            <label for="message">Message</label>
+                            <textarea id="message" name="body" required></textarea>
                         </div>
 
                         <button type="submit" class="btn primary">Send</button>

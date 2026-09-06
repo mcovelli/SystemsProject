@@ -69,7 +69,7 @@ $stmt->close();
 <body>
   <?php $nu_page = 'Prerequisite Directory'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
- <main class="page">
+ <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>
@@ -90,7 +90,7 @@ $stmt->close();
 
       <div class="table-wrap">
         <table id="majorsTable" border="2" cellpadding="5" cellspacing="0">
-          <thead><tr><th>Course</th><th>Prerequisite Course</th><th>Minimum Grade</th></tr></thead>
+          <thead><tr><th scope="col">Course</th><th scope="col">Prerequisite Course</th><th scope="col">Minimum Grade</th></tr></thead>
             <tbody id="majorsBody">
               <?php if (!empty($results)): ?>
                 <?php foreach ($results as $m): ?>

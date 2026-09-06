@@ -101,7 +101,7 @@ if (isset($_POST['UpdateProgram'])) {
 <body>
   <?php $nu_page = 'Update Minor'; $nu_crumb = ['createDirectory.php', '← Back to Directory']; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-    <main class="page">
+    <main id="main" tabindex="-1" class="page">
         <section class="hero card">
             <div class="card-head between">
                 <div>
@@ -113,8 +113,8 @@ if (isset($_POST['UpdateProgram'])) {
                 <h2>Search Minor </h2>
 
                 <form method="POST" style="margin-top: 10px;">
-                    <label>Search by Name or ID</label>
-                    <input type="text" name="searchID" required placeholder="ex. MATH or Mathematics">
+                    <label for="search-by-name-or-id">Search by Name or ID</label>
+                    <input id="search-by-name-or-id" type="text" name="searchID" required placeholder="ex. MATH or Mathematics">
                     <button type="submit" name="searchPrograms">Search</button>
                 </form>
             </section>
@@ -123,7 +123,7 @@ if (isset($_POST['UpdateProgram'])) {
             <?php if (!empty($loadedProgram)) : ?>
                 <div id = "update-section-department">
                     <form id = "UpdateProgram" method = "POST" action = "">
-                      <label for = "ID" readonly>Minor ID (read only):</label>
+                      <label for="ID" readonly>Minor ID (read only):</label>
                             <input type="text" id="ID" name="ID" readonly
                                value="<?= htmlspecialchars($loadedProgram['MinorID'] ?? '') ?>"
                                placeholder="ex. 1"><br>
@@ -135,7 +135,7 @@ if (isset($_POST['UpdateProgram'])) {
                                placeholder="ex. Mathematics"><br>
                         </div>
 
-                        <label for ="deptID">Dept Name: </label>
+                        <label for="deptID">Dept Name: </label>
                             <select name="deptID" id="deptID">
                                 <option value="">-- Select Department --</option>
                             </select><br>
@@ -151,8 +151,11 @@ if (isset($_POST['UpdateProgram'])) {
                             </div>
                     </form>
                 </div>
-        </section>
         <?php endif; ?>
+        <?php /* This </section> closes the outer .hero card, which opens before the
+                 conditional -- so leaving it inside meant the card never closed on
+                 the search screen, and everything after it landed inside the card. */ ?>
+        </section>
     </main>
 
     <?php require __DIR__ . '/partials/footer.php'; ?>

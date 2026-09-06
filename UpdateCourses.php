@@ -101,7 +101,7 @@ if (isset($_POST['updateCourse'])) {
     </script>
 <?php endif; ?>
 
-<main class="page">
+<main id="main" tabindex="-1" class="page">
 
 <!-- SEARCH Course CARD -->
 <section class="hero card">
@@ -111,8 +111,8 @@ if (isset($_POST['updateCourse'])) {
 
     <form method="POST" style="margin-top: 10px;">
         <div class="field-block">
-            <label>CourseID</label>
-            <input type="text" name="searchID" required placeholder="Enter CourseID...">
+            <label for="courseid">CourseID</label>
+            <input id="courseid" type="text" name="searchID" required placeholder="Enter CourseID...">
         </div>
 
         <button type="submit" name="searchCourse" class="btn">Search</button>
@@ -136,30 +136,30 @@ if (isset($_POST['updateCourse'])) {
             <h3>Basic Information</h3>
 
             <div class="field-block">
-                <label>CourseID</label>
-                <input type="text" name="courseID" value="<?php echo $loadedCourse['CourseID']; ?>">
+                <label for="courseid-2">CourseID</label>
+                <input id="courseid-2" type="text" name="courseID" value="<?php echo $loadedCourse['CourseID']; ?>">
             </div>
 
             <div class="field-block">
-                <label>Course Name</label>
-                <input type="text" name="courseName" value="<?php echo $loadedCourse['CourseName']; ?>" >
+                <label for="course-name">Course Name</label>
+                <input id="course-name" type="text" name="courseName" value="<?php echo $loadedCourse['CourseName']; ?>" >
             </div>
 
             <div class="field-block">
-                <label for ="deptID">Department: </label>
+                <label for="deptID">Department: </label>
                                 <select name="deptID" id="deptID">
                                     <option value="<?php echo $loadedCourse['DeptID']; ?>"><?php echo $loadedCourse['DeptName']; ?></option>
                                 </select><br>
             </div>
 
             <div class="field-block">
-                <label>Course Description</label>
-                <textarea name="courseDesc" rows="4" cols="50"><?php echo $loadedCourse['Course_Desc']; ?></textarea>
+                <label for="course-description">Course Description</label>
+                <textarea id="course-description" name="courseDesc" rows="4" cols="50"><?php echo $loadedCourse['Course_Desc']; ?></textarea>
             </div>
 
             <div class="field-block">
-                <label>Credits</label>
-                <input type="number" name="credits" value="<?php echo $loadedCourse['Credits']; ?>">
+                <label for="credits">Credits</label>
+                <input id="credits" type="number" name="credits" value="<?php echo $loadedCourse['Credits']; ?>">
             </div>
 
             <div class="field-block">

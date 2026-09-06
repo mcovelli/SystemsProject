@@ -309,7 +309,7 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
 <?php if ($_SESSION['user_id'] === $studentId): ?>
   <div id="editProfilePopup" class="popup-overlay">
     <div class="popup-card">
-      <span class="close-btn" onclick="closePopup()">&times;</span>
+      <button type="button" class="close-btn" onclick="closePopup()" aria-label="Close">&times;</button>
       <h2>Edit Profile</h2>
 
       <form id="editProfileForm" method="post" action="update_profile.php" class="form-grid">
@@ -351,9 +351,9 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
   </div>
 <?php endif; ?>
 
-  <main>
+  <main id="main" tabindex="-1">
     <?php if (isset($_GET['saved'])): ?>
-      <div style="background:#d1fae5;color:#065f46;padding:10px;border-radius:8px;margin:10px 0;text-align:center;">
+      <div class="alert success" style="text-align:center;">
         ✅ Profile updated successfully!
       </div>
     <?php endif; ?>
@@ -493,13 +493,13 @@ $initials = substr($student['FirstName'] ?? 'N', 0, 1) . substr($student['LastNa
           <table>
             <thead>
               <tr>
-                <th class="w-90">CRN</th>
-                <th>Course</th>
-                <th>Days</th>
-                <th>Time</th>
-                <th>Location</th>
-                <th>Professor</th>
-                <th>Grade</th>
+                <th scope="col" class="w-90">CRN</th>
+                <th scope="col">Course</th>
+                <th scope="col">Days</th>
+                <th scope="col">Time</th>
+                <th scope="col">Location</th>
+                <th scope="col">Professor</th>
+                <th scope="col">Grade</th>
               </tr>
             </thead>
             <tbody id="studentScheduleBody">

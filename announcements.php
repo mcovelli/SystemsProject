@@ -125,7 +125,7 @@ switch ($userRole) {
 <html lang='en'>
 <?php $nu_title = 'All Announcements'; require __DIR__ . '/partials/head.php'; ?>
 <body class='page'>
-  <div class='wrap'>
+  <main id="main" tabindex="-1" class='wrap'>
     <h1>All Announcements</h1>
     
     <?php if ($res && $res->num_rows > 0): ?>
@@ -156,12 +156,8 @@ switch ($userRole) {
     <?php endif; ?>
     
     <a href='<?= $dashboard ?>' class='btn outline'>← Back to Dashboard</a>
-  </div>
-  
+  </main>
+
   <?php require __DIR__ . '/partials/footer.php'; ?>
-  <script>
-  // Minimal JS for year and initials fallback
-    document.getElementById('year').textContent = new Date().getFullYear();
-</script>
 </body>
 </html>

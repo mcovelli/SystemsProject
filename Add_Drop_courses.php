@@ -232,9 +232,9 @@ if (!empty($studentHolds)){
   <?php $nu_page = 'Add / Drop'; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
 
-  <main class="page">
+  <main id="main" tabindex="-1" class="page">
     <?php if (!empty($_SESSION['error_message'])): ?>
-      <div class="alert error" style="background:#fee2e2;color:#991b1b;padding:10px;border-radius:6px;margin-bottom:10px;">
+      <div class="alert error">
         <?= htmlspecialchars($_SESSION['error_message']) ?>
       </div>
       <?php unset($_SESSION['error_message']); ?>
@@ -299,13 +299,13 @@ if (!empty($studentHolds)){
             <caption id="availCaption" class="sr-only" style="position:absolute;left:-9999px;">Available course sections</caption>
             <thead>
               <tr>
-                <th class="w-90">CRN</th>
-                <th>Course</th>
-                <th>Days</th>
-                <th>Time</th>
-                <th>Location</th>
-                <th>Professor</th>
-                <th>Available Seats</th>
+                <th scope="col" class="w-90">CRN</th>
+                <th scope="col">Course</th>
+                <th scope="col">Days</th>
+                <th scope="col">Time</th>
+                <th scope="col">Location</th>
+                <th scope="col">Professor</th>
+                <th scope="col">Available Seats</th>
               </tr>
             </thead>
             <tbody id="availBody">
@@ -357,9 +357,9 @@ if (!empty($studentHolds)){
               <caption id="cartCaption" class="sr-only" style="position:absolute;left:-9999px;">My selected sections</caption>
               <thead>
                 <tr>
-                  <th>CRN</th>
-                  <th>Course ID</th>
-                  <th>Action</th>
+                  <th scope="col">CRN</th>
+                  <th scope="col">Course ID</th>
+                  <th scope="col">Action</th>
                 </tr>
               </thead>
               <tbody id="cartBody">
@@ -413,12 +413,12 @@ if (!empty($studentHolds)){
               <table>
                 <thead>
                   <tr>
-                    <th class="w-90">CRN</th>
-                    <th>Course</th>
-                    <th>Days</th>
-                    <th>Time</th>
-                    <th>Location</th>
-                    <th>Action</th>
+                    <th scope="col" class="w-90">CRN</th>
+                    <th scope="col">Course</th>
+                    <th scope="col">Days</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Location</th>
+                    <th scope="col">Action</th>
                   </tr>
                 </thead>
                 <tbody id="studentScheduleBody">

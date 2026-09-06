@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
   <?php $nu_page = 'Create Requirements'; $nu_crumb = ['createDirectory.php', '← Back to Directory']; $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-    <main class="page">
+    <main id="main" tabindex="-1" class="page">
         <section class="hero card">
           <div class="card-head between">
             <div>
@@ -165,12 +165,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                           <table class="course-table" id="courseTable">
                             <thead>
                               <tr>
-                                <th>Select</th>
-                                <th>Course ID</th>
-                                <th>Course Name</th>
-                                <th>Dept</th>
-                                <th>Credits</th>
-                                <th>Level</th>
+                                <th scope="col">Select</th>
+                                <th scope="col">Course ID</th>
+                                <th scope="col">Course Name</th>
+                                <th scope="col">Dept</th>
+                                <th scope="col">Credits</th>
+                                <th scope="col">Level</th>
                               </tr>
                             </thead>
                             <tbody></tbody>
@@ -181,6 +181,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <button type="submit" id = "submit">Submit</button>
         </form>
     </div>
+
+  </main>
 
 <?php require __DIR__ . '/partials/footer.php'; ?>
 
@@ -355,7 +357,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 </script>
-</body>
-</main>
 
- 
+<?php /* Was `</body></main>` -- closed in the wrong order, with no </html> at
+         all. The footer and the page scripts sat after </body>. */ ?>
+</body>
+</html>

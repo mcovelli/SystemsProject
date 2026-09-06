@@ -15,6 +15,36 @@
      - .hero is a .card variant with more room, not a gradient panel.
    ============================================================================ */
 
+/* ---- skip link ------------------------------------------------------------
+   Hidden until focused, then it lands over the topbar. Height must not be 0 and
+   it must not be display:none, or the link leaves the tab order along with the
+   rest of it -- which is the whole point of it existing. */
+.skip-link {
+  position: absolute;
+  left: var(--nu-space-3);
+  top: -100%;
+  z-index: 300;
+  padding: 10px 16px;
+  background: var(--nu-primary);
+  color: var(--nu-primary-ink);
+  font-size: var(--nu-text-sm);
+  font-weight: 600;
+  border-radius: 0 0 var(--nu-radius) var(--nu-radius);
+  box-shadow: var(--nu-shadow-lift);
+  text-decoration: none;
+  transition: top .12s ease;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid var(--nu-primary-ink);
+  outline-offset: -4px;
+}
+
+/* Jumping to #main focuses it (it carries tabindex="-1") -- without this the
+   browser draws a focus ring around the whole page body. */
+main:focus,
+main:focus-visible { outline: none; }
+
 /* ============================================================================
    TOPBAR
    ========================================================================== */
@@ -315,7 +345,7 @@ tr.section-labels th { background: var(--nu-surface-sunk); }
 .btn:disabled,
 .disabled-btn {
   background: var(--nu-surface-sunk);
-  color: var(--nu-faint);
+  color: var(--nu-muted);
   border-color: var(--nu-border);
   cursor: not-allowed;
 }
@@ -517,6 +547,28 @@ table tr.roster.open { display: table-row !important; }
 .field-block select { width: min(100%, 320px); }
 
 .multiselect { height: 120px; width: min(100%, 320px); padding: 6px; }
+
+/* ---- inline alerts --------------------------------------------------------
+   login.php and Add_Drop_courses.php both wrote class="alert error", and no
+   sheet in the project ever defined either class -- a failed login printed its
+   message as unstyled body text. Add_Drop_courses papered over that with an
+   inline style; student_profile.php hard-coded a green one. All three were
+   literal hex, so all three inverted wrongly in dark mode. */
+.alert {
+  padding: 10px var(--nu-space-3);
+  border-radius: var(--nu-radius-sm);
+  border: 1px solid transparent;
+  margin-bottom: var(--nu-space-3);
+  font-size: var(--nu-text-sm);
+  background: var(--nu-surface-sunk);
+  color: var(--nu-text);
+}
+.alert.error   { background: var(--nu-danger-bg); color: var(--nu-danger); border-color: var(--nu-danger); }
+.alert.success { background: var(--nu-ok-bg);     color: var(--nu-ok);     border-color: var(--nu-ok); }
+.alert.warn    { background: var(--nu-warn-bg);   color: var(--nu-warn);   border-color: var(--nu-warn); }
+/* login.html's account-lockout notice: the same danger colours, said louder. */
+.alert.locked  { background: var(--nu-danger-bg); color: var(--nu-danger); border-color: var(--nu-danger); border-width: 2px; font-weight: 600; }
+.alert a       { color: inherit; text-decoration: underline; }
 
 /* Driven from JS: .hidden while idle, then .show for a few seconds.
    .error swaps it to the danger colour. */
@@ -796,7 +848,7 @@ body:has(> .auth-container) {
   font-size: var(--nu-text-xs);
   text-transform: uppercase;
   letter-spacing: .08em;
-  color: var(--nu-faint);
+  color: var(--nu-muted);
   margin-bottom: 2px;
 }
 .message-field-value { margin-bottom: var(--nu-space-2); }

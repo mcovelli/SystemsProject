@@ -77,7 +77,7 @@ $stmt->close();
 <body>
   <?php $nu_page = 'Major Directory'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; require __DIR__ . '/partials/header.php'; ?>
 
- <main class="page">
+ <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>
@@ -106,7 +106,7 @@ $stmt->close();
 
       <div class="table-wrap">
         <table id="majorsTable" border="1" cellpadding="5" cellspacing="0">
-          <thead><tr><th>Major ID</th><th>Major Name</th><th>Department ID</th><th>Department Name</th><th>Credits Needed</th><th>Department Email</th><th>Status</th></tr></thead>
+          <thead><tr><th scope="col">Major ID</th><th scope="col">Major Name</th><th scope="col">Department ID</th><th scope="col">Department Name</th><th scope="col">Credits Needed</th><th scope="col">Department Email</th><th scope="col">Status</th></tr></thead>
             <tbody id="majorsBody">
               <?php if (!empty($majors)): ?>
                 <?php foreach ($majors as $m): ?>

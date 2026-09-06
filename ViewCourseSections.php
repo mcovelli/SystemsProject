@@ -110,7 +110,7 @@ if ($initials === '') { $initials = 'NU'; }
 <body>
   <?php $nu_page = 'Course Section Directory'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="page">
+  <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>
@@ -141,7 +141,7 @@ if ($initials === '') { $initials = 'NU'; }
 
     <div class="table-wrap">
       <table id="coursesTable" border="1" cellpadding="5" cellspacing="0">
-        <thead><tr><th>CRN</th><th>Course ID</th><th>#</th><th>Course</th><th>Dept</th><th>Professor</th><th>Days</th><th>Time</th><th>Room</th><th>Semester</th><th># Seats</th><th>Course Type</th></tr></thead>
+        <thead><tr><th scope="col">CRN</th><th scope="col">Course ID</th><th scope="col">#</th><th scope="col">Course</th><th scope="col">Dept</th><th scope="col">Professor</th><th scope="col">Days</th><th scope="col">Time</th><th scope="col">Room</th><th scope="col">Semester</th><th scope="col"># Seats</th><th scope="col">Course Type</th></tr></thead>
           <tbody id="coursesBody">
             <?php if (!empty($courses)): ?>
               <?php foreach ($courses as $c): ?>

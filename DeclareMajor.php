@@ -207,6 +207,7 @@ if (isset($_POST['declareMajor'])) {
 <?php $nu_title = 'Declare Major'; require __DIR__ . '/partials/head.php'; ?>
 <body>
   <?php $nu_page = 'Declare Major'; $nu_search = false; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
+  <main id="main" tabindex="-1">
 
   <!-- SEARCH Student CARD -->
 <?php if (!$isStudent): ?>
@@ -214,8 +215,8 @@ if (isset($_POST['declareMajor'])) {
     <h2>Search for Student</h2>
 
     <form method="POST">
-        <label>Student</label>
-        <input type="text" name="searchID" required placeholder="Enter StudentID...">
+        <label for="student">Student</label>
+        <input id="student" type="text" name="searchID" required placeholder="Enter StudentID...">
         <button type="submit" name="searchStudent">Search</button>
     </form>
 </section>
@@ -235,8 +236,8 @@ if (isset($_POST['declareMajor'])) {
             <h3>Basic Information</h3>
 
             <div class="field-block">
-                <label>Student ID (read only): </label>
-                <input type="text" name="studentID" readonly value="<?php echo $loadedStudent['StudentID']; ?>">
+                <label for="student-id-read-only">Student ID (read only): </label>
+                <input id="student-id-read-only" type="text" name="studentID" readonly value="<?php echo $loadedStudent['StudentID']; ?>">
             </div>
 
             <label>Select Major(s) (0–2 allowed):</label><br>
@@ -250,8 +251,8 @@ if (isset($_POST['declareMajor'])) {
             <?php endforeach; ?>
 
             <div class="field-block">
-                <label>Date of Declaration</label>
-                <input type="text" name="DateOfDeclaration" readonly 
+                <label for="date-of-declaration">Date of Declaration</label>
+                <input id="date-of-declaration" type="text" name="DateOfDeclaration" readonly 
                   value="<?php echo htmlspecialchars(date('Y-m-d')); ?>">
             </div>
 
@@ -266,6 +267,7 @@ if (isset($_POST['declareMajor'])) {
 
 <?php endif; ?>
 
+  </main>
  <?php require __DIR__ . '/partials/footer.php'; ?>
 
 

@@ -48,7 +48,7 @@ $program_requirement_stmt->close();
 <?php $nu_title = 'Program Requirements'; require __DIR__ . '/partials/head.php'; ?>
 <body>
   <?php $nu_page = 'Program Requirements'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; require __DIR__ . '/partials/header.php'; ?>
-  <main class="page">
+  <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>
@@ -61,7 +61,7 @@ $program_requirement_stmt->close();
     <section>
       <div class="hero card">
         <table id="majorRequirementsTable" cellpadding="10" cellspacing="50">
-          <thead><tr><th>ProgramID</th><th>ProgramName</th><th>CourseID</th><th>Type</th><th>Credits Required</th></tr></thead>
+          <thead><tr><th scope="col">ProgramID</th><th scope="col">ProgramName</th><th scope="col">CourseID</th><th scope="col">Type</th><th scope="col">Credits Required</th></tr></thead>
             <tbody id="majorRequirementsBody">
               <?php if (!empty($program_requirement)): ?>
                 <?php foreach ($program_requirement as $pr): ?>

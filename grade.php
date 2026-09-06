@@ -124,6 +124,7 @@ echo "<script>alert('Grade Submitted ✅');</script>";
 <?php $nu_title = 'Grading'; require __DIR__ . '/partials/head.php'; ?>
 <body>
   <?php $nu_page = 'Grading Portal'; require __DIR__ . '/partials/header.php'; ?>
+  <main id="main" tabindex="-1">
 
   <section>
     <div class="card">
@@ -133,11 +134,11 @@ echo "<script>alert('Grade Submitted ✅');</script>";
           <table>
             <thead>
               <tr>
-                <th class="w-90">CRN</th>
-                <th>Course</th>
-                <th>Days</th>
-                <th>Time</th>
-                <th>Location</th>
+                <th scope="col" class="w-90">CRN</th>
+                <th scope="col">Course</th>
+                <th scope="col">Days</th>
+                <th scope="col">Time</th>
+                <th scope="col">Location</th>
               </tr>
             </thead>
             <tbody>
@@ -190,8 +191,8 @@ echo "<script>alert('Grade Submitted ✅');</script>";
                             <table class="inner-roster">
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
-                                        <th>Grade</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Grade</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -243,6 +244,7 @@ echo "<script>alert('Grade Submitted ✅');</script>";
   
     </section>
 
+  </main>
       <?php require __DIR__ . '/partials/footer.php'; ?>
 
   <script>

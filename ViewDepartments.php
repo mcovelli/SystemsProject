@@ -41,7 +41,7 @@ $stmt->close();
 <body>
   <?php $nu_page = 'Department Directory'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="page">
+  <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>
@@ -51,7 +51,7 @@ $stmt->close();
 
       <div class="table-wrap">
       <table id="coursesTable" border ="1" cellpadding="5" cellspacing="0">
-        <thead><tr><th>Department</th><th>Email</th><th>Phone #</th><th>Office Location</th><th>Dept Chair</th></tr></thead>
+        <thead><tr><th scope="col">Department</th><th scope="col">Email</th><th scope="col">Phone #</th><th scope="col">Office Location</th><th scope="col">Dept Chair</th></tr></thead>
           <tbody id="coursesBody">
             <?php if (!empty($depts)): ?>
               <?php foreach ($depts as $d): ?>

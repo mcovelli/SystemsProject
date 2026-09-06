@@ -179,7 +179,7 @@ $roster_stmt->close();
 <body>
   <?php $nu_page = 'Class Roster'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="page">
+  <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>
@@ -206,7 +206,7 @@ $roster_stmt->close();
           <h2 class="card-title">
             View Class Roster
             <?php if ($selectedCRN): ?>
-              <span style="color: #666; font-size: 0.9em;"> - CRN: <?= htmlspecialchars($selectedCRN)?></span>
+              <span style="color: var(--nu-muted); font-size: 0.9em;"> - CRN: <?= htmlspecialchars($selectedCRN)?></span>
             <?php endif; ?>
           </h2>
         </div>
@@ -220,12 +220,12 @@ $roster_stmt->close();
           <table>
             <thead>
               <tr>
-                <th>Student Name</th>
-                <th>Course</th>
-                <th>Days</th>
-                <th>Time</th>
-                <th>Location</th>
-                <th>Grade</th>
+                <th scope="col">Student Name</th>
+                <th scope="col">Course</th>
+                <th scope="col">Days</th>
+                <th scope="col">Time</th>
+                <th scope="col">Location</th>
+                <th scope="col">Grade</th>
               </tr>
             </thead>
             <tbody>
@@ -258,6 +258,8 @@ $roster_stmt->close();
             </tbody>
           </table>
         </div>
+  </section>
+  </main>
 <?php require __DIR__ . '/partials/footer.php'; ?>
 </body>
   <script>

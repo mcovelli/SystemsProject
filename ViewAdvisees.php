@@ -67,7 +67,7 @@ $student_stmt->close();
 <body>
   <?php $nu_page = 'Advisee Directory'; $nu_crumb = ['viewDirectory.php', '← Back to Directory']; require __DIR__ . '/partials/header.php'; ?>
 
-  <main class="page">
+  <main id="main" tabindex="-1" class="page">
     <section class="hero card">
       <div class="card-head between">
         <div>
@@ -80,7 +80,7 @@ $student_stmt->close();
     <section>
       <div class="hero card">
         <table id="adviseesTable" cellpadding="10" cellspacing="50">
-          <thead><tr><th>StudentID</th><th>Student Name</th><th>Year</th><th>Type</th><th>Email</th><th>Major</th><th>Minor</th></tr></thead>
+          <thead><tr><th scope="col">StudentID</th><th scope="col">Student Name</th><th scope="col">Year</th><th scope="col">Type</th><th scope="col">Email</th><th scope="col">Major</th><th scope="col">Minor</th></tr></thead>
             <tbody id="adviseesBody">
               <?php if (!empty($advisee)): ?>
                 <?php foreach ($advisee as $a): ?>

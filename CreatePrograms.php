@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
   <?php $nu_page = 'Create Programs'; $nu_crumb = ['createDirectory.php', '← Back to Directory']; $nu_bell = false; require __DIR__ . '/partials/header.php'; ?>
 
-    <main>
+    <main id="main" tabindex="-1">
 
         <h3>Create Program</h3>
         
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <option value="">-- Select Degree Level --</option>
             </select><br>
 
-            <label for="dept">Department: </label>
+            <label for="deptID">Department: </label>
               <select name="deptID" id="deptID">
                 <option value="">-- All Departments --</option>
               </select><br>
@@ -92,14 +92,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="req_cred_num">Required Credits:</label>
             <input type="number" id="req_cred_num" name="req_cred_num" required><br>
 
-            <label for="status">Program Status:</label>
+            <label for="prog_stat">Program Status:</label>
             <input type="text" id="prog_stat" name="prog_stat" required><br>
 
             <button type="submit" id = "submit">Create Program</button>
          </form>
       </div>
-</body>
-</main>
+        </section>
+
+  </main>
 
 <?php require __DIR__ . '/partials/footer.php'; ?>
 
@@ -149,3 +150,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       console.log("Program form submitted ✅");
     });
 </script>
+
+<?php /* Was `</body></main>` -- closed in the wrong order, with no </html> at
+         all. The footer and the page scripts sat after </body>. */ ?>
+</body>
+</html>

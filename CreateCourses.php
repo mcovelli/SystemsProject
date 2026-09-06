@@ -65,7 +65,7 @@ $mysqli->commit();
 
     <div id="toast" class="toast hidden"></div>
 
-    <main class="page">
+    <main id="main" tabindex="-1" class="page">
         <section class="hero card">
             <div class="card-head between">
                 <div>
@@ -85,10 +85,10 @@ $mysqli->commit();
                              <select name="dept" id="dept">
                                 </select><br>
 
-                        <label for ="courseDesc">Course Description: </label>
+                        <label for="courseDesc">Course Description: </label>
                             <input type = "text" id="courseDesc" name="courseDesc" required placeholder="Introductory course with essential concepts and skills."><br>
 
-                        <label for = "credits">Credits Needed:</label>
+                        <label for="credits">Credits Needed:</label>
                             <input type = "number" id = "credits" name = "credits" required placeholder="ex. 3"><br>
 
                         <label for="courseType">Course Type: </label>

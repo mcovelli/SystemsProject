@@ -48,15 +48,20 @@
   .columns { grid-template-columns: 1.35fr .65fr; }
 }
 
-/* profile pages: sidebar + detail */
-main .grid {
+/* Profile pages: sidebar + detail. Written as `main .grid`, which happened to
+   match only the four profile pages because they are the only ones whose grid
+   sits under a <main>. That made the rule fire on page structure rather than on
+   what the element is, so giving any other page a <main> landmark would have
+   dragged this layout onto it. `.wrap.grid` is the markup those four actually
+   carry, and nothing else does. */
+.wrap.grid {
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: var(--nu-space-5);
   padding: var(--nu-space-5) var(--nu-space-4);
 }
 @media (max-width: 880px) {
-  main .grid { grid-template-columns: 1fr; }
+  .wrap.grid { grid-template-columns: 1fr; }
 }
 
 /* ---- content grids -------------------------------------------------------- */

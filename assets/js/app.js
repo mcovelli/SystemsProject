@@ -40,6 +40,59 @@
     paintToggleIcon(btn, theme);
   }
 
+  /* The ☰ Menu and the profile dropdown open on hover in CSS, which is fine
+     with a mouse and useless with a keyboard or a touchscreen -- and it shuts
+     the moment the pointer strays. Clicking the button pins it open until you
+     click away or press Escape. */
+  function initMenus() {
+    var menus = document.querySelectorAll('.menu, .dropdown');
+    if (!menus.length) return;
+
+    /* Tells the stylesheet to drop its :focus-within fallback, which is only
+       there for the case where this file never ran. */
+    document.documentElement.classList.add('js-menus');
+
+    function panelOf(menu) {
+      return menu.querySelector('.menu-content, .dropdown-content');
+    }
+
+    function close(menu) {
+      var panel = panelOf(menu);
+      if (panel) panel.classList.remove('open');
+      var btn = menu.querySelector('button');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+
+    function closeAll(except) {
+      menus.forEach(function (m) { if (m !== except) close(m); });
+    }
+
+    menus.forEach(function (menu) {
+      var btn = menu.querySelector('button');
+      var panel = panelOf(menu);
+      if (!btn || !panel) return;
+
+      btn.setAttribute('aria-expanded', 'false');
+
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var willOpen = !panel.classList.contains('open');
+        closeAll(menu);
+        panel.classList.toggle('open', willOpen);
+        btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      });
+
+      /* Clicks on the links inside must still navigate. */
+      panel.addEventListener('click', function (e) { e.stopPropagation(); });
+    });
+
+    document.addEventListener('click', function () { closeAll(null); });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeAll(null);
+    });
+  }
+
   function init() {
     var btn = document.getElementById('themeToggle');
 
@@ -61,6 +114,8 @@
       if (mq.addEventListener) mq.addEventListener('change', onChange);
       else if (mq.addListener) mq.addListener(onChange);
     }
+
+    initMenus();
 
     document.querySelectorAll('#year').forEach(function (el) {
       el.textContent = new Date().getFullYear();

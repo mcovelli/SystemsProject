@@ -150,17 +150,31 @@
   position: absolute;
   right: 0;
   left: auto;
-  top: calc(100% + 4px);
+  top: 100%;
+  margin-top: 4px;
   min-width: 168px;
   background: var(--nu-surface);
   border: 1px solid var(--nu-border);
   box-shadow: var(--nu-shadow-lift);
   border-radius: var(--nu-radius);
   z-index: 200;
-  overflow: hidden;
   padding: var(--nu-space-1);
 }
 .dropdown-content { right: auto; left: 0; }
+
+/* These used to open on :hover, and .menu is only as tall as its button -- so
+   the 4px gap below it was outside the hover target and the panel shut before
+   the pointer got there. Widening the target only moves that edge around, and
+   a hover menu is unusable by keyboard or touch regardless, so the menu now
+   opens on click: assets/js/app.js toggles .open and closes on Escape or an
+   outside click.
+
+   Without JavaScript there would be no way in at all, so :focus-within stands
+   in -- clicking or tabbing to the button focuses it and opens the panel. It
+   is disabled once app.js announces itself, or the two would fight: JS would
+   remove .open while the button still held focus. */
+html:not(.js-menus) .menu:focus-within > .menu-content,
+html:not(.js-menus) .dropdown:focus-within > .dropdown-content { display: block; }
 
 .menu-content a, .dropdown-content a {
   display: block;
@@ -174,8 +188,6 @@
   background: var(--nu-surface-sunk);
   text-decoration: none;
 }
-.menu:hover .menu-content,
-.dropdown:hover .dropdown-content,
 .menu-content.open, .dropdown-content.open { display: block; }
 
 .notification-area {
